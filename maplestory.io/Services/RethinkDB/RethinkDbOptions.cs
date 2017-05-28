@@ -10,7 +10,7 @@ namespace maplestory.io.Services.Rethink
         public string Host { get; set; }
         public int Port { get; set; }
         public int Timeout { get; set; }
-        public string Password { get; internal set; }
-        public string Username { get; internal set; }
+        public string Password { get; set; }
+        public string Username { get; set; }
     }
 }

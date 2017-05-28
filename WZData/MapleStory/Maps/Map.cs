@@ -30,7 +30,7 @@ namespace WZData.MapleStory.Maps
             WZObject mapEntry = mapWz.ResolvePath($"Map/Map{result.Id.ToString("D8")[0]}/{result.Id.ToString("D8")}.img");
 
             result.ProcessInfo(mapEntry.ResolvePath("info"));
-            result.portals = mapEntry.ResolvePath("portal").Select(Portal.Parse);
+            result.portals = mapEntry.HasChild("portal") ? mapEntry.ResolvePath("portal").Select(Portal.Parse) : new Portal[0];
 
             return result;
         }
