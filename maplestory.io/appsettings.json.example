@@ -10,6 +10,6 @@
     "Port": 28015,
     "Timeout": 100,
     "Username": "user",
-    "Password": "pass"
+    "Password": "password"
   }
 }
