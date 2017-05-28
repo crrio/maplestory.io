@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using reWZ;
 using System.IO;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 namespace maplestory.io.Services.MapleStory
 {
@@ -13,14 +14,14 @@ namespace maplestory.io.Services.MapleStory
         private readonly Dictionary<WZ, WZFile> _files;
         private readonly ILogger _logger;
 
-        public WZFactory(ILogger<WZFactory> logger)
+        public WZFactory(ILogger<WZFactory> logger, IOptions<WZOptions> options)
         {
             _logger = logger;
             _files = new Dictionary<WZ, WZFile>();
 
             _logger?.LogInformation("Caching WZ Files");
             /// TODO: Move to settings
-            string maplePath = @"C:\Nexon\Library\maplestory\appdata";
+            string maplePath = options.Value.WZPath;
             string[] fileNames = Directory.GetFiles(maplePath, "*.wz");
             IEnumerable<Tuple<WZ,WZFile>> WZFiles = fileNames
                 .Where(c => Path.GetFileNameWithoutExtension(c) != "Data")

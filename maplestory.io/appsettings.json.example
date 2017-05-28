@@ -11,5 +11,8 @@
     "Timeout": 100,
     "Username": "user",
     "Password": "password"
+  },
+  "WZ": {
+    "WZPath": "C:\\Nexon\\Library\\maplestory\\appdata"
   }
 }

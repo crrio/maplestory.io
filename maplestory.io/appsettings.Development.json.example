@@ -8,10 +8,13 @@
     }
   },
   "RethinkDb": {
-  	"Host": "localhost",
-  	"Port": 28015,
-  	"Timeout": 100,
-  	"Username": "user",
-  	"Password": "pass"
+    "Host": "localhost",
+    "Port": 28015,
+    "Timeout": 100,
+    "Username": "user",
+    "Password": "pass"
+  },
+  "WZ": {
+    "WZPath": "C:\\Nexon\\Library\\maplestory\\appdata"
   }
 }
