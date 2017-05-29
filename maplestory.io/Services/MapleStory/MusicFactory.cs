@@ -13,9 +13,9 @@ namespace maplestory.io.Services.MapleStory
         public MusicFactory(IWZFactory factory)
         {
             WZFile sounds = factory.GetWZFile(WZ.Sound);
-            allSounds = RecursiveGetSoundPath(sounds.MainDirectory).Select(c => c.Trim('/', ' ', '\\').ToLower().Replace(".img", "")).ToArray();
+            allSounds = RecursiveGetSoundPath(sounds.MainDirectory).ToArray();
             soundLookup = new Dictionary<string, Func<byte[]>>();
-            IEnumerable<Tuple<string, Func<byte[]>>> lookups = allSounds.Select(c => new Tuple<string, Func<byte[]>>(c, () => ((WZAudioProperty)sounds.ResolvePath(c)).Value));
+            IEnumerable<Tuple<string, Func<byte[]>>> lookups = allSounds.Select(c => new Tuple<string, Func<byte[]>>(c.Trim('/', ' ', '\\').ToLower().Replace(".img", ""), () => ((WZAudioProperty)sounds.ResolvePath(c)).Value));
             foreach (Tuple<string, Func<byte[]>> lookup in lookups) soundLookup.Add(lookup.Item1, lookup.Item2);
         }
 
@@ -31,9 +31,7 @@ namespace maplestory.io.Services.MapleStory
         }
 
         public byte[] GetSong(string songPath) => soundLookup[songPath.Trim('/', ' ', '\\').ToLower().Replace(".img", "")]();
-
         public string[] GetSounds() => allSounds;
-
-        public bool DoesSoundExist(string path) => allSounds.Contains(path.Trim('/', ' ', '\\').ToLower().Replace(".img", ""));
+        public bool DoesSoundExist(string path) => soundLookup.ContainsKey(path.Trim('/', ' ', '\\').ToLower().Replace(".img", ""));
     }
 }
