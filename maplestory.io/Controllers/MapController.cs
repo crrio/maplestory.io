@@ -55,7 +55,7 @@ namespace maplestory.io.Controllers
         public IActionResult GetBGM(int mapId)
         {
             Map map = _factory.GetMap(mapId);
-            return File(_musicFactory.GetSong(map.BackgroundMusic), "application/ogg");
+            return File(_musicFactory.GetSong(map.BackgroundMusic), "audio/mpeg");
         }
     }
 }
