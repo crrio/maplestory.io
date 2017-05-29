@@ -9,27 +9,27 @@ namespace WZData
     public class FrameBook
     {
         public IEnumerable<Frame> frames;
-        internal static IEnumerable<FrameBook> Parse(WZObject skills, WZObject skill, WZObject frameContainer)
+        internal static IEnumerable<FrameBook> Parse(WZObject file, WZObject container, WZObject self)
         {
-            bool isSingle = frameContainer.Any(c => c is WZCanvasProperty);
+            bool isSingle = self.Any(c => c is WZCanvasProperty);
 
             if (!isSingle)
             {
-                return frameContainer
-                    .Select(d => ParseSingle(skills, skill, d))
+                return self
+                    .Select(d => ParseSingle(file, container, d))
                     .Where(d => d.frames.Count() > 0);
             }
             else
             {
-                return new FrameBook[] { ParseSingle(skills, skill, frameContainer) };
+                return new FrameBook[] { ParseSingle(file, container, self) };
             }
         }
 
-        private static FrameBook ParseSingle(WZObject skills, WZObject skill, WZObject frameContainer)
+        private static FrameBook ParseSingle(WZObject file, WZObject container, WZObject self)
         {
             FrameBook effect = new FrameBook();
 
-            effect.frames = frameContainer
+            effect.frames = self
                 .Where(c =>
                 {
                     int frameNumber = -1;
@@ -38,7 +38,7 @@ namespace WZData
                 .OrderBy(c => int.Parse(c.Name))
                 .Select(frame =>
                 {
-                    return Frame.Parse(skills, skill, frame);
+                    return Frame.Parse(file, container, frame);
                 });
 
             return effect;

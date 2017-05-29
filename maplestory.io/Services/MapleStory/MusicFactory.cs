@@ -31,7 +31,7 @@ namespace maplestory.io.Services.MapleStory
         }
 
         public byte[] GetSong(string songPath) => soundLookup[songPath.Trim('/', ' ', '\\').ToLower().Replace(".img", "")]();
-        public string[] GetSounds() => allSounds;
+        public string[] GetSounds() => soundLookup.Keys.ToArray();
         public bool DoesSoundExist(string path) => soundLookup.ContainsKey(path.Trim('/', ' ', '\\').ToLower().Replace(".img", ""));
     }
 }

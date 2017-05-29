@@ -40,6 +40,7 @@ namespace maplestory.io
             services.AddSingleton<ISkillFactory, SkillFactory>();
             services.AddSingleton<IMusicFactory, MusicFactory>();
             services.AddSingleton<IMapFactory, MapFactory>();
+            services.AddSingleton<INPCFactory, NPCFactory>();
             services.Configure<GzipCompressionProviderOptions>(options => options.Level = System.IO.Compression.CompressionLevel.Optimal);
             services.AddResponseCompression();
             services.AddResponseCaching();

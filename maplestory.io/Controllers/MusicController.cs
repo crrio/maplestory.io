@@ -25,6 +25,17 @@ namespace maplestory.io.Controllers
         public IActionResult List() => Json(_factory.GetSounds());
 
         [Route("{*songPath}")]
-        public IActionResult Song(string songPath) => File(_factory.GetSong(songPath), "audio/mpeg");
+        public IActionResult Song(string songPath)
+        {
+            if (_factory.DoesSoundExist(songPath)) return File(_factory.GetSong(songPath), "audio/mpeg");
+
+            if (songPath.Contains("/"))
+            {
+                string[] paths = _factory.GetSounds().Where(c => c.StartsWith(songPath)).ToArray();
+                if (paths.Length > 0) return Json(paths);
+            }
+
+            return NotFound();
+        }
     }
 }

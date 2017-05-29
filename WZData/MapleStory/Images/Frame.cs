@@ -11,14 +11,14 @@ namespace WZData
         public int delay;
         public Point origin;
         public string Position;
-        internal static Frame Parse(WZObject skills, WZObject skill, WZObject frame)
+        internal static Frame Parse(WZObject file, WZObject container, WZObject self)
         {
             Frame animationFrame = new Frame();
 
-            animationFrame.image = ResolveImage(skills, skill, frame);
-            animationFrame.delay = frame.HasChild("delay") ? frame["delay"].ValueOrDefault<int>(0) : 0;
-            animationFrame.origin = frame.HasChild("origin") ? ((WZPointProperty)frame["origin"]).Value : new Point(0, 0);
-            animationFrame.Position = frame.HasChild("z") ? frame["z"].ValueOrDefault<string>("") : null;
+            animationFrame.image = ResolveImage(file, container, self);
+            animationFrame.delay = self.HasChild("delay") ? self["delay"].ValueOrDefault<int>(0) : 0;
+            animationFrame.origin = self.HasChild("origin") ? ((WZPointProperty)self["origin"]).Value : new Point(0, 0);
+            animationFrame.Position = self.HasChild("z") ? self["z"].ValueOrDefault<string>("") : null;
 
             return animationFrame;
         }
@@ -61,6 +61,11 @@ namespace WZData
                     if (outlink.StartsWith("Skill/"))
                     {
                         image = file.ResolvePath(outlink.Substring(6));
+                        hasChanged = true;
+                    }
+                    else if (outlink.StartsWith("Mob/"))
+                    {
+                        image = file.ResolvePath(outlink.Substring(4));
                         hasChanged = true;
                     }
                     else

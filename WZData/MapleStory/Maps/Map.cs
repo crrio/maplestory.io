@@ -17,7 +17,7 @@ namespace WZData.MapleStory.Maps
         public bool IsTown;
         public bool IsSwim;
         public string MapMark;
-        public bool IsMiniMap;
+        public MiniMap MiniMap;
 
         public static Map Parse(WZFile mapWz, MapName name)
         {
@@ -31,6 +31,7 @@ namespace WZData.MapleStory.Maps
 
             result.ProcessInfo(mapEntry.ResolvePath("info"));
             result.portals = mapEntry.HasChild("portal") ? mapEntry.ResolvePath("portal").Select(Portal.Parse) : new Portal[0];
+            result.MiniMap = mapEntry.HasChild("miniMap") ? result.MiniMap = MiniMap.Parse(mapEntry.ResolvePath("miniMap")) : null;
 
             return result;
         }
@@ -43,7 +44,6 @@ namespace WZData.MapleStory.Maps
             IsReturnMap = ReturnMap == 999999999;
             IsTown = info.HasChild("town") && info["town"].ValueOrDefault<int>(0) == 1;
             IsSwim = info.HasChild("swim") && info["swim"].ValueOrDefault<int>(0) == 1;
-            IsMiniMap = info.HasChild("miniMap");
             MapMark = info.HasChild("mapMark") ? info["mapMark"].ValueOrDefault<string>(null) : null;
         }
     }
