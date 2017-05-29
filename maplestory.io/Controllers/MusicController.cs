@@ -29,11 +29,8 @@ namespace maplestory.io.Controllers
         {
             if (_factory.DoesSoundExist(songPath)) return File(_factory.GetSong(songPath), "audio/mpeg");
 
-            if (songPath.Contains("/"))
-            {
-                string[] paths = _factory.GetSounds().Where(c => c.StartsWith(songPath)).ToArray();
-                if (paths.Length > 0) return Json(paths);
-            }
+            string[] paths = _factory.GetSounds().Where(c => c.StartsWith(songPath)).ToArray();
+            if (paths.Length > 0) return Json(paths);
 
             return NotFound();
         }

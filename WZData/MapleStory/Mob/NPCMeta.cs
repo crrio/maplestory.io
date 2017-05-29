@@ -157,6 +157,14 @@ namespace WZData.MapleStory.Mob
         /// Monster book ID
         /// </summary>
         public uint? MonsterBookId; // mbookID
+        /// <summary>
+        /// PDR
+        /// </summary>
+        public int PhysicalDefenseRate;
+        /// <summary>
+        /// MDR, not sure how this differs from PDR
+        /// </summary>
+        public int MagicDefenseRate;
 
         public static NPCMeta Parse(WZObject info)
         {
@@ -170,8 +178,10 @@ namespace WZData.MapleStory.Mob
             result.FlySpeed = info.HasChild("flySpeed") ? info["flySpeed"].ValueOrDefault<int>(-1) : -1;
             result.PhysicalDamage = info.HasChild("PADamage") ? info["PADamage"].ValueOrDefault<int>(-1) : -1;
             result.PhysicalDefense = info.HasChild("PDDamage") ? info["PDDamage"].ValueOrDefault<int>(-1) : -1;
+            result.PhysicalDefenseRate = info.HasChild("PDRate") ? info["PDRate"].ValueOrDefault<int>(0) : 0;
             result.MagicDamage = info.HasChild("MADamage") ? info["MADamage"].ValueOrDefault<int>(-1) : -1;
             result.MagicDefense = info.HasChild("MDDamage") ? info["MDDamage"].ValueOrDefault<int>(-1) : -1;
+            result.MagicDefenseRate = info.HasChild("MDRate") ? info["MDRate"].ValueOrDefault<int>(0) : 0;
             result.Accuracy = info.HasChild("acc") ? info["acc"].ValueOrDefault<int>(-1) : -1;
             result.Evasion = info.HasChild("eva") ? info["eva"].ValueOrDefault<int>(-1) : -1;
             result.EXP = info.HasChild("exp") ? (long)(uint)info["exp"].ValueOrDefault<int>(0) : 0;
