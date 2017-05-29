@@ -9,5 +9,6 @@ namespace maplestory.io.Services.MapleStory
     {
         byte[] GetSong(string songPath);
         string[] GetSounds();
+        bool DoesSoundExist(string path);
     }
 }

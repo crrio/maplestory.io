@@ -23,6 +23,7 @@ namespace WZData
         public FrameBook[] effect;
         public FrameBook[] hit;
         public int id;
+        public string soundPath { get => $"Skill.img/{id}"; }
         public SkillDescription description;
 
         internal static Skill Parse(WZObject skills, SkillBook book, WZObject skill, List<SkillDescription> skillDescriptions)

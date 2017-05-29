@@ -26,6 +26,8 @@ namespace maplestory.io.Services.MapleStory
         }
 
         public Job GetJob(int id) => jobs.Where(j => j.Id == id).FirstOrDefault();
+
+        public IEnumerable<Job> GetJobs() => jobs;
         public SkillBook GetSkillBook(int id) => SkillBookLookup[id]();
         public SkillDescription GetSkillDescription(int id) => skillDescriptions.Where(c => c.Id == id).FirstOrDefault();
     }

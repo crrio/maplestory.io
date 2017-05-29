@@ -20,6 +20,8 @@ namespace maplestory.io.Controllers
         {
             _factory = factory;
         }
+        [Route("")]
+        public IActionResult GetJobs() => Json(_factory.GetJobs());
         [Route("{jobId}")]
         public IActionResult GetJob(int jobId)
         {
