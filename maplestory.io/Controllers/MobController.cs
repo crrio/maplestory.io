@@ -8,23 +8,23 @@ using maplestory.io.Services.MapleStory;
 namespace maplestory.io.Controllers
 {
     [Produces("application/json")]
-    [Route("api/npc")]
-    public class NPCController : Controller
+    [Route("api/mob")]
+    public class MobController : Controller
     {
-        private INPCFactory _factory;
+        private IMobFactory _factory;
 
-        public NPCController(INPCFactory factory)
+        public MobController(IMobFactory factory)
         {
             _factory = factory;
         }
 
         [Route("")]
-        public IActionResult List() => Json(_factory.GetNPCs());
+        public IActionResult List() => Json(_factory.GetMobs());
 
-        [Route("{npcId}")]
-        public IActionResult GetNPC(int npcId)
+        [Route("{mobId}")]
+        public IActionResult GetMob(int mobId)
         {
-            return Json(_factory.GetNPC(npcId));
+            return Json(_factory.GetMob(mobId));
         }
     }
 }

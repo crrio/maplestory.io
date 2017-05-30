@@ -2,13 +2,13 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using WZData.MapleStory.Mob;
+using WZData.MapleStory.Mobs;
 
 namespace maplestory.io.Services.MapleStory
 {
-    public interface INPCFactory
+    public interface IMobFactory
     {
-        NPC GetNPC(int id);
-        IEnumerable<NPCInfo> GetNPCs();
+        Mob GetMob(int id);
+        IEnumerable<MobInfo> GetMobs();
     }
 }

@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace WZData.MapleStory.Mob
+namespace WZData.MapleStory.Mobs
 {
     public class NPCInfo
     {

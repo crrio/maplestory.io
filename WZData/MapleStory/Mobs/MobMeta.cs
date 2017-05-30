@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace WZData.MapleStory.Mob
+namespace WZData.MapleStory.Mobs
 {
     public class NPCMeta
     {
