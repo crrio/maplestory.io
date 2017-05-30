@@ -38,13 +38,13 @@ namespace maplestory.io.Controllers
             return Json(_factory.GetMapName(mapId));
         }
 
-        [Route("mark/{markName}")]
+        [Route("icon/{markName}")]
         public IActionResult GetMarkByName(string markName)
         {
             return File((byte[])new ImageConverter().ConvertTo(_factory.GetMapMark(markName).Mark, typeof(byte[])), "image/png");
         }
 
-        [Route("{mapId}/mark")]
+        [Route("{mapId}/icon")]
         public IActionResult GetMapMark(int mapId)
         {
             Map map = _factory.GetMap(mapId);
