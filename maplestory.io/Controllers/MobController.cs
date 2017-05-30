@@ -29,7 +29,7 @@ namespace maplestory.io.Controllers
             return Json(_factory.GetMob(mobId));
         }
 
-        [Route("{mobId}/image")]
+        [Route("{mobId}/icon")]
         public IActionResult GetFrame(int mobId)
         {
             Mob mobData = _factory.GetMob(mobId);

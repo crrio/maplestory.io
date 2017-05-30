@@ -31,7 +31,7 @@ namespace maplestory.io.Controllers
             return Json(_factory.GetNPC(npcId));
         }
 
-        [Route("{npcId}/image")]
+        [Route("{npcId}/icon")]
         public IActionResult GetFrame(int npcId)
         {
             NPC npcData = _factory.GetNPC(npcId);
