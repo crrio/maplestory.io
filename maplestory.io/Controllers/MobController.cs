@@ -4,6 +4,8 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using maplestory.io.Services.MapleStory;
+using WZData.MapleStory.Mobs;
+using WZData;
 
 namespace maplestory.io.Controllers
 {
@@ -25,6 +27,21 @@ namespace maplestory.io.Controllers
         public IActionResult GetMob(int mobId)
         {
             return Json(_factory.GetMob(mobId));
+        }
+
+        [Route("{mobId}/image")]
+        public IActionResult GetFrame(int mobId)
+        {
+            Mob mobData = _factory.GetMob(mobId);
+            if (!mobData.Framebooks.ContainsKey("stand")) return NotFound();
+
+            FrameBook standing = mobData.Framebooks["stand"].First();
+            if (standing == null) return NotFound();
+
+            Frame firstFrame = standing.frames.First();
+            if (firstFrame == null || firstFrame.image == null) return NotFound();
+
+            return File(firstFrame.image.ImageToByte(), "image/png");
         }
     }
 }

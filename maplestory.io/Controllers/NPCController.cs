@@ -5,6 +5,9 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using maplestory.io.Services.MapleStory;
+using WZData.MapleStory.NPC;
+using WZData;
+using System.Drawing;
 
 namespace maplestory.io.Controllers
 {
@@ -26,6 +29,21 @@ namespace maplestory.io.Controllers
         public IActionResult GetNPC(int npcId)
         {
             return Json(_factory.GetNPC(npcId));
+        }
+
+        [Route("{npcId}/image")]
+        public IActionResult GetFrame(int npcId)
+        {
+            NPC npcData = _factory.GetNPC(npcId);
+            if (!npcData.Framebooks.ContainsKey("stand")) return NotFound();
+
+            FrameBook standing = npcData.Framebooks["stand"].First();
+            if (standing == null) return NotFound();
+
+            Frame firstFrame = standing.frames.First();
+            if (firstFrame == null || firstFrame.image == null) return NotFound();
+
+            return File(firstFrame.image.ImageToByte(), "image/png");
         }
     }
 }
