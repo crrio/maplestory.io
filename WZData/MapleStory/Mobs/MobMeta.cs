@@ -6,7 +6,7 @@ using System.Text;
 
 namespace WZData.MapleStory.Mobs
 {
-    public class NPCMeta
+    public class MobMeta
     {
         /// <summary>
         /// Determines if a monster can hit you by touching you.
@@ -166,9 +166,9 @@ namespace WZData.MapleStory.Mobs
         /// </summary>
         public int MagicDefenseRate;
 
-        public static NPCMeta Parse(WZObject info)
+        public static MobMeta Parse(WZObject info)
         {
-            NPCMeta result = new NPCMeta();
+            MobMeta result = new MobMeta();
 
             result.IsBodyAttack = info.HasChild("bodyAttack") && info["bodyAttack"].ValueOrDefault<int>(-1) == 1;
             result.Level = info.HasChild("level") ? info["level"].ValueOrDefault<int>(1) : 1;

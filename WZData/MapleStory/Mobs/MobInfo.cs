@@ -4,12 +4,12 @@ using System.Text;
 
 namespace WZData.MapleStory.Mobs
 {
-    public class NPCInfo
+    public class MobInfo
     {
         public int Id;
         public string Name;
 
-        public NPCInfo(int id, string name)
+        public MobInfo(int id, string name)
         {
             Id = id;
             Name = name;

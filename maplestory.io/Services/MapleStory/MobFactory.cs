@@ -18,7 +18,6 @@ namespace maplestory.io.Services.MapleStory
             allMobMeta = mobs.Select(c => c.Item2).ToArray();
         }
         public Mob GetMob(int id) => mobLookup[id]();
-
         public IEnumerable<MobInfo> GetMobs() => allMobMeta;
     }
 }

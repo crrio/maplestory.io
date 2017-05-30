@@ -50,6 +50,5 @@ namespace WZData.MapleStory.Mobs
         private static Func<Mob> CreateLookup(WZObject mobImage, WZDirectory mobWZ, string MobName)
             => () 
             => Mob.Parse(mobImage, mobWZ, MobName);
-
     }
 }
