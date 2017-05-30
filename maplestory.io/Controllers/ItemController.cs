@@ -31,5 +31,12 @@ namespace maplestory.io.Controllers
             MapleItem eq = itemFactory.search(itemId);
             return File(eq.MetaInfo.Icon.Icon.ImageToByte(), "image/png");
         }
+        [Route("{itemId}/iconRaw")]
+
+        public IActionResult itemIconRaw(int itemId)
+        {
+            MapleItem eq = itemFactory.search(itemId);
+            return File(eq.MetaInfo.Icon.IconRaw.ImageToByte(), "image/png");
+        }
     }
 }
