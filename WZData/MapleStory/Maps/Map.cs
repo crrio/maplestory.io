@@ -13,7 +13,7 @@ namespace WZData.MapleStory.Maps
         public bool IsReturnMap;
         public int ReturnMap;
         public IEnumerable<Portal> portals;
-        public IEnumerable<MapLife> NPCs;
+        public IEnumerable<MapLife> Npcs;
         public IEnumerable<MapLife> Mobs;
 
         public bool IsTown;
@@ -36,7 +36,7 @@ namespace WZData.MapleStory.Maps
             result.MiniMap = mapEntry.HasChild("miniMap") ? result.MiniMap = MiniMap.Parse(mapEntry.ResolvePath("miniMap")) : null;
 
             IEnumerable<MapLife> life = mapEntry.HasChild("life") ? mapEntry["life"].Select(c => MapLife.Parse(c)) : null;
-            result.NPCs = life?.Where(c => c.Type == LifeType.NPC);
+            result.Npcs = life?.Where(c => c.Type == LifeType.NPC);
             result.Mobs = life?.Where(c => c.Type == LifeType.Monster);
 
             return result;
