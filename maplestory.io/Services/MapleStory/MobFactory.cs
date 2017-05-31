@@ -13,7 +13,8 @@ namespace maplestory.io.Services.MapleStory
 
         public MobFactory(IWZFactory factory)
         {
-            Tuple<int, MobInfo, Func<Mob>>[] mobs = Mob.GetLookup(factory.GetWZFile(WZ.Mob).MainDirectory, factory.GetWZFile(WZ.String).MainDirectory).ToArray();
+            Tuple<int, MobInfo, Func<Mob>>[] mobs = Mob.GetLookup(factory.GetWZFile(WZ.Mob).MainDirectory, factory.GetWZFile(WZ.String).MainDirectory)
+                .Concat(Mob.GetLookup(factory.GetWZFile(WZ.Mob2).MainDirectory, factory.GetWZFile(WZ.String).MainDirectory)).ToArray();
             mobLookup = mobs.ToDictionary(k => k.Item1, v => v.Item3);
             allMobMeta = mobs.Select(c => c.Item2).ToArray();
         }

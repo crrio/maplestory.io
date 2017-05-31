@@ -48,6 +48,7 @@ namespace maplestory.io
             services.AddSingleton<IMobFactory, MobFactory>();
             services.AddSingleton<INPCFactory, NPCFactory>();
             services.AddSingleton<IQuestFactory, QuestFactory>();
+            services.AddSingleton<ITipFactory, TipFactory>();
 
             services.AddSwaggerGen(c =>
             {
