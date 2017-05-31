@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.ResponseCompression;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Swashbuckle.AspNetCore.Swagger;
 using WZData;
 
 namespace maplestory.io
@@ -35,6 +36,7 @@ namespace maplestory.io
             services.Configure<RethinkDbOptions>(Configuration.GetSection("RethinkDb"));
             services.Configure<WZOptions>(Configuration.GetSection("WZ"));
             services.AddSingleton<IRethinkDbConnectionFactory, RethinkDbConnectionFactory>();
+
             services.AddSingleton<IWZFactory, WZFactory>();
             services.AddSingleton<IItemFactory, ItemFactory>();
             services.AddSingleton<ISkillFactory, SkillFactory>();
@@ -42,6 +44,12 @@ namespace maplestory.io
             services.AddSingleton<IMapFactory, MapFactory>();
             services.AddSingleton<IMobFactory, MobFactory>();
             services.AddSingleton<INPCFactory, NPCFactory>();
+
+            services.AddSwaggerGen(c =>
+            {
+                c.SwaggerDoc("V2", new Info { Title = "MapleStory.IO", Version = "V2", Contact = new Contact() { Email = ""andy@crr.io"", Name = "Andy", Url = "https://github.com/crrio/maplestory.io/issues" }, Description = "The unofficial MapleStory API Documentation for developers." });
+            });
+
             services.Configure<GzipCompressionProviderOptions>(options => options.Level = System.IO.Compression.CompressionLevel.Optimal);
             services.AddResponseCompression();
             services.AddResponseCaching();
@@ -74,9 +82,17 @@ namespace maplestory.io
                     template: "{controller=Home}/{action=Index}/{id?}");
             });
 
+            // Enable middleware to serve generated Swagger as a JSON endpoint.
+            app.UseSwagger();
+
+            // Enable middleware to serve swagger-ui (HTML, JS, CSS etc.), specifying the Swagger JSON endpoint.
+            app.UseSwaggerUI(c =>
+            {
+                c.SwaggerEndpoint("/api/swagger.json", "MapleStory.IO V2");
+            });
+
             using (var con = connectionFactory.CreateConnection())
                 con.CheckOpen();
-
         }
     }
 }
