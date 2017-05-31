@@ -30,7 +30,10 @@ namespace maplestory.io
         {
             // Add framework services.
             services.AddMvc()
-                .AddJsonOptions(options => options.SerializerSettings.Formatting = Newtonsoft.Json.Formatting.Indented)
+                .AddJsonOptions(options => {
+                    options.SerializerSettings.Formatting = Newtonsoft.Json.Formatting.Indented;
+                    options.SerializerSettings.NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore;
+                })
                 .AddJsonOptions(options => options.SerializerSettings.Converters.Add(new ImageConverter()));
 
             services.Configure<RethinkDbOptions>(Configuration.GetSection("RethinkDb"));
@@ -44,6 +47,7 @@ namespace maplestory.io
             services.AddSingleton<IMapFactory, MapFactory>();
             services.AddSingleton<IMobFactory, MobFactory>();
             services.AddSingleton<INPCFactory, NPCFactory>();
+            services.AddSingleton<IQuestFactory, QuestFactory>();
 
             services.AddSwaggerGen(c =>
             {

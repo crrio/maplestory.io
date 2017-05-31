@@ -22,7 +22,7 @@ namespace maplestory.io.Controllers
 
         [Route("")]
         [HttpGet]
-        [ProducesResponseType(typeof(Mob[]), 200)]
+        [ProducesResponseType(typeof(MobInfo[]), 200)]
         public IActionResult List() => Json(_factory.GetMobs());
 
         [Route("{mobId}")]
