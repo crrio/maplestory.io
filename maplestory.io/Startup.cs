@@ -88,7 +88,7 @@ namespace maplestory.io
             // Enable middleware to serve swagger-ui (HTML, JS, CSS etc.), specifying the Swagger JSON endpoint.
             app.UseSwaggerUI(c =>
             {
-                c.SwaggerEndpoint("/api/swagger.json", "MapleStory.IO V2");
+                c.SwaggerEndpoint("/swagger/V2/swagger.json", "MapleStory.IO V2");
             });
 
             using (var con = connectionFactory.CreateConnection())

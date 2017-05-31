@@ -23,6 +23,8 @@ namespace maplestory.io.Controllers
         }
 
         [Route("{serverId}/market/legacy")]
+        [HttpGet]
+        [ProducesResponseType(typeof(LegacyItem), 200)]
         public async Task<IActionResult> GetLegacyMarketData(int serverId)
         {
             DateTime mostRecentTimestamp = DateTime.MinValue;
@@ -55,6 +57,8 @@ namespace maplestory.io.Controllers
         }
 
         [Route("{serverId}/market/itemCount")]
+        [HttpGet]
+        [ProducesResponseType(typeof(int), 200)]
         public async Task<IActionResult> ItemCount(int serverId)
         {
             using (var con = this.connectionFactory.CreateConnection())
@@ -63,6 +67,8 @@ namespace maplestory.io.Controllers
         }
 
         [Route("{serverId}/market/rooms")]
+        [HttpGet]
+        [ProducesResponseType(typeof(FMRoom[]), 200)]
         public async Task<IActionResult> GetRooms(int serverId)
         {
             using (var con = this.connectionFactory.CreateConnection())
@@ -71,6 +77,8 @@ namespace maplestory.io.Controllers
         }
 
         [Route("{serverId}/market/items")]
+        [HttpGet]
+        [ProducesResponseType(typeof(WorldItem[][]), 200)]
         public async Task<IActionResult> GetRoomItems(int serverId)
         {
             using (var con = this.connectionFactory.CreateConnection())
@@ -91,6 +99,8 @@ namespace maplestory.io.Controllers
         }
 
         [Route("{serverId}/market/room/{roomId}")]
+        [HttpGet]
+        [ProducesResponseType(typeof(FMRoom[]), 200)]
         public async Task<IActionResult> GetRoom(int serverId, int roomId)
         {
             using (var con = this.connectionFactory.CreateConnection())
@@ -98,6 +108,8 @@ namespace maplestory.io.Controllers
         }
 
         [Route("{serverId}/market/room/{roomId}/items")]
+        [HttpGet]
+        [ProducesResponseType(typeof(ShopItem[]), 200)]
         public async Task<IActionResult> GetRoomItems(int serverId, int roomId)
         {
             using (var con = this.connectionFactory.CreateConnection())

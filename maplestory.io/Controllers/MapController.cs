@@ -23,28 +23,38 @@ namespace maplestory.io.Controllers
             _musicFactory = musicFactory;
         }
         [Route("")]
+        [HttpGet]
+        [ProducesResponseType(typeof(MapName[]), 200)]
         public IActionResult List()
             => Json(_factory.GetMapNames());
 
         [Route("{mapId}")]
+        [HttpGet]
+        [ProducesResponseType(typeof(Map), 200)]
         public IActionResult GetMap(int mapId)
         {
             return Json(_factory.GetMap(mapId));
         }
 
         [Route("{mapId}/name")]
+        [HttpGet]
+        [ProducesResponseType(typeof(MapName), 200)]
         public IActionResult GetMapName(int mapId)
         {
             return Json(_factory.GetMapName(mapId));
         }
 
         [Route("icon/{markName}")]
+        [HttpGet]
+        [Produces("image/png")]
         public IActionResult GetMarkByName(string markName)
         {
             return File((byte[])new ImageConverter().ConvertTo(_factory.GetMapMark(markName).Mark, typeof(byte[])), "image/png");
         }
 
         [Route("{mapId}/icon")]
+        [HttpGet]
+        [Produces("image/png")]
         public IActionResult GetMapMark(int mapId)
         {
             Map map = _factory.GetMap(mapId);
@@ -52,6 +62,8 @@ namespace maplestory.io.Controllers
         }
 
         [Route("{mapId}/bgm")]
+        [HttpGet]
+        [Produces("audio/mpeg")]
         public IActionResult GetBGM(int mapId)
         {
             Map map = _factory.GetMap(mapId);

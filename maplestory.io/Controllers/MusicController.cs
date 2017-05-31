@@ -22,9 +22,13 @@ namespace maplestory.io.Controllers
         }
 
         [Route("")]
+        [HttpGet]
+        [ProducesResponseType(typeof(string[]), 200)]
         public IActionResult List() => Json(_factory.GetSounds());
 
         [Route("{*songPath}")]
+        [HttpGet]
+        [Produces("audio/mpeg")]
         public IActionResult Song(string songPath)
         {
             if (_factory.DoesSoundExist(songPath)) return File(_factory.GetSong(songPath), "audio/mpeg");

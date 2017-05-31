@@ -23,15 +23,21 @@ namespace maplestory.io.Controllers
         }
 
         [Route("")]
+        [HttpGet]
+        [ProducesResponseType(typeof(NPC[]), 200)]
         public IActionResult List() => Json(_factory.GetNPCs());
 
         [Route("{npcId}")]
+        [HttpGet]
+        [ProducesResponseType(typeof(NPC), 200)]
         public IActionResult GetNPC(int npcId)
         {
             return Json(_factory.GetNPC(npcId));
         }
 
         [Route("{npcId}/icon")]
+        [HttpGet]
+        [Produces("image/png")]
         public IActionResult GetFrame(int npcId)
         {
             NPC npcData = _factory.GetNPC(npcId);

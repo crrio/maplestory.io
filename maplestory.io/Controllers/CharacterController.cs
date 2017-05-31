@@ -18,6 +18,8 @@ namespace maplestory.io.Controllers
         }
 
         [Route("{characterName}")]
+        [HttpGet]
+        [ProducesResponseType(typeof(Character), 200)]
         public async Task<IActionResult> GetCharacter(string characterName)
         {
             var character = await Character.GetCharacter(characterName);
@@ -25,6 +27,9 @@ namespace maplestory.io.Controllers
         }
 
         [Route("{characterName}/avatar")]
+        [HttpGet]
+        [ProducesResponseType(200)]
+        [Produces("image/png")]
         public async Task<IActionResult> GetCharacterAvatar(string characterName)
         {
             var character = await Character.GetCharacter(characterName);

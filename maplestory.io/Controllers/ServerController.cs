@@ -8,6 +8,7 @@ using maplestory.io.Services.Rethink;
 using RethinkDb.Driver;
 using maplestory.io.Models.Server;
 using RethinkDb.Driver.Net;
+using System.Drawing;
 
 namespace maplestory.io.Controllers
 {
@@ -23,6 +24,8 @@ namespace maplestory.io.Controllers
         }
 
         [Route("{serverId}")]
+        [HttpGet]
+        [ProducesResponseType(typeof(ServerInfo), 200)]
         public async Task<IActionResult> Worlds(int serverId)
         {
             using (var con = this.connectionFactory.CreateConnection())
@@ -30,6 +33,9 @@ namespace maplestory.io.Controllers
         }
 
         [Route("{name}/icon")]
+        [Produces("image/png")]
+        [HttpGet]
+        [ProducesResponseType(200)]
         public async Task<IActionResult> Worlds(string name)
         {
             using (var con = this.connectionFactory.CreateConnection())

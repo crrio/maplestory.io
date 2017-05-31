@@ -21,15 +21,22 @@ namespace maplestory.io.Controllers
         }
 
         [Route("")]
+        [HttpGet]
+        [ProducesResponseType(typeof(Mob[]), 200)]
         public IActionResult List() => Json(_factory.GetMobs());
 
         [Route("{mobId}")]
+        [HttpGet]
+        [ProducesResponseType(typeof(Mob), 200)]
         public IActionResult GetMob(int mobId)
         {
             return Json(_factory.GetMob(mobId));
         }
 
         [Route("{mobId}/icon")]
+        [HttpGet]
+        [ProducesResponseType(200)]
+        [Produces("image/png")]
         public IActionResult GetFrame(int mobId)
         {
             Mob mobData = _factory.GetMob(mobId);

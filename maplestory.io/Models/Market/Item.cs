@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using RethinkDb.Driver;
 using RethinkDb.Driver.Ast;
 using Newtonsoft.Json;
+using WZData.ItemMetaInfo;
 
 namespace maplestory.io.Models.Market
 {
@@ -39,10 +40,10 @@ namespace maplestory.io.Models.Market
         public bool only;
 
         [JsonIgnore]
-        private IconInfo internalIcon;
-        public IconInfo icon
+        private IconInfoFake internalIcon;
+        public IconInfoFake icon
         {
-            get => internalIcon ?? new IconInfo() { icon = $"/api/item/{itemId}/icon", iconRaw = $"/api/item/{itemId}/iconRaw" };
+            get => internalIcon ?? new IconInfoFake() { icon = $"/api/item/{itemId}/icon", iconRaw = $"/api/item/{itemId}/iconRaw" };
             set => internalIcon = value;
         }
         public ChairInfo chair;
@@ -205,223 +206,8 @@ namespace maplestory.io.Models.Market
     }
 
     public class PotentialModifier { public string Item1, Item2; }
-
-    public class EquipInfo
-    {
-        /// <summary>
-        /// Requires this STR before can be equipped
-        /// </summary> 
-        public int? reqSTR;
-        /// <summary>
-        /// Requires this DEX before can be equipped
-        /// </summary> 
-        public int? reqDEX;
-        /// <summary>
-        /// Requires this INT before can be equipped
-        /// </summary> 
-        public int? reqINT;
-        /// <summary>
-        /// Requires this LUK before can be equipped
-        /// </summary> 
-        public int? reqLUK;
-        /// <summary>
-        /// Requires this fame before can be equipped
-        /// </summary>
-        public int? reqPOP;
-        /// <summary>
-        /// Requires this job before can be equipped
-        /// </summary>
-        public int? reqJob;
-        /// <summary>
-        /// Requires this secondary job before can be equipped
-        /// </summary>
-        public int? reqJob2;
-        /// <summary>
-        /// Requires this special job before can be equipped
-        /// </summary>
-        public int? reqSpecJob;
-        /// <summary>
-        /// Requires this level before can be equipped
-        /// </summary>
-        public int? reqLevel;
-        /// <summary>
-        /// Unk
-        /// </summary>
-        public int? tuc;
-        /// <summary>
-        /// Increases the user's STR by
-        /// </summary>
-        public int? incSTR;
-        /// <summary>
-        /// Increases the user's DEX by
-        /// </summary>
-        public int? incDEX;
-        /// <summary>
-        /// Increases the user's INT by
-        /// </summary>
-        public int? incINT;
-        /// <summary>
-        /// Increases the user's LUK by
-        /// </summary>
-        public int? incLUK;
-        /// <summary>
-        /// Increases the user's MHP by
-        /// </summary>
-        public int? incMHP;
-        /// <summary>
-        /// Increases the user's MMP by
-        /// </summary>
-        public int? incMMP;
-        /// <summary>
-        /// Increases the user's PAD by
-        /// </summary>
-        public int? incPAD;
-        /// <summary>
-        /// Increases the user's MAD by
-        /// </summary>
-        public int? incMAD;
-        /// <summary>
-        /// Increases the user's PDD by
-        /// </summary>
-        public int? incPDD;
-        /// <summary>
-        /// Increases the user's MDD by
-        /// </summary>
-        public int? incMDD;
-        /// <summary>
-        /// Increases the user's ACC by
-        /// </summary>
-        public int? incACC;
-        /// <summary>
-        /// Increases the user's EVA by
-        /// </summary>
-        public int? incEVA;
-        /// <summary>
-        /// Increases the user's Craft by
-        /// </summary>
-        public int? incCraft;
-        /// <summary>
-        /// Increases the user's Speed by
-        /// </summary>
-        public int? incSpeed;
-        /// <summary>
-        /// Increases the user's Jump by
-        /// </summary>
-        public int? incJump;
-        /// <summary>
-        /// Is trade blocked
-        /// </summary>
-        public bool? tradeBlock;
-        /// <summary>
-        /// Is tradeblocked after equipped
-        /// </summary>
-        public bool? equipTradeBlock;
-        /// <summary>
-        /// Is an Exclusive/Unique item
-        /// </summary>
-        public string exItem;
-        /// <summary>
-        /// Increases the user's charm by this much when equipping
-        /// </summary>
-        public int? charmEXP;
-        /// <summary>
-        /// Increases the user's willpower by this much when equipping
-        /// </summary>
-        public int? willEXP;
-        /// <summary>
-        /// Increases the user's charisma by this much when equipping
-        /// </summary>
-        public int? charismaEXP;
-        /// <summary>
-        /// Increases the user's crafting by this much when equipping
-        /// </summary>
-        public int? craftEXP;
-        /// <summary>
-        /// Increases the user's insight by this much when equipping
-        /// </summary>
-        public int? senseEXP;
-        /// <summary>
-        /// The type of trading that's available
-        /// </summary>
-        public byte? tradeAvailable;
-        /// <summary>
-        /// If the item is a superior equip
-        /// </summary>
-        public bool? superiorEqp;
-        /// <summary>
-        /// The user can not put a potential on this item
-        /// </summary>
-        public bool? noPotential;
-        /// <summary>
-        /// The user can not change anything on this item
-        /// </summary>
-        public string unchangeable;
-        /// <summary>
-        /// This item has a durability
-        /// </summary>
-        public string durability;
-        /// <summary>
-        /// Is possible to move in account
-        /// </summary>
-        public bool? accountSharable;
-        public int? attack;
-        public int? attackSpeed;
-        /// <summary>
-        /// The boss damage percent this item gives
-        /// </summary>
-        public int? bdR;
-        /// <summary>
-        /// If this item has a reward for fighting against bosses
-        /// </summary>
-        public bool? bossReward;
-        /// <summary>
-        /// The ignore defense percent this item gives
-        /// </summary>
-        public int? imdR;
-
-        public string islot, vslot;
-    }
-
-    public class CashInfo
-    {
-        public bool cash;
-    }
-
-    public class CardInfo
-    {
-        public int mob;
-    }
-
-    public class SlotInfo
-    {
-        public int slotMax;
-    }
-
-    public class ChairInfo
-    {
-        public int recoveryHP;
-        public int recoveryMP;
-        public int reqLevel;
-    }
-
-    public class IconInfo
+    public class IconInfoFake
     {
         public string icon, iconRaw;
-    }
-
-    public class ShopInfo
-    {
-        /// <summary>
-        /// Sold to NPC for
-        /// </summary>
-        public int price;
-        /// <summary>
-        /// Can't be sold
-        /// </summary>
-        public bool notSale;
-        /// <summary>
-        /// Is a monster book card
-        /// </summary>
-        public bool monsterBook;
     }
 }
