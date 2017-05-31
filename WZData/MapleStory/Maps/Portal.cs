@@ -19,6 +19,7 @@ namespace WZData.MapleStory.Maps
         public string PortalName, ToName;
         public PortalType Type;
         public int ToMap, x, y;
+        public string LinkToMap => $"/map/{ToMap}";
 
         public static Portal Parse(WZObject portalData)
             => new Portal()

@@ -15,6 +15,14 @@ namespace WZData.MapleStory.Maps
         public int Foothold;
         public bool Hidden;
         public LifeType Type;
+        public string Link
+        {
+            get
+            {
+                if (this.Type == LifeType.NPC) return $"/npc/{Id}";
+                return $"/mob/{Id}";
+            }
+        }
 
         public static MapLife Parse(WZObject data)
         {
