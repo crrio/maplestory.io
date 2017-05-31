@@ -13,6 +13,8 @@ namespace WZData.MapleStory.Maps
         public bool IsReturnMap;
         public int ReturnMap;
         public IEnumerable<Portal> portals;
+        public IEnumerable<MapLife> NPCs;
+        public IEnumerable<MapLife> Mobs;
 
         public bool IsTown;
         public bool IsSwim;
@@ -32,6 +34,10 @@ namespace WZData.MapleStory.Maps
             result.ProcessInfo(mapEntry.ResolvePath("info"));
             result.portals = mapEntry.HasChild("portal") ? mapEntry.ResolvePath("portal").Select(Portal.Parse) : new Portal[0];
             result.MiniMap = mapEntry.HasChild("miniMap") ? result.MiniMap = MiniMap.Parse(mapEntry.ResolvePath("miniMap")) : null;
+
+            IEnumerable<MapLife> life = mapEntry.HasChild("life") ? mapEntry["life"].Select(c => MapLife.Parse(c)) : null;
+            result.NPCs = life?.Where(c => c.Type == LifeType.NPC);
+            result.Mobs = life?.Where(c => c.Type == LifeType.Monster);
 
             return result;
         }
