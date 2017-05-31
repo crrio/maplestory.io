@@ -46,7 +46,7 @@ namespace WZData.MapleStory.Maps
                 }
             }
             result.Foothold = data.HasChild("fh") ? data["fh"].ValueOrDefault<int>(0) : -1; // fh
-            result.Hidden = data["hide"].ValueOrDefault<int>(0) == 1; // hide
+            result.Hidden = data.HasChild("hide") && data["hide"].ValueOrDefault<int>(0) == 1; // hide
             result.Type = data["type"].ValueOrDefault<string>("").ToLower() == "n" ? LifeType.NPC : LifeType.Monster; // type
 
             return result;
