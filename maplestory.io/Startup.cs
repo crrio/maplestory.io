@@ -47,7 +47,7 @@ namespace maplestory.io
 
             services.AddSwaggerGen(c =>
             {
-                c.SwaggerDoc("V2", new Info { Title = "MapleStory.IO", Version = "V2", Contact = new Contact() { Email = ""andy@crr.io"", Name = "Andy", Url = "https://github.com/crrio/maplestory.io/issues" }, Description = "The unofficial MapleStory API Documentation for developers." });
+                c.SwaggerDoc("V2", new Info { Title = "MapleStory.IO", Version = "V2", Contact = new Contact() { Email = "andy@crr.io", Name = "Andy", Url = "https://github.com/crrio/maplestory.io/issues" }, Description = "The unofficial MapleStory API Documentation for developers." });
             });
 
             services.Configure<GzipCompressionProviderOptions>(options => options.Level = System.IO.Compression.CompressionLevel.Optimal);
