@@ -47,9 +47,9 @@ namespace maplestory.io.Controllers
             if (standing == null) return NotFound();
 
             Frame firstFrame = standing.frames.First();
-            if (firstFrame == null || firstFrame.image == null) return NotFound();
+            if (firstFrame == null || firstFrame.Image == null) return NotFound();
 
-            return File(firstFrame.image.ImageToByte(), "image/png");
+            return File(firstFrame.Image.ImageToByte(), "image/png");
         }
     }
 }

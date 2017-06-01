@@ -13,6 +13,13 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="wwwroot\api\**" />
+    <Content Remove="wwwroot\api\**" />
+    <EmbeddedResource Remove="wwwroot\api\**" />
+    <None Remove="wwwroot\api\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Content Include="appsettings.Development.json.example" />
     <Content Include="appsettings.json.example" />
   </ItemGroup>

@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Hosting;
 using System.Threading;
 using maplestory.io.Services.MapleStory;
 using WZData.MapleStory.Maps;
+using WZData.MapleStory.Characters;
 
 namespace maplestory.io
 {

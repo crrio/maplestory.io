@@ -20,6 +20,7 @@ namespace maplestory.io.Controllers.Etc
         }
 
         [Route("")]
+        [HttpGet]
         public IActionResult GetZMap() => Json(_factory.GetZMap());
     }
 }

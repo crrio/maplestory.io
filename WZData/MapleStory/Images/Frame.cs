@@ -6,21 +6,21 @@ using System.Linq;
 
 namespace WZData
 {
-    public class Frame
+    public class Frame : IFrame
     {
-        public Bitmap image;
+        public Bitmap Image { get; set; }
         public int delay;
-        public Point origin;
-        public Dictionary<string, Point> MapOffset;
-        public string Position;
+        public Point? Origin { get; set; }
+        public Dictionary<string, Point> MapOffset { get; set; }
+        public string Position { get; set; }
 
         internal static Frame Parse(WZObject file, WZObject container, WZObject self)
         {
             Frame animationFrame = new Frame();
 
-            animationFrame.image = ResolveImage(file, container, self);
+            animationFrame.Image = ResolveImage(file, container, self);
             animationFrame.delay = self.HasChild("delay") ? self["delay"].ValueOrDefault<int>(0) : 0;
-            animationFrame.origin = self.HasChild("origin") ? ((WZPointProperty)self["origin"]).Value : new Point(0, 0);
+            animationFrame.Origin = self.HasChild("origin") ? ((WZPointProperty)self["origin"]).Value : new Point(0, 0);
             animationFrame.Position = self.HasChild("z") ? self["z"].ValueOrDefault<string>("") : null;
             animationFrame.MapOffset = self.HasChild("map") ? self["map"].Select(c => new Tuple<string, Point>(c.Name, ((WZPointProperty)c).Value)).ToDictionary(b => b.Item1, b => b.Item2) : null;
 
@@ -96,5 +96,13 @@ namespace WZData
                 return null;
             }
         }
+    }
+
+    public interface IFrame
+    {
+        Bitmap Image { get; }
+        Point? Origin { get; }
+        string Position { get; }
+        Dictionary<string, Point> MapOffset { get; }
     }
 }

@@ -1,49 +1,28 @@
-using maplestory.io.Models;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Mvc;
 using System;
-using System.IO;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using maplestory.io.Services.MapleStory;
 
 namespace maplestory.io.Controllers
 {
     [Produces("application/json")]
-    [Route("api/character")]
+    [Route("api/Character")]
     public class CharacterController : Controller
     {
-        readonly string ContentRootPath;
-        public CharacterController(IHostingEnvironment env)
+        private ICharacterFactory _factory;
+
+        public CharacterController(ICharacterFactory factory)
         {
-            ContentRootPath = env.ContentRootPath;
+            _factory = factory;
         }
 
-        [Route("{characterName}")]
+        [Route("base/{skinId?}")]
         [HttpGet]
-        [ProducesResponseType(typeof(Character), 200)]
-        public async Task<IActionResult> GetCharacter(string characterName)
-        {
-            var character = await Character.GetCharacter(characterName);
-            return Json(character);
-        }
-
-        [Route("{characterName}/avatar")]
-        [HttpGet]
-        [ProducesResponseType(200)]
         [Produces("image/png")]
-        public async Task<IActionResult> GetCharacterAvatar(string characterName)
-        {
-            var character = await Character.GetCharacter(characterName);
-
-            byte[] avatarData = System.IO.File.ReadAllBytes(Path.Combine(ContentRootPath, "wwwroot", "images/no-avatar.png"));
-            try
-            {
-                avatarData = await character.GetAvatar();
-            } catch (Exception ex)
-            {
-                // Nexon's Avatar stuff is broken atm, we probably don't need to log this.
-            }
-
-            return File(avatarData, "image/png");
-        }
+        public IActionResult GetBase(int skinId = 2000)
+            => File(_factory.GetBase(skinId).ImageToByte(), "image/png");
     }
 }
