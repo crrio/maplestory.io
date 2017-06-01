@@ -131,7 +131,7 @@ namespace WZData.MapleStory.Characters
                 BodyPart result = new BodyPart();
 
                 result.Name = part.Name;
-                result.Image = ((WZCanvasProperty)part).ValueOrDefault<Bitmap>(null);
+                result.Image = ResolveImage(part);
                 result.Origin = part.HasChild("origin") ? ((WZPointProperty)part["origin"]).Value : new Point(0, 0);
                 result.Position = part.HasChild("z") ? part["z"].ValueOrDefault<string>("") : null;
                 result.MapOffset = part.HasChild("map") ? part["map"].Where(c => c is WZPointProperty).Select(c => new Tuple<string, Point>(c.Name, ((WZPointProperty)c).Value)).ToDictionary(b => b.Item1, b => b.Item2) : null;
@@ -146,6 +146,14 @@ namespace WZData.MapleStory.Characters
                     return Parse(((WZUOLProperty)part).Resolve());
                 }catch(Exception ex) { return null; }
             return null;
+        }
+
+        public static Bitmap ResolveImage(WZObject container)
+        {
+            while (container.HasChild("_inlink"))
+                container = container.ResolvePath($"../../../{container["_inlink"].ValueOrDefault<string>("")}");
+
+            return ((WZCanvasProperty)container).ValueOrDefault<Bitmap>(null);
         }
     }
 }

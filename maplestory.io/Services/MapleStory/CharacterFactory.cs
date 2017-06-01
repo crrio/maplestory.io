@@ -37,8 +37,9 @@ namespace maplestory.io.Services.MapleStory
         {
             CharacterSkin skin = GetSkin(id);
             BodyAnimation bodyAnimation = skin.Animations[animation];
-            bool hasFace = bodyAnimation.Frames[frame].HasFace ?? false;
-            Dictionary<string, BodyPart> bodyParts = bodyAnimation.Frames[frame].Parts;
+            Body bodyFrame = bodyAnimation.Frames[frame % bodyAnimation.Frames.Length];
+            bool hasFace = bodyFrame.HasFace ?? false;
+            Dictionary<string, BodyPart> bodyParts = bodyFrame.Parts;
 
             IEnumerable<IFrame> equipFrames = items.Select(itemFactory.search)
                 .Where(c => c is Equip)
@@ -48,7 +49,7 @@ namespace maplestory.io.Services.MapleStory
                 // Some equips aren't always shown, like weapons when sitting
                 .Where(c => c.FrameBooks.ContainsKey(animation) || c.FrameBooks.ContainsKey("default"))
                 .Select(c => c.FrameBooks.ContainsKey(animation) ? c.FrameBooks[animation] : c.FrameBooks["default"])
-                .Select(c => c.frames.ElementAt(frame))
+                .Select(c => c.frames.Count() <= frame ? c.frames.ElementAt(frame % c.frames.Count()) : c.frames.ElementAt(frame))
                 .SelectMany(c => c.Effects.Values);
 
             Dictionary<string, IFrame> parts = bodyParts.Values
