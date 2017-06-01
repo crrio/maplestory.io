@@ -42,6 +42,8 @@ namespace maplestory.io.Services.MapleStory
             IEnumerable<IFrame> equipFrames = items.Select(itemFactory.search)
                 .Where(c => c is Equip)
                 .Select(c => (Equip)c)
+                .GroupBy(c => c.MetaInfo.Equip.islot)
+                .Select(c => c.FirstOrDefault(b => b.MetaInfo.Cash?.cash ?? false) ?? c.First())
                 // Some equips aren't always shown, like weapons when sitting
                 .Where(c => c.FrameBooks.ContainsKey(animation) || c.FrameBooks.ContainsKey("default"))
                 .Select(c => c.FrameBooks.ContainsKey(animation) ? c.FrameBooks[animation] : c.FrameBooks["default"])
