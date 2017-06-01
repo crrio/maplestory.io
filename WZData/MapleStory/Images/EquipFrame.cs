@@ -15,13 +15,12 @@ namespace WZData.MapleStory.Images
         public static EquipFrame Parse(WZObject skills, WZObject skill, WZObject frame)
         {
             EquipFrame item = new EquipFrame();
-            item.Effects = new Dictionary<string, Frame>();
 
-            foreach (WZObject obj in frame)
-            {
-                Frame fr = Frame.Parse(skills, skill, obj);
-                item.Effects.Add(obj.Name, fr);
-            }
+            item.Effects = frame.Where(c => c is WZCanvasProperty || c is WZUOLProperty)
+                .Where(c => c.Name != "hairShade")
+                .Select(c => c is WZUOLProperty ? ((WZUOLProperty)c).ResolveFully() : c)
+                .Select(c => new Tuple<string, Frame>(c.Name, Frame.Parse(skills, skill, c)))
+                .ToDictionary(c => c.Item1, c => c.Item2);
 
             return item;
         }

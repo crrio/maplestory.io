@@ -12,11 +12,10 @@ namespace maplestory.io.Controllers
         private readonly IItemFactory itemFactory;
 
         public ItemController(IItemFactory factory)
-        {
-            itemFactory = factory;
-        }
+            => itemFactory = factory;
 
         [Route("list")]
+        [Route("")]
         [HttpGet]
         [ProducesResponseType(typeof(ItemName), 200)]
         public IActionResult List() => Json(itemFactory.GetItems());
