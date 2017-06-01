@@ -96,8 +96,8 @@ namespace maplestory.io
                 c.SwaggerEndpoint("/swagger/V2/swagger.json", "MapleStory.IO V2");
             });
 
-            using (var con = connectionFactory.CreateConnection())
-                con.CheckOpen();
+            //using (var con = connectionFactory.CreateConnection())
+            //    con.CheckOpen();
         }
     }
 }

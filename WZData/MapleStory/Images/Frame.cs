@@ -2,6 +2,7 @@
 using reWZ.WZProperties;
 using System.Drawing;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace WZData
 {
@@ -10,7 +11,9 @@ namespace WZData
         public Bitmap image;
         public int delay;
         public Point origin;
+        public Dictionary<string, Point> MapOffset;
         public string Position;
+
         internal static Frame Parse(WZObject file, WZObject container, WZObject self)
         {
             Frame animationFrame = new Frame();
@@ -19,6 +22,7 @@ namespace WZData
             animationFrame.delay = self.HasChild("delay") ? self["delay"].ValueOrDefault<int>(0) : 0;
             animationFrame.origin = self.HasChild("origin") ? ((WZPointProperty)self["origin"]).Value : new Point(0, 0);
             animationFrame.Position = self.HasChild("z") ? self["z"].ValueOrDefault<string>("") : null;
+            animationFrame.MapOffset = self.HasChild("map") ? self["map"].Select(c => new Tuple<string, Point>(c.Name, ((WZPointProperty)c).Value)).ToDictionary(b => b.Item1, b => b.Item2) : null;
 
             return animationFrame;
         }
