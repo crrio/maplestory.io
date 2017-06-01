@@ -35,7 +35,7 @@ namespace WZData.MapleStory.Characters
                         {
                             Delay = (int)(b.Where(d => d.Delay.HasValue).Select(d => d.Delay.Value).DefaultIfEmpty(0).Average()),
                             FrameNumber = b.First().FrameNumber,
-                            HasFace = b.Where(d => d.HasFace.HasValue).Any(d => d.HasFace ?? false),
+                            HasFace = b.Where(d => d.HasFace.HasValue).Any(d => d.HasFace ?? true),
                             Parts = b.Select(d => d.Parts).SelectMany(d => d).DistinctBy(d => d.Key).ToDictionary(d => d.Key, d => d.Value)
                         })
                         .ToArray()
@@ -87,7 +87,7 @@ namespace WZData.MapleStory.Characters
             Body result = new Body();
 
             result.FrameNumber = frameNumber;
-            result.HasFace = frame.HasChild("face") ? (bool?)(frame["face"].ValueOrDefault<int>(0) == 1) : null;
+            result.HasFace = frame.HasChild("face") ? (bool?)((frame["face"] is WZUInt16Property ? (((WZUInt16Property)frame["face"])?.Value ?? 0): frame["face"].ValueOrDefault<int>(0)) == 1) : null;
             result.Delay = frame.HasChild("delay") ? (int?)frame["delay"].ValueOrDefault<int>(0) : null;
             result.Parts = ResolveParts(frame);
 

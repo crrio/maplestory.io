@@ -37,6 +37,7 @@ namespace maplestory.io.Services.MapleStory
         {
             CharacterSkin skin = GetSkin(id);
             BodyAnimation bodyAnimation = skin.Animations[animation];
+            bool hasFace = bodyAnimation.Frames[frame].HasFace ?? false;
             Dictionary<string, BodyPart> bodyParts = bodyAnimation.Frames[frame].Parts;
 
             IEnumerable<IFrame> equipFrames = items.Select(itemFactory.search)
@@ -61,7 +62,9 @@ namespace maplestory.io.Services.MapleStory
                     Origin = c.Origin,
                     Position = c.Position.Replace("body", "Bd").Replace("head", "Hd")
                 }))
-                .Concat(equipFrames).ToDictionary(c => c.Position);
+                .Concat(equipFrames)
+                .Where(c => hasFace || c.Position != "face")
+                .ToDictionary(c => c.Position);
 
             Dictionary<string, Point> positions = new Dictionary<string, Point>() { { "navel", new Point(0, 0) } };
             List<IFrame> characterParts = parts.Values.ToList();

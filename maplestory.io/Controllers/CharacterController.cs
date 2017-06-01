@@ -29,11 +29,11 @@ namespace maplestory.io.Controllers
         public IActionResult GetBaseExample(int skinId = 2000)
             => File(_factory.GetBaseWithHair(skinId).ImageToByte(), "image/png");
 
-        [Route("{skinId}/{items}")]
+        [Route("{skinId}/{items}/{animation?}/{frame?}")]
         [HttpGet]
         [Produces("image/png")]
-        public IActionResult GetCharacter(int skinId, string items)
-            => File(_factory.GetCharacter(skinId, items: items
+        public IActionResult GetCharacter(int skinId, string items, string animation = "stand1", int frame = 0)
+            => File(_factory.GetCharacter(skinId, animation, frame, items: items
                     .Split(new string[] { "," }, StringSplitOptions.RemoveEmptyEntries)
                     .Where(c => int.TryParse(c, out int blah))
                     .Select(c => int.Parse(c))
