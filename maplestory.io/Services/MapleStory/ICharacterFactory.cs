@@ -14,5 +14,6 @@ namespace maplestory.io.Services.MapleStory
         Bitmap GetBase(int id, string animation = null, int frame = 0, bool showEars = false, int padding = 2);
         Bitmap GetBaseWithHair(int id, string animation = null, int frame = 0, bool showEars = false, int padding = 2, int faceId = 20305, int hairId = 37831);
         Bitmap GetCharacter(int id, string animation = null, int frame = 0, bool showEars = false, int padding = 2, params int[] items);
+        Bitmap GetCharacter(int id, string animation = null, int frame = 0, bool showEars = false, int padding = 2, params Tuple<int,string>[] items);
     }
 }

@@ -41,8 +41,9 @@ namespace maplestory.io.Controllers
         public IActionResult GetCharacter(int skinId, string items, string animation = null, int frame = 0)
             => File(_factory.GetCharacter(skinId, animation, frame, items: items
                     .Split(new string[] { "," }, StringSplitOptions.RemoveEmptyEntries)
-                    .Where(c => int.TryParse(c, out int blah))
-                    .Select(c => int.Parse(c))
+                    .Select(c => c.Split(':'))
+                    .Where(c => c.Length > 0 && int.TryParse(c[0], out int blah))
+                    .Select(c => new Tuple<int, string>(int.Parse(c[0]), c.Length > 1 ? c[1] : animation))
                     .ToArray()
                 ).ImageToByte(), "image/png");
 
