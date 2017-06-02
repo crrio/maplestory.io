@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using maplestory.io.Services.MapleStory;
+using Microsoft.Extensions.Logging;
 
 namespace maplestory.io.Controllers
 {
@@ -15,6 +16,7 @@ namespace maplestory.io.Controllers
         private ICharacterFactory _factory;
         private readonly IItemFactory _itemFactory;
         private Random rng;
+        private ILogger<WZFactory> _logging;
 
         static readonly int[] hero1h = new int[] { 1302275, 1092113, 1003797, 1042254, 1062165, 1072743, 1082543, 1102481, 1132174, 1190301 };
         static readonly int[] aran = new int[] { 1442223, 1352932, 1003797, 1042254, 1062165, 1072743, 1082543, 1102481, 1132174, 1190521 };
@@ -26,14 +28,15 @@ namespace maplestory.io.Controllers
         static readonly int[] phantom = new int[] { 1362090, 1352103, 1003800, 1042257, 1062168, 1072743, 1082543, 1102481, 1132174, 1190521 };
         static readonly int[] xenon = new int[] { 1242060, 1353004, 1003801, 1042258, 1062169, 1072743, 1082543, 1102481, 1132174, 1190201 };
         static readonly int[][] presets = new int[][] { hero1h, aran, bishop, luminous, marksman, wildhunter, cannoneer, phantom, xenon };
-        static readonly int[] hairIds = new int[] { 35350, 30830, 30800, 30330, 30120, 31220, 34120, 34240, 34560, 37950, 3800 };
-        static readonly int[] faceIds = new int[] { 20008, 20023, 20104, 20214, 20315, 20425, 20588, 20699, 23563, 21273, 2165 };
+        static readonly int[] hairIds = new int[] { 35350, 30830, 30800, 30330, 30120, 31220, 34120, 34240, 34560, 37950, 38006 };
+        static readonly int[] faceIds = new int[] { 20008, 20023, 20104, 20214, 20315, 20425, 20588, 20699, 23563, 21273, 21657 };
         static readonly int[] skinIds = new int[] { 2000, 2001, 2002, 2003, 2004, 2005, 2009, 2010, 2011, 2012, 2013 };
 
-        public CharacterController(ICharacterFactory factory, IItemFactory items)
+        public CharacterController(ICharacterFactory factory, IItemFactory items, ILogger<WZFactory> logger)
         { 
             _factory = factory;
             _itemFactory = items;
+            _logging = logger;
             rng = new Random();
         }
 
@@ -75,7 +78,9 @@ namespace maplestory.io.Controllers
             int skinSelected = skinIds[rng.Next(0, skinIds.Length - 1)];
             int hair = hairIds[rng.Next(0, hairIds.Length)];
             int face = faceIds[rng.Next(0, faceIds.Length)];
-            
+
+            _logging.LogInformation("Generating random character with: {0}", string.Join(",", itemIds.Concat(new int[] { face, hair })));
+
             return File(_factory.GetCharacter(skinSelected, "stand1", 0, false, 2,
                     itemIds.Concat(new int[] { face, hair })         
                     .Select(c => new Tuple<int, string>(c, "stand1"))
