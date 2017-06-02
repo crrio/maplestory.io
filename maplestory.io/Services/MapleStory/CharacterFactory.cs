@@ -52,7 +52,7 @@ namespace maplestory.io.Services.MapleStory
                 .Select(c => c.frames.Count() <= frame ? c.frames.ElementAt(frame % c.frames.Count()) : c.frames.ElementAt(frame))
                 .SelectMany(c => c.Effects.Values);
 
-            Dictionary<string, IFrame> parts = bodyParts.Values
+            Dictionary<string, IFrame[]> parts = bodyParts.Values
                 .Where(c => showEars || c.Name != "ear")
                 .Select(c => (IFrame)c)
                 .Concat(bodyParts.Values.Where(c => c.Position == "body" || c.Position == "head").Select(c => new BodyPart()
@@ -65,11 +65,12 @@ namespace maplestory.io.Services.MapleStory
                 }))
                 .Concat(equipFrames)
                 .Where(c => hasFace || c.Position != "face")
-                .ToDictionary(c => c.Position);
+                .GroupBy(c => c.Position)
+                .ToDictionary(c => c.First().Position, c => c.ToArray());
 
             Dictionary<string, Point> positions = new Dictionary<string, Point>() { { "navel", new Point(0, 0) } };
-            List<IFrame> characterParts = parts.Values.ToList();
-            Dictionary<string, Tuple<Point, IFrame>> elements = new Dictionary<string, Tuple<Point, IFrame>>();
+            List<IFrame> characterParts = parts.Values.SelectMany(b => b).ToList();
+            List<Tuple<string, Point, IFrame>> elements = new List<Tuple<string, Point, IFrame>>();
             bool hasCap = false;
             while (characterParts.Count > 0)
             {
@@ -92,25 +93,24 @@ namespace maplestory.io.Services.MapleStory
                 Point partOrigin = part.Origin ?? Point.Empty;
                 Point withOffset = new Point(fromAnchorPoint.X - partOrigin.X, fromAnchorPoint.Y - partOrigin.Y);
 
-                elements.Add(part.Position, new Tuple<Point, IFrame>(withOffset, part));
+                elements.Add(new Tuple<string, Point, IFrame>(part.Position, withOffset, part));
                 characterParts.Remove(part);
                 // Too lazy to find the real toggle for not showing hairOverHead, this seems to work without issue
-                hasCap = hasCap || part.Position == "cap";
+                hasCap = hasCap || part.Position == "cap" || part.Position == "capOverHair";
             }
 
-            if (hasCap && elements.ContainsKey("hairOverHead")) elements.Remove("hairOverHead");
-
-            int minX = elements.Select(c => c.Value.Item1.X).Min();
-            int maxX = elements.Select(c => c.Value.Item1.X + c.Value.Item2.Image.Width).Max();
-            int minY = elements.Select(c => c.Value.Item1.Y).Min();
-            int maxY = elements.Select(c => c.Value.Item1.Y + c.Value.Item2.Image.Height).Max();
+            int minX = elements.Select(c => c.Item2.X).Min();
+            int maxX = elements.Select(c => c.Item2.X + c.Item3.Image.Width).Max();
+            int minY = elements.Select(c => c.Item2.Y).Min();
+            int maxY = elements.Select(c => c.Item2.Y + c.Item3.Image.Height).Max();
             Size center = new Size((maxX - minX) / 2, (maxY - minY) / 2);
 
             Bitmap destination = new Bitmap((maxX - minX) + (padding * 2), (maxY - minY) + (padding * 2));
             using (Graphics g = Graphics.FromImage(destination))
             {
-                foreach (Tuple<Point, IFrame> element in zmap.Ordering.Where(c => elements.ContainsKey(c)).Select(c => elements[c]))
-                    g.DrawImage(element.Item2.Image, new Point((element.Item1.X - minX) + padding, (element.Item1.Y - minY) + padding));
+                foreach (IEnumerable<Tuple<string, Point, IFrame>> elementGroup in zmap.Ordering.Where(b => !hasCap || b != "hairOverHead").Select(c => elements.Where(i => i.Item1 == c)))
+                    foreach(Tuple<string, Point, IFrame> element in elementGroup)
+                        g.DrawImage(element.Item3.Image, new Point((element.Item2.X - minX) + padding, (element.Item2.Y - minY) + padding));
 
                 g.Flush();
             }
