@@ -18,6 +18,17 @@ namespace maplestory.io.Controllers
         private Random rng;
         private ILogger<WZFactory> _logging;
 
+
+        static readonly int[] beginner = new int[] { 20205, 37831, 1060002, 1072005, 1040002, 1302000 };
+        static readonly int[] NXPerson = new int[] { 20412, 33005, 1062055, 1002943, 1072005, 1042078, 1302000 };
+        static readonly int[][] presets = new int[][] { beginner, NXPerson, hero1h, aran, bishop, luminous, marksman, wildhunter, cannoneer, phantom, xenon };
+
+        static readonly int[] hairIds = new int[] { 35350, 30830, 30800, 30330, 30120, 31220, 34120, 34240, 34560, 37950, 38006 };
+        static readonly int[] faceIds = new int[] { 20008, 20023, 20104, 20214, 20315, 20425, 20588, 20699, 23563, 21273, 21657 };
+        static readonly int[] skinIds = new int[] { 2000, 2001, 2002, 2003, 2004, 2005, 2009, 2010, 2011, 2012, 2013 };
+        /// <summary>
+        /// These presets below have been pulled from https://github.com/stripedypaper/stripedypaper.github.io/tree/master/cube
+        /// </summary>
         static readonly int[] hero1h = new int[] { 1302275, 1092113, 1003797, 1042254, 1062165, 1072743, 1082543, 1102481, 1132174, 1190301 };
         static readonly int[] aran = new int[] { 1442223, 1352932, 1003797, 1042254, 1062165, 1072743, 1082543, 1102481, 1132174, 1190521 };
         static readonly int[] bishop = new int[] { 1372177, 1092079, 1003798, 1042255, 1062166, 1072743, 1082543, 1102481, 1132174, 1190301 };
@@ -27,12 +38,6 @@ namespace maplestory.io.Controllers
         static readonly int[] cannoneer = new int[] { 1532098, 1352922, 1003801, 1042258, 1062169, 1072743, 1082543, 1102481, 1132174, 1190301 };
         static readonly int[] phantom = new int[] { 1362090, 1352103, 1003800, 1042257, 1062168, 1072743, 1082543, 1102481, 1132174, 1190521 };
         static readonly int[] xenon = new int[] { 1242060, 1353004, 1003801, 1042258, 1062169, 1072743, 1082543, 1102481, 1132174, 1190201 };
-        static readonly int[] beginner = new int[] { 20205, 37831, 1060002, 1072005, 1040002, 1302000 };
-        static readonly int[] NXPerson = new int[] { 20412, 33005, 1062055, 1002943, 1072005, 1042078, 1302000 };
-        static readonly int[][] presets = new int[][] { beginner, NXPerson, hero1h, aran, bishop, luminous, marksman, wildhunter, cannoneer, phantom, xenon };
-        static readonly int[] hairIds = new int[] { 35350, 30830, 30800, 30330, 30120, 31220, 34120, 34240, 34560, 37950, 38006 };
-        static readonly int[] faceIds = new int[] { 20008, 20023, 20104, 20214, 20315, 20425, 20588, 20699, 23563, 21273, 21657 };
-        static readonly int[] skinIds = new int[] { 2000, 2001, 2002, 2003, 2004, 2005, 2009, 2010, 2011, 2012, 2013 };
 
         public CharacterController(ICharacterFactory factory, IItemFactory items, ILogger<WZFactory> logger)
         { 
