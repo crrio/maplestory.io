@@ -13,9 +13,15 @@ namespace maplestory.io.Controllers
     public class CharacterController : Controller
     {
         private ICharacterFactory _factory;
+        private readonly IItemFactory _itemFactory;
+        private Random rng;
 
-        public CharacterController(ICharacterFactory factory)
-            => _factory = factory;
+        public CharacterController(ICharacterFactory factory, IItemFactory items)
+        { 
+            _factory = factory;
+            _itemFactory = items;
+            rng = new Random();
+        }
 
         [Route("base/{skinId?}")]
         [HttpGet]
@@ -44,5 +50,15 @@ namespace maplestory.io.Controllers
         [HttpGet]
         [ProducesResponseType(typeof(int[]), 200)]
         public IActionResult GetSkinTypes() => Json(_factory.GetSkinIds());
+
+        [Route("random")]
+        [HttpGet]
+        [Produces("image/png")]
+        public IActionResult GetRandomCharacter()
+        {
+            byte level = (byte)rng.Next(0, byte.MaxValue);
+
+            return File(new byte[] { }, "image/png");
+        }
     }
 }

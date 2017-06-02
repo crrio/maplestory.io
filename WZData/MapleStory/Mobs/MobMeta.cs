@@ -19,11 +19,11 @@ namespace WZData.MapleStory.Mobs
         /// <summary>
         /// Mob's Max HP
         /// </summary>
-        public long MaxHP; // maxHP
+        public long? MaxHP; // maxHP
         /// <summary>
         /// Mob's Max MP
         /// </summary>
-        public long MaxMP; // maxMP
+        public long? MaxMP; // maxMP
         /// <summary>
         /// Movement speed, only for ground monsters
         /// </summary>
@@ -172,8 +172,8 @@ namespace WZData.MapleStory.Mobs
 
             result.IsBodyAttack = info.HasChild("bodyAttack") && info["bodyAttack"].ValueOrDefault<int>(-1) == 1;
             result.Level = info.HasChild("level") ? info["level"].ValueOrDefault<int>(1) : 1;
-            result.MaxHP = info.HasChild("maxHP") ? (long)(uint)info["maxHP"].ValueOrDefault<int>(0) : -1;
-            result.MaxMP = info.HasChild("maxMP") ? (long)(uint)info["maxMP"].ValueOrDefault<int>(0) : -1;
+            result.MaxHP = info.HasChild("maxHP") && info["maxHP"] is WZInt32Property ? (long?)(uint)info["maxHP"].ValueOrDefault<int>(-1) : null;
+            result.MaxMP = info.HasChild("maxMP") && info["maxMP"] is WZInt32Property ? (long?)(uint)info["maxMP"].ValueOrDefault<int>(-1) : null;
             result.Speed = info.HasChild("speed") ? info["speed"].ValueOrDefault<int>(-1) : -1;
             result.FlySpeed = info.HasChild("flySpeed") ? info["flySpeed"].ValueOrDefault<int>(-1) : -1;
             result.PhysicalDamage = info.HasChild("PADamage") ? info["PADamage"].ValueOrDefault<int>(-1) : -1;

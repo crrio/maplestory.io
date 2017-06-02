@@ -40,9 +40,12 @@ namespace maplestory.io.Controllers
         public IActionResult GetFrame(int mobId)
         {
             Mob mobData = _factory.GetMob(mobId);
-            if (!mobData.Framebooks.ContainsKey("stand")) return NotFound();
 
-            FrameBook standing = mobData.Framebooks["stand"].First();
+            string animation = mobData.Framebooks.ContainsKey("stand") ? "stand" : mobData.Framebooks.ContainsKey("fly") ? "fly" : null;
+
+            if (animation == null) return NotFound();
+
+            FrameBook standing = mobData.Framebooks[animation].First();
             if (standing == null) return NotFound();
 
             Frame firstFrame = standing.frames.First();
