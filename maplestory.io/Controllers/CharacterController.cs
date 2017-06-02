@@ -31,8 +31,8 @@ namespace maplestory.io.Controllers
         /// These presets above have been pulled from https://github.com/stripedypaper/stripedypaper.github.io/tree/master/cube
         /// </summary>
 
-        static readonly int[] beginner = new int[] { 20205, 37831, 1060002, 1072005, 1040002, 1302000 };
-        static readonly int[] NXPerson = new int[] { 20412, 33005, 1062055, 1002943, 1072005, 1042078, 1302000 };
+        static readonly int[] beginner = new int[] { 1060002, 1072005, 1040002, 1302000 };
+        static readonly int[] NXPerson = new int[] { 1062055, 1002943, 1072005, 1042078, 1302000 };
         static readonly int[][] presets = new int[][] { beginner, NXPerson, hero1h, aran, bishop, luminous, marksman, wildhunter, cannoneer, phantom, xenon };
 
         static readonly int[] hairIds = new int[] { 35350, 30830, 30800, 30330, 30120, 31220, 34120, 34240, 34560, 37950, 38006 };
