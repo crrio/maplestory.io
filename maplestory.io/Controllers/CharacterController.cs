@@ -88,9 +88,9 @@ namespace maplestory.io.Controllers
 
             _logging.LogInformation("Generating random character with: {0}", string.Join(",", itemIds.Concat(new int[] { face, hair })));
 
-            return File(_factory.GetCharacter(skinSelected, "stand1", 0, false, 2,
+            return File(_factory.GetCharacter(skinSelected, null, 0, false, 2,
                     itemIds.Concat(new int[] { face, hair })         
-                    .Select(c => new Tuple<int, string>(c, "stand1"))
+                    .Select(c => new Tuple<int, string>(c, null))
                     .ToArray()
                 ).ImageToByte(), "image/png");
         }
