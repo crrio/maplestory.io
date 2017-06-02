@@ -27,23 +27,31 @@ namespace maplestory.io.Services.MapleStory
 
         public int[] GetSkinIds() => skins.Keys.ToArray();
 
-        public Bitmap GetBase(int id, string animation = "stand1", int frame = 0, bool showEars = false, int padding = 2)
+        public Bitmap GetBase(int id, string animation = null, int frame = 0, bool showEars = false, int padding = 2)
             => GetCharacter(id, animation, frame, showEars, padding);
 
-        public Bitmap GetBaseWithHair(int id, string animation = "stand1", int frame = 0, bool showEars = false, int padding = 2, int faceId = 20305, int hairId = 37831)
+        public Bitmap GetBaseWithHair(int id, string animation = null, int frame = 0, bool showEars = false, int padding = 2, int faceId = 20305, int hairId = 37831)
             => GetCharacter(id, animation, frame, showEars, padding, faceId, hairId);
 
-        public Bitmap GetCharacter(int id, string animation = "stand1", int frame = 0, bool showEars = false, int padding = 2, params int[] items)
+        public Bitmap GetCharacter(int id, string animation = null, int frame = 0, bool showEars = false, int padding = 2, params int[] items)
         {
+            IEnumerable<Equip> equips = items.Select(itemFactory.search)
+                .Where(c => c is Equip)
+                .Select(c => (Equip)c).ToArray();
+
+            if (animation == null)
+            {
+                Equip weapon = equips.Where(c => c.EquipGroup == "Weapon").FirstOrDefault();
+                animation = weapon?.FrameBooks.Select(c => c.Key).Where(c => c.Contains("stand")).FirstOrDefault() ?? "stand1";
+            }
+
             CharacterSkin skin = GetSkin(id);
             BodyAnimation bodyAnimation = skin.Animations[animation];
             Body bodyFrame = bodyAnimation.Frames[frame % bodyAnimation.Frames.Length];
             bool hasFace = bodyFrame.HasFace ?? false;
             Dictionary<string, BodyPart> bodyParts = bodyFrame.Parts;
 
-            IEnumerable<IFrame> equipFrames = items.Select(itemFactory.search)
-                .Where(c => c is Equip)
-                .Select(c => (Equip)c)
+            IEnumerable<IFrame> equipFrames = equips
                 .GroupBy(c => c.MetaInfo.Equip.islot)
                 .Select(c => c.FirstOrDefault(b => b.MetaInfo.Cash?.cash ?? false) ?? c.First())
                 // Some equips aren't always shown, like weapons when sitting

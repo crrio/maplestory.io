@@ -38,7 +38,7 @@ namespace maplestory.io.Controllers
         [Route("{skinId}/{items}/{animation?}/{frame?}")]
         [HttpGet]
         [Produces("image/png")]
-        public IActionResult GetCharacter(int skinId, string items, string animation = "stand1", int frame = 0)
+        public IActionResult GetCharacter(int skinId, string items, string animation = null, int frame = 0)
             => File(_factory.GetCharacter(skinId, animation, frame, items: items
                     .Split(new string[] { "," }, StringSplitOptions.RemoveEmptyEntries)
                     .Where(c => int.TryParse(c, out int blah))

@@ -17,12 +17,13 @@ namespace WZData.MapleStory.Items
         public const string StringPath = "Eqp.img/Eqp";
 
         public Dictionary<string, EquipFrameBook> FrameBooks;
+        public string EquipGroup;
 
-        public Equip(int id) : base(id) { FrameBooks = new Dictionary<string, EquipFrameBook>(); }
+        public Equip(int id, string group) : base(id) { FrameBooks = new Dictionary<string, EquipFrameBook>(); EquipGroup = group; }
 
         public static Equip Parse(WZDirectory characterWz, WZObject stringItem, string group, int id, WZDirectory stringWz, bool showEffects = true)
         {
-            Equip item = new Equip(id);
+            Equip item = new Equip(id, group);
             try
             {
                 WZObject characterItem = characterWz.ResolvePath(Path.Combine(group, $"{id.ToString("D8")}.img"));
