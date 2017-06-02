@@ -16,6 +16,20 @@ namespace maplestory.io.Controllers
         private readonly IItemFactory _itemFactory;
         private Random rng;
 
+        static readonly int[] hero1h = new int[] { 1302275, 1092113, 1003797, 1042254, 1062165, 1072743, 1082543, 1102481, 1132174, 1190301 };
+        static readonly int[] aran = new int[] { 1442223, 1352932, 1003797, 1042254, 1062165, 1072743, 1082543, 1102481, 1132174, 1190521 };
+        static readonly int[] bishop = new int[] { 1372177, 1092079, 1003798, 1042255, 1062166, 1072743, 1082543, 1102481, 1132174, 1190301 };
+        static readonly int[] luminous = new int[] { 1212063, 1352403, 1003798, 1042255, 1062166, 1072743, 1082543, 1102481, 1132174, 1190521 };
+        static readonly int[] marksman = new int[] { 1462193, 1352272, 1003799, 1042256, 1062167, 1072743, 1082543, 1102481, 1132174, 1190301 };
+        static readonly int[] wildhunter = new int[] { 1462193, 1352962, 1003799, 1042256, 1062167, 1072743, 1082543, 1102481, 1132174, 1190601 };
+        static readonly int[] cannoneer = new int[] { 1532098, 1352922, 1003801, 1042258, 1062169, 1072743, 1082543, 1102481, 1132174, 1190301 };
+        static readonly int[] phantom = new int[] { 1362090, 1352103, 1003800, 1042257, 1062168, 1072743, 1082543, 1102481, 1132174, 1190521 };
+        static readonly int[] xenon = new int[] { 1242060, 1353004, 1003801, 1042258, 1062169, 1072743, 1082543, 1102481, 1132174, 1190201 };
+        static readonly int[][] presets = new int[][] { hero1h, aran, bishop, luminous, marksman, wildhunter, cannoneer, phantom, xenon };
+        static readonly int[] hairIds = new int[] { 35350, 30830, 30800, 30330, 30120, 31220, 34120, 34240, 34560, 37950, 3800 };
+        static readonly int[] faceIds = new int[] { 20008, 20023, 20104, 20214, 20315, 20425, 20588, 20699, 23563, 21273, 2165 };
+        static readonly int[] skinIds = new int[] { 2000, 2001, 2002, 2003, 2004, 2005, 2009, 2010, 2011, 2012, 2013 };
+
         public CharacterController(ICharacterFactory factory, IItemFactory items)
         { 
             _factory = factory;
@@ -57,9 +71,16 @@ namespace maplestory.io.Controllers
         [Produces("image/png")]
         public IActionResult GetRandomCharacter()
         {
-            byte level = (byte)rng.Next(0, byte.MaxValue);
-
-            return File(new byte[] { }, "image/png");
+            int[] itemIds = presets[rng.Next(0, presets.Length - 1)];
+            int skinSelected = skinIds[rng.Next(0, skinIds.Length - 1)];
+            int hair = hairIds[rng.Next(0, hairIds.Length)];
+            int face = faceIds[rng.Next(0, faceIds.Length)];
+            
+            return File(_factory.GetCharacter(skinSelected, "stand1", 0, false, 2,
+                    itemIds.Concat(new int[] { face, hair })         
+                    .Select(c => new Tuple<int, string>(c, "stand1"))
+                    .ToArray()
+                ).ImageToByte(), "image/png");
         }
     }
 }
