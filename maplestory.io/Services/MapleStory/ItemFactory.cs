@@ -19,13 +19,13 @@ namespace maplestory.io.Services.MapleStory
     public class ItemFactory : IItemFactory
     {
         private readonly Dictionary<int, Func<MapleItem>> itemLookup;
-        private readonly List<ItemName> itemDb;
+        private readonly List<ItemNameInfo> itemDb;
         private readonly ILogger<ItemFactory> _logger;
         Thread backgroundCaching;
 
         public ItemFactory(IWZFactory factory, ILogger<ItemFactory> logger, IHostingEnvironment env)
         {
-            itemDb = new List<ItemName>();
+            itemDb = new List<ItemNameInfo>();
             _logger = logger;
 
             Stopwatch watch = Stopwatch.StartNew();
@@ -44,7 +44,7 @@ namespace maplestory.io.Services.MapleStory
             _logger.LogInformation($"Cached {itemLookup.Count} item lookups, took {watch.ElapsedMilliseconds}ms");
             _logger.LogInformation($"Caching {itemLookup.Count} high level item information");
             watch.Restart();
-            itemDb = ItemName.GetNames(factory.GetWZFile(WZ.String)).ToList();
+            itemDb = ItemNameInfo.GetNames(factory.GetWZFile(WZ.String)).ToList();
             _logger.LogInformation($"Cached {itemLookup.Count} items, took {watch.ElapsedMilliseconds}ms");
             watch.Stop();
 
@@ -82,7 +82,7 @@ namespace maplestory.io.Services.MapleStory
             _logger.LogInformation("Completed background caching of item meta info, took {0}", watch.ElapsedMilliseconds);
         }
 
-        public IEnumerable<ItemName> GetItems() => itemDb;
+        public IEnumerable<ItemNameInfo> GetItems() => itemDb;
         public MapleItem search(int id) => itemLookup[id]();
     }
 }

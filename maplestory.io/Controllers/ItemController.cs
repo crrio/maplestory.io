@@ -17,7 +17,7 @@ namespace maplestory.io.Controllers
         [Route("list")]
         [Route("")]
         [HttpGet]
-        [ProducesResponseType(typeof(ItemName), 200)]
+        [ProducesResponseType(typeof(ItemNameInfo), 200)]
         public IActionResult List() => Json(itemFactory.GetItems());
 
         [Route("{itemId}")]
