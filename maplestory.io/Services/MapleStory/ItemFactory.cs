@@ -12,6 +12,7 @@ using WZData.MapleStory.Items;
 using System.Linq;
 using reWZ.WZProperties;
 using System.Threading;
+using Microsoft.AspNetCore.Hosting;
 
 namespace maplestory.io.Services.MapleStory
 {
@@ -22,7 +23,7 @@ namespace maplestory.io.Services.MapleStory
         private readonly ILogger<ItemFactory> _logger;
         Thread backgroundCaching;
 
-        public ItemFactory(IWZFactory factory, ILogger<ItemFactory> logger)
+        public ItemFactory(IWZFactory factory, ILogger<ItemFactory> logger, IHostingEnvironment env)
         {
             itemDb = new List<ItemName>();
             _logger = logger;
@@ -47,8 +48,11 @@ namespace maplestory.io.Services.MapleStory
             _logger.LogInformation($"Cached {itemLookup.Count} items, took {watch.ElapsedMilliseconds}ms");
             watch.Stop();
 
-            backgroundCaching = new Thread(cacheItems);
-            backgroundCaching.Start();
+            if (!env.IsDevelopment())
+            {
+                backgroundCaching = new Thread(cacheItems);
+                backgroundCaching.Start();
+            }
         }
 
         void cacheItems()
