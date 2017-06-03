@@ -36,11 +36,15 @@ namespace WZData.MapleStory.Items
                 {
                     foreach (WZObject obj in characterItem)
                     {
-                        int frameTest = 0;
-                        if (isOnlyDefault = (obj.Type == WZObjectType.Canvas || int.TryParse(obj.Name, out frameTest))) break;
-                        if (obj.Name.Equals("info")) continue;
+                        try
+                        {
+                            int frameTest = 0;
+                            if (isOnlyDefault = (obj.Type == WZObjectType.Canvas || int.TryParse(obj.Name, out frameTest))) break;
+                            if (obj.Name.Equals("info")) continue;
 
-                        item.FrameBooks.Add(obj.Name, EquipFrameBook.Parse(characterWz, characterItem, obj));
+                            item.FrameBooks.Add(obj.Name, EquipFrameBook.Parse(characterWz, characterItem, obj));
+                        }
+                        catch (Exception) { }
                     }
 
                     if (isOnlyDefault)
