@@ -39,6 +39,7 @@ namespace reWZ
     /// </summary>
     public sealed class WZFile : IDisposable
     {
+        public bool InUse;
         byte[] underlyingData;
         internal WZAES _aes;
         internal readonly bool _encrypted;
@@ -59,7 +60,7 @@ namespace reWZ
         /// <param name="encrypted"> Whether the WZ file is encrypted outside a WZ image. </param>
         /// <param name="flag"> WZ parsing flags. </param>
         public WZFile(string path, WZVariant variant, bool encrypted, WZReadSelection flag = WZReadSelection.None)
-            : this(File.ReadAllBytes(path), variant, encrypted, flag)
+            : this(new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read, 6144, FileOptions.RandomAccess), variant, encrypted, flag)
         {
             _disposeStream = true;
         }
@@ -71,10 +72,9 @@ namespace reWZ
         /// <param name="variant"> The variant of this WZ file. </param>
         /// <param name="encrypted"> Whether the WZ file is encrypted outside a WZ image. </param>
         /// <param name="flag"> WZ parsing flags. </param>
-        public WZFile(byte[] input, WZVariant variant, bool encrypted, WZReadSelection flag = WZReadSelection.None)
+        public WZFile(Stream input, WZVariant variant, bool encrypted, WZReadSelection flag = WZReadSelection.None)
         {
-            underlyingData = input;
-            _file = new MemoryStream(input);
+            _file = input;
             _variant = variant;
             _encrypted = encrypted;
             _flag = flag;

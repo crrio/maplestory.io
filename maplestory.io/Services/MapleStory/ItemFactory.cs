@@ -30,11 +30,11 @@ namespace maplestory.io.Services.MapleStory
             Stopwatch watch = Stopwatch.StartNew();
             _logger.LogInformation("Caching item lookup table");
 
-            itemLookup = Equip.GetLookup(factory.GetWZFile(WZ.Character).MainDirectory, factory.GetWZFile(WZ.String).MainDirectory)
-            .Concat(Consume.GetLookup(factory.GetWZFile(WZ.Item).MainDirectory, factory.GetWZFile(WZ.String).MainDirectory))
-            .Concat(Etc.GetLookup(factory.GetWZFile(WZ.Item).MainDirectory, factory.GetWZFile(WZ.String).MainDirectory))
-            .Concat(Install.GetLookup(factory.GetWZFile(WZ.Item).MainDirectory, factory.GetWZFile(WZ.String).MainDirectory))
-            .Concat(Cash.GetLookup(factory.GetWZFile(WZ.Item).MainDirectory, factory.GetWZFile(WZ.String).MainDirectory))
+            itemLookup = Equip.GetLookup(factory.AsyncGetWZFile(WZ.Character), factory.GetWZFile(WZ.String))
+            .Concat(Consume.GetLookup(factory.AsyncGetWZFile(WZ.Item), factory.GetWZFile(WZ.String).MainDirectory))
+            .Concat(Etc.GetLookup(factory.AsyncGetWZFile(WZ.Item), factory.GetWZFile(WZ.String).MainDirectory))
+            .Concat(Install.GetLookup(factory.AsyncGetWZFile(WZ.Item), factory.GetWZFile(WZ.String).MainDirectory))
+            .Concat(Cash.GetLookup(factory.AsyncGetWZFile(WZ.Item), factory.GetWZFile(WZ.String).MainDirectory))
             .Concat(Pet.GetLookup(factory.GetWZFile(WZ.Item).MainDirectory, factory.GetWZFile(WZ.String).MainDirectory))
                 .DistinctBy((p) => p.Item1)
                 .ToDictionary(a => a.Item1, a => a.Item2);
@@ -46,9 +46,6 @@ namespace maplestory.io.Services.MapleStory
             itemDb = ItemName.GetNames(factory.GetWZFile(WZ.String)).ToList();
             _logger.LogInformation($"Cached {itemLookup.Count} items, took {watch.ElapsedMilliseconds}ms");
             watch.Stop();
-
-            backgroundCaching = new Thread(cacheItems);
-            backgroundCaching.Start();
         }
 
         void cacheItems()

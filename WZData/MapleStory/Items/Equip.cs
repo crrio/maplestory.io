@@ -6,6 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
+using reWZ;
 
 namespace WZData.MapleStory.Items
 {
@@ -65,16 +66,7 @@ namespace WZData.MapleStory.Items
             return null;
         }
 
-        public static IEnumerable<Equip> Parse(WZDirectory characterWz, WZDirectory stringWz)
-        {
-            int id = -1;
-            foreach (WZObject idGrouping in stringWz.ResolvePath(StringPath))
-                foreach (WZObject item in idGrouping)
-                    if (int.TryParse(item.Name, out id))
-                        yield return Equip.Parse(characterWz, item, idGrouping.Name, id, stringWz);
-        }
-
-        public static IEnumerable<Tuple<int, Func<MapleItem>>> GetLookup(WZDirectory characterWz, WZDirectory stringWz)
+        public static IEnumerable<Tuple<int, Func<MapleItem>>> GetLookup(Func<Func<WZFile, MapleItem>, MapleItem> characterWz, WZFile stringWz)
         {
             int id = -1;
             foreach (WZObject idGrouping in stringWz.ResolvePath(StringPath))
@@ -83,8 +75,8 @@ namespace WZData.MapleStory.Items
                         yield return new Tuple<int, Func<MapleItem>>(id, CreateLookup(characterWz, item, idGrouping.Name, id, stringWz).Memoize());
         }
 
-        private static Func<MapleItem> CreateLookup(WZDirectory characterWz, WZObject item, string idGroupingName, int id, WZDirectory stringWz)
+        private static Func<MapleItem> CreateLookup(Func<Func<WZFile, MapleItem>, MapleItem> characterWzCallback, WZObject item, string idGroupingName, int id, WZFile stringWz)
             => ()
-            => Equip.Parse(characterWz, item, idGroupingName, id, stringWz, true);
+            => characterWzCallback((characterWz) => Equip.Parse(characterWz.MainDirectory, item, idGroupingName, id, stringWz.MainDirectory, true));
     }
 }

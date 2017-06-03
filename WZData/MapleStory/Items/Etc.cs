@@ -1,4 +1,5 @@
-﻿using reWZ.WZProperties;
+﻿using reWZ;
+using reWZ.WZProperties;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -16,45 +17,33 @@ namespace WZData.MapleStory.Items
 
         public Etc(int id) : base(id) { }
 
-        public static Etc Parse(WZDirectory itemWz, WZObject cashItem, int id, WZDirectory stringWz)
+        public static Etc Parse(WZDirectory itemWz, WZObject itemStringEntry, int id, WZDirectory stringWz)
         {
             Etc item = new Etc(id);
 
-            if (cashItem.HasChild("info")) item.MetaInfo = ItemInfo.Parse(itemWz, cashItem["info"]);
-
+            WZObject itemWzEntry = null;
             try
             {
-                WZObject stringInfo = stringWz.ResolvePath(Path.Combine(StringPath, id.ToString()));
-                item.Description = ItemDescription.Parse(stringInfo, StringPath);
+                itemWzEntry = itemWz.ResolvePath($"Etc/{id.ToString("D8").Substring(0, 4)}.img/{id.ToString("D8")}");
             }
-            catch (Exception)
-            {
-                // Sometimes they just don't have a name for items :/
-            }
+            catch (Exception) { return null; }
+
+            if (itemWzEntry.HasChild("info")) item.MetaInfo = ItemInfo.Parse(itemWz, itemWzEntry["info"]);
+            item.Description = ItemDescription.Parse(itemStringEntry, StringPath);
 
             return item;
         }
 
-        public static IEnumerable<Etc> Parse(WZDirectory itemWz, WZDirectory stringWz)
+        public static IEnumerable<Tuple<int, Func<MapleItem>>> GetLookup(Func<Func<WZFile, MapleItem>, MapleItem> itemWzCallback, WZDirectory stringWz)
         {
             int id = -1;
-            foreach (WZObject idGrouping in itemWz.ResolvePath(FolderPath))
-                foreach (WZObject item in idGrouping)
+            foreach(WZObject item in stringWz.ResolvePath(StringPath))
                     if (int.TryParse(item.Name, out id))
-                        yield return Etc.Parse(itemWz, item, id, stringWz);
+                        yield return new Tuple<int, Func<MapleItem>>(id, CreateLookup(itemWzCallback, item, id, stringWz).Memoize());
         }
 
-        public static IEnumerable<Tuple<int, Func<MapleItem>>> GetLookup(WZDirectory itemWz, WZDirectory stringWz)
-        {
-            int id = -1;
-            foreach (WZObject idGrouping in itemWz.ResolvePath(FolderPath))
-                foreach (WZObject item in idGrouping)
-                    if (int.TryParse(item.Name, out id))
-                        yield return new Tuple<int, Func<MapleItem>>(id, CreateLookup(itemWz, item, id, stringWz).Memoize());
-        }
-
-        private static Func<MapleItem> CreateLookup(WZDirectory itemWz, WZObject item, int id, WZDirectory stringWz)
+        private static Func<MapleItem> CreateLookup(Func<Func<WZFile, MapleItem>, MapleItem> itemWzCallback, WZObject item, int id, WZDirectory stringWz)
             => ()
-            => Etc.Parse(itemWz, item, id, stringWz);
+            => itemWzCallback(itemWz => Etc.Parse(itemWz.MainDirectory, item, id, stringWz));
     }
 }

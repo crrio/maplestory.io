@@ -6,44 +6,74 @@ using reWZ;
 using System.IO;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using WZData;
 
 namespace maplestory.io.Services.MapleStory
 {
-    public class WZFactory : IWZFactory
+    public class WZFactory : IWZFactory, IDisposable
     {
-        private readonly Dictionary<WZ, WZFile> _files;
+        private readonly Dictionary<WZ, Tuple<string, List<WZFile>>> _files;
         private readonly ILogger _logger;
 
         public WZFactory(ILogger<WZFactory> logger, IOptions<WZOptions> options)
         {
             _logger = logger;
-            _files = new Dictionary<WZ, WZFile>();
+            _files = new Dictionary<WZ, Tuple<string, List<WZFile>>>();
 
             _logger?.LogInformation("Caching WZ Files");
-            /// TODO: Move to settings
             string maplePath = options.Value.WZPath;
             string[] fileNames = Directory.GetFiles(maplePath, "*.wz");
-            IEnumerable<Tuple<WZ, WZFile>> WZFiles = fileNames
+            IEnumerable<Tuple<WZ, string, WZFile>> WZFiles = fileNames
                 .Where(c => Path.GetFileNameWithoutExtension(c) != "Data")
-                .Select(c => new Tuple<WZ, WZFile>((WZ)Enum.Parse(typeof(WZ), Path.GetFileNameWithoutExtension(c), true), new WZFile(c, WZVariant.GMS, false)));
-            foreach (Tuple<WZ, WZFile> file in WZFiles) _files.Add(file.Item1, file.Item2);
+                .Select(c => new Tuple<WZ, string, WZFile>((WZ)Enum.Parse(typeof(WZ), Path.GetFileNameWithoutExtension(c), true), c, new WZFile(c, WZVariant.GMS, false)));
+            foreach (Tuple<WZ, string, WZFile> file in WZFiles) _files.Add(file.Item1, new Tuple<string, List<WZFile>>(file.Item2, new List<WZFile>() { file.Item3 }));
             _logger?.LogInformation($"Found {_files.Count} WZFiles");
         }
 
         public WZFactory(string wzPath)
         {
-            _files = new Dictionary<WZ, WZFile>();
+            _files = new Dictionary<WZ, Tuple<string, List<WZFile>>>();
 
-            _logger?.LogInformation("Caching WZ Files");
-            /// TODO: Move to settings
             string maplePath = wzPath;
             string[] fileNames = Directory.GetFiles(maplePath, "*.wz");
-            IEnumerable<Tuple<WZ, WZFile>> WZFiles = fileNames
+            IEnumerable<Tuple<WZ, string, WZFile>> WZFiles = fileNames
                 .Where(c => Path.GetFileNameWithoutExtension(c) != "Data")
-                .Select(c => new Tuple<WZ, WZFile>((WZ)Enum.Parse(typeof(WZ), Path.GetFileNameWithoutExtension(c), true), new WZFile(c, WZVariant.GMS, false)));
-            foreach (Tuple<WZ, WZFile> file in WZFiles) _files.Add(file.Item1, file.Item2);
+                .Select(c => new Tuple<WZ, string, WZFile>((WZ)Enum.Parse(typeof(WZ), Path.GetFileNameWithoutExtension(c), true), c, new WZFile(c, WZVariant.GMS, false)));
+            foreach (Tuple<WZ, string, WZFile> file in WZFiles) _files.Add(file.Item1, new Tuple<string, List<WZFile>>(file.Item2, new List<WZFile>() { file.Item3 }));
         }
 
-        public WZFile GetWZFile(WZ file) => _files[file];
+        public WZFile GetWZFile(WZ file)
+            => _files[file].Item2.First();
+
+        public Func<Func<WZFile, MapleItem>, MapleItem> AsyncGetWZFile(WZ file)
+        {
+            return (a) =>
+            {
+                WZFile wz = _files[file].Item2.FirstOrDefault(c => !c.InUse);
+                if (wz == null)
+                {
+                    _logger?.LogInformation($"Provisioning new {file}");
+                    wz = new WZFile(_files[file].Item1, WZVariant.GMS, false);
+                    wz.InUse = true;
+                    _files[file].Item2.Add(wz);
+                } else
+                    wz.InUse = true;
+                try
+                {
+                    MapleItem result = a(wz);
+                    return result;
+                } finally
+                {
+                    wz.InUse = false;
+                }
+                return null;
+            };
+        }
+
+        public void Dispose()
+        {
+            foreach (KeyValuePair<WZ, Tuple<string, List<WZFile>>> kvp in _files)
+                kvp.Value.Item2.ForEach((wz) => wz.Dispose());
+        }
     }
 }
