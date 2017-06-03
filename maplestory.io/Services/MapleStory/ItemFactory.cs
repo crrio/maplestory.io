@@ -4,77 +4,45 @@ using reWZ;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Collections;
 using System.Diagnostics;
 using System.Threading.Tasks;
 using WZData;
 using WZData.MapleStory.Items;
 using System.Linq;
 using reWZ.WZProperties;
-using System.Threading;
 
 namespace maplestory.io.Services.MapleStory
 {
     public class ItemFactory : IItemFactory
     {
-        private readonly Dictionary<int, Func<MapleItem>> itemLookup;
+        private readonly ConcurrentDictionary<int, Func<bool, MapleItem>> itemLookup;
         private readonly List<ItemName> itemDb;
         private readonly ILogger<ItemFactory> _logger;
-        Thread backgroundCaching;
 
         public ItemFactory(IWZFactory factory, ILogger<ItemFactory> logger)
         {
+            itemLookup = new ConcurrentDictionary<int, Func<bool, MapleItem>>();
             itemDb = new List<ItemName>();
             _logger = logger;
 
             Stopwatch watch = Stopwatch.StartNew();
             _logger.LogInformation("Caching item lookup table");
 
-            itemLookup = Equip.GetLookup(factory.GetWZFile(WZ.Character).MainDirectory, factory.GetWZFile(WZ.String).MainDirectory)
-            .Concat(Consume.GetLookup(factory.GetWZFile(WZ.Item).MainDirectory, factory.GetWZFile(WZ.String).MainDirectory))
-            .Concat(Etc.GetLookup(factory.GetWZFile(WZ.Item).MainDirectory, factory.GetWZFile(WZ.String).MainDirectory))
-            .Concat(Install.GetLookup(factory.GetWZFile(WZ.Item).MainDirectory, factory.GetWZFile(WZ.String).MainDirectory))
-            .Concat(Cash.GetLookup(factory.GetWZFile(WZ.Item).MainDirectory, factory.GetWZFile(WZ.String).MainDirectory))
-            .Concat(Pet.GetLookup(factory.GetWZFile(WZ.Item).MainDirectory, factory.GetWZFile(WZ.String).MainDirectory))
-                .DistinctBy((p) => p.Item1)
-                .ToDictionary(a => a.Item1, a => a.Item2);
-
+            Parallel.ForEach(Equip.GetLookup(factory.GetWZFile(WZ.Character).MainDirectory, factory.GetWZFile(WZ.String).MainDirectory).DistinctBy((p) => p.Item1), itemInstance => { while (itemLookup.TryAdd(itemInstance.Item1, itemInstance.Item2)); });
+            Parallel.ForEach(Consume.GetLookup(factory.GetWZFile(WZ.Item).MainDirectory, factory.GetWZFile(WZ.String).MainDirectory).DistinctBy((p) => p.Item1), itemInstance => { while (itemLookup.TryAdd(itemInstance.Item1, (a) => itemInstance.Item2())); });
+            Parallel.ForEach(Etc.GetLookup(factory.GetWZFile(WZ.Item).MainDirectory, factory.GetWZFile(WZ.String).MainDirectory).DistinctBy((p) => p.Item1), itemInstance => { while (itemLookup.TryAdd(itemInstance.Item1, (a) => itemInstance.Item2())); });
+            Parallel.ForEach(Install.GetLookup(factory.GetWZFile(WZ.Item).MainDirectory, factory.GetWZFile(WZ.String).MainDirectory).DistinctBy((p) => p.Item1), itemInstance => { while (itemLookup.TryAdd(itemInstance.Item1, (a) => itemInstance.Item2())); });
+            Parallel.ForEach(Cash.GetLookup(factory.GetWZFile(WZ.Item).MainDirectory, factory.GetWZFile(WZ.String).MainDirectory).DistinctBy((p) => p.Item1), itemInstance => { while (itemLookup.TryAdd(itemInstance.Item1, itemInstance.Item2)); });
+            Parallel.ForEach(Pet.GetLookup(factory.GetWZFile(WZ.Item).MainDirectory, factory.GetWZFile(WZ.String).MainDirectory).DistinctBy((p) => p.Item1), itemInstance => { while (itemLookup.TryAdd(itemInstance.Item1, itemInstance.Item2)); });
             watch.Stop();
             _logger.LogInformation($"Cached {itemLookup.Count} item lookups, took {watch.ElapsedMilliseconds}ms");
             _logger.LogInformation($"Caching {itemLookup.Count} high level item information");
             watch.Restart();
             itemDb = ItemName.GetNames(factory.GetWZFile(WZ.String)).ToList();
             _logger.LogInformation($"Cached {itemLookup.Count} items, took {watch.ElapsedMilliseconds}ms");
-            watch.Stop();
-
-            backgroundCaching = new Thread(cacheItems);
-            backgroundCaching.Start();
-        }
-
-        void cacheItems()
-        {
-            Stopwatch watch = Stopwatch.StartNew();
-            _logger.LogInformation("Starting background caching of item meta info");
-            itemDb.AsParallel()
-                .Where(c => itemLookup.ContainsKey(c.Id))
-                .Select(c =>
-                {
-                    try
-                    {
-                        MapleItem item = itemLookup[c.Id]();
-                        c.Info = item.MetaInfo;
-                        return item;
-                    } catch (Exception ex)
-                    {
-                        _logger.LogError("Error trying to cache item {0}", c.Id);
-                    }
-                    return null;
-                }).ToArray();
-            watch.Stop();
-            _logger.LogInformation("Completed background caching of item meta info, took {0}", watch.ElapsedMilliseconds);
         }
 
         public IEnumerable<ItemName> GetItems() => itemDb;
-        public MapleItem search(int id) => itemLookup[id]();
+        public MapleItem search(int id) => itemLookup[id](true);
     }
 }

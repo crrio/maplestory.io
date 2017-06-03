@@ -47,10 +47,6 @@ namespace maplestory.io.Controllers
             rng = new Random();
         }
 
-        [Route("")]
-        [HttpGet]
-        public IActionResult GetListOfSkins() => Json(_factory.GetSkinIds());
-
         [Route("base/{skinId?}")]
         [HttpGet]
         [Produces("image/png")]
