@@ -6,10 +6,8 @@ using System.Linq;
 
 namespace WZData.MapleStory.Items
 {
-    public class ItemNameInfo
+    public class ItemNameInfo : ItemName
     {
-        public string Name, Desc;
-        public int Id;
         public ItemInfo Info;
 
         public static ItemNameInfo Parse(WZObject c)
