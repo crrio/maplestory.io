@@ -8,5 +8,6 @@ namespace WZData.MapleStory.Items
     {
         public string Name, Desc;
         public int Id;
+        public ItemType TypeInfo { get => ItemType.FindCategory(Id); }
     }
 }

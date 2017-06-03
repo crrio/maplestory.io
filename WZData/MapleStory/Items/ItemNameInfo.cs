@@ -11,7 +11,10 @@ namespace WZData.MapleStory.Items
         public ItemInfo Info;
 
         public static ItemNameInfo Parse(WZObject c)
-            => new ItemNameInfo() { Id = int.Parse(c.Name), Name = c.HasChild("name") ? c["name"].ValueOrDefault<string>(null) : null, Desc = c.HasChild("desc") ? c["desc"].ValueOrDefault<string>(null) : null };
+            => new ItemNameInfo() {
+                Id = int.Parse(c.Name),
+                Name = c.HasChild("name") ? c["name"].ValueOrDefault<string>(null) : null, Desc = c.HasChild("desc") ? c["desc"].ValueOrDefault<string>(null) : null
+            };
 
         public static IEnumerable<ItemNameInfo> GetNames(WZFile stringFile)
         {
