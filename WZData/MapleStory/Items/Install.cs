@@ -24,7 +24,7 @@ namespace WZData.MapleStory.Items
             WZObject itemWzEntry = null;
             try
             {
-                itemWzEntry = itemWz.ResolvePath($"Etc/{id.ToString("D8").Substring(0, 4)}.img/{id.ToString("D8")}");
+                itemWzEntry = itemWz.ResolvePath($"Install/{id.ToString("D8").Substring(0, 4)}.img/{id.ToString("D8")}");
             }
             catch (Exception) { return null; }
 

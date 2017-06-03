@@ -26,7 +26,10 @@ namespace WZData.MapleStory.Items
             {
                 itemWzEntry = itemWz.ResolvePath($"Etc/{id.ToString("D8").Substring(0, 4)}.img/{id.ToString("D8")}");
             }
-            catch (Exception) { return null; }
+            catch (Exception)
+            {
+                return null;
+            }
 
             if (itemWzEntry.HasChild("info")) item.MetaInfo = ItemInfo.Parse(itemWz, itemWzEntry["info"]);
             item.Description = ItemDescription.Parse(itemStringEntry, StringPath);

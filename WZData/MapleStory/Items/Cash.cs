@@ -26,12 +26,15 @@ namespace WZData.MapleStory.Items
             WZObject itemWzEntry = null;
             try
             {
-                itemWzEntry = itemWz.ResolvePath($"Etc/{id.ToString("D8").Substring(0, 4)}.img/{id.ToString("D8")}");
+                itemWzEntry = itemWz.ResolvePath($"Cash/{id.ToString("D8").Substring(0, 4)}.img/{id.ToString("D8")}");
             }
-            catch (Exception) { return null; }
+            catch (Exception)
+            {
+                return null;
+            }
 
             if (itemWzEntry.HasChild("info")) item.MetaInfo = ItemInfo.Parse(itemWz, itemWzEntry["info"]);
-            if (itemWzEntry.HasChild("info")) item.effect = CashEffect.Parse(itemWz, itemWzEntry, itemWzEntry["effect"]);
+            if (itemWzEntry.HasChild("effect")) item.effect = CashEffect.Parse(itemWz, itemWzEntry, itemWzEntry["effect"]);
             item.Description = ItemDescription.Parse(itemStringEntry, StringPath);
 
             return item;

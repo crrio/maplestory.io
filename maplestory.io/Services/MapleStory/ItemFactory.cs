@@ -46,6 +46,9 @@ namespace maplestory.io.Services.MapleStory
             itemDb = ItemName.GetNames(factory.GetWZFile(WZ.String)).ToList();
             _logger.LogInformation($"Cached {itemLookup.Count} items, took {watch.ElapsedMilliseconds}ms");
             watch.Stop();
+
+            backgroundCaching = new Thread(cacheItems);
+            backgroundCaching.Start();
         }
 
         void cacheItems()
@@ -59,7 +62,11 @@ namespace maplestory.io.Services.MapleStory
                     try
                     {
                         MapleItem item = itemLookup[c.Id]();
-                        c.Info = item.MetaInfo;
+                        if (item != null)
+                        {
+                            // Item likely doesn't exist
+                            c.Info = item.MetaInfo;
+                        }
                         return item;
                     } catch (Exception ex)
                     {
