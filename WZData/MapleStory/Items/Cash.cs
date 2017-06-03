@@ -47,17 +47,17 @@ namespace WZData.MapleStory.Items
                         yield return Cash.Parse(itemWz, item, id, stringWz);
         }
 
-        public static IEnumerable<Tuple<int, Func<bool, MapleItem>>> GetLookup(WZDirectory itemWz, WZDirectory stringWz)
+        public static IEnumerable<Tuple<int, Func<MapleItem>>> GetLookup(WZDirectory itemWz, WZDirectory stringWz)
         {
             int id = -1;
             foreach (WZObject idGrouping in itemWz.ResolvePath(FolderPath))
                 foreach (WZObject item in idGrouping)
                     if (int.TryParse(item.Name, out id))
-                        yield return new Tuple<int, Func<bool, MapleItem>>(id, CreateLookup(itemWz, item, id, stringWz));
+                        yield return new Tuple<int, Func<MapleItem>>(id, CreateLookup(itemWz, item, id, stringWz).Memoize());
         }
 
-        private static Func<bool, MapleItem> CreateLookup(WZDirectory itemWz, WZObject item, int id, WZDirectory stringWz)
-            => (showEffects)
-            => Cash.Parse(itemWz, item, id, stringWz, showEffects);
+        private static Func<MapleItem> CreateLookup(WZDirectory itemWz, WZObject item, int id, WZDirectory stringWz)
+            => ()
+            => Cash.Parse(itemWz, item, id, stringWz, true);
     }
 }

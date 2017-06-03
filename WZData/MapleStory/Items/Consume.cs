@@ -49,7 +49,7 @@ namespace WZData.MapleStory.Items
             foreach (WZObject idGrouping in itemWz.ResolvePath(FolderPath))
                 foreach (WZObject item in idGrouping)
                     if (int.TryParse(item.Name, out id))
-                        yield return new Tuple<int, Func<MapleItem>>(id, CreateLookup(itemWz, item, idGrouping.Name, id, stringWz));
+                        yield return new Tuple<int, Func<MapleItem>>(id, CreateLookup(itemWz, item, idGrouping.Name, id, stringWz).Memoize());
         }
 
         private static Func<MapleItem> CreateLookup(WZDirectory itemWz, WZObject item, string idGroupingName, int id, WZDirectory stringWz)

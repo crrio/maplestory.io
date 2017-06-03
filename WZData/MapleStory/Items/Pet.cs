@@ -95,7 +95,7 @@ namespace WZData.MapleStory.Items
             }
         }
 
-        public static IEnumerable<Tuple<int, Func<bool, MapleItem>>> GetLookup(WZDirectory itemWz, WZDirectory stringWz)
+        public static IEnumerable<Tuple<int, Func<MapleItem>>> GetLookup(WZDirectory itemWz, WZDirectory stringWz)
         {
             foreach (WZObject petId in stringWz.ResolvePath(StringPath))
             {
@@ -114,14 +114,13 @@ namespace WZData.MapleStory.Items
                     continue;
                 }
 
-                yield return new Tuple<int, Func<bool, MapleItem>>(id, CreateLookup(id, itemWz, petEntry, petId));
-//                yield return Parse(id, itemWz.MainDirectory, petEntry, petId);
+                yield return new Tuple<int, Func<MapleItem>>(id, CreateLookup(id, itemWz, petEntry, petId).Memoize());
             }
             
         }
 
-        private static Func<bool, MapleItem> CreateLookup(int id, WZDirectory itemWz, WZObject petEntry, WZObject petId)
-            => (showEffects)
-            => Parse(id, itemWz, petEntry, petId, showEffects);
+        private static Func<MapleItem> CreateLookup(int id, WZDirectory itemWz, WZObject petEntry, WZObject petId)
+            => ()
+            => Parse(id, itemWz, petEntry, petId, true);
     }
 }
