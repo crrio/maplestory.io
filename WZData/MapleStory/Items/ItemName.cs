@@ -1,6 +1,7 @@
 ﻿using reWZ;
 using reWZ.WZProperties;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 
 namespace WZData.MapleStory.Items
@@ -9,6 +10,7 @@ namespace WZData.MapleStory.Items
     {
         public string Name, Desc;
         public int Id;
+        public ItemInfo Info;
 
         public static ItemName Parse(WZObject c)
             => new ItemName() { Id = int.Parse(c.Name), Name = c.HasChild("name") ? c["name"].ValueOrDefault<string>(null) : null, Desc = c.HasChild("desc") ? c["desc"].ValueOrDefault<string>(null) : null };

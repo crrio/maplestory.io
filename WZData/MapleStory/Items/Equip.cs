@@ -74,15 +74,17 @@ namespace WZData.MapleStory.Items
                         yield return Equip.Parse(characterWz, item, idGrouping.Name, id, stringWz);
         }
 
-        public static IEnumerable<Tuple<int, Func<bool, MapleItem>>> GetLookup(WZDirectory characterWz, WZDirectory stringWz)
+        public static IEnumerable<Tuple<int, Func<MapleItem>>> GetLookup(WZDirectory characterWz, WZDirectory stringWz)
         {
             int id = -1;
             foreach (WZObject idGrouping in stringWz.ResolvePath(StringPath))
                 foreach (WZObject item in idGrouping)
                     if (int.TryParse(item.Name, out id))
-                        yield return new Tuple<int, Func<bool, MapleItem>>(id, CreateLookup(characterWz, item, idGrouping.Name, id, stringWz));
+                        yield return new Tuple<int, Func<MapleItem>>(id, CreateLookup(characterWz, item, idGrouping.Name, id, stringWz).Memoize());
         }
 
-        private static Func<bool, MapleItem> CreateLookup(WZDirectory characterWz, WZObject item, string idGroupingName, int id, WZDirectory stringWz) => (showEffects) => Equip.Parse(characterWz, item, idGroupingName, id, stringWz, showEffects);
+        private static Func<MapleItem> CreateLookup(WZDirectory characterWz, WZObject item, string idGroupingName, int id, WZDirectory stringWz)
+            => ()
+            => Equip.Parse(characterWz, item, idGroupingName, id, stringWz, true);
     }
 }
