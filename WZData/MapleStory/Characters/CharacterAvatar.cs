@@ -28,7 +28,7 @@ namespace WZData.MapleStory.Characters
         public int WeaponCategory {
             get => (int)Math.Floor(
                 ((EquipFramesSelected
-                    .Where(c => c.Item1.EquipGroup.Equals("weapon", StringComparison.CurrentCultureIgnoreCase))
+                    .Where(c => c.Item1.EquipGroup.Equals("weapon", StringComparison.CurrentCultureIgnoreCase) && !c.Item1.MetaInfo.Cash.cash)
                     .FirstOrDefault()?.Item1.id ?? 0
                 ) - 1000000) / 10000d
             );
