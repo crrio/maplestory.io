@@ -25,6 +25,14 @@ namespace WZData.MapleStory.Characters
 
         public IEnumerable<Tuple<Equip, string>> EquipFramesSelected { get => Items.Where(c => c.Item1 is Equip).Select(c => new Tuple<Equip, string>((Equip)c.Item1, c.Item2)); }
         public IEnumerable<Equip> Equips { get => EquipFramesSelected.Select(c => c.Item1); }
+        public int WeaponCategory {
+            get => (int)Math.Floor(
+                ((EquipFramesSelected
+                    .Where(c => c.Item1.EquipGroup.Equals("weapon", StringComparison.CurrentCultureIgnoreCase))
+                    .FirstOrDefault()?.Item1.id ?? 0
+                ) - 1000000) / 10000d
+            );
+        }
 
         public IEnumerable<Tuple<Equip, string, IFrame>> EquipFrames
         {
@@ -32,8 +40,8 @@ namespace WZData.MapleStory.Characters
                 .GroupBy(c => c.Item1.MetaInfo.Equip.islot)
                 .Select(c => c.FirstOrDefault(b => b.Item1.MetaInfo.Cash?.cash ?? false) ?? c.First())
                 // Some equips aren't always shown, like weapons when sitting
-                .Where(c => c.Item1.FrameBooks.ContainsKey(c.Item2 ?? AnimationName) || c.Item1.FrameBooks.ContainsKey("default"))
-                .Select(c => new Tuple<Equip, EquipFrameBook>(c.Item1, c.Item1.FrameBooks.ContainsKey(c.Item2 ?? AnimationName) ? c.Item1.FrameBooks[c.Item2 ?? AnimationName] : c.Item1.FrameBooks["default"]))
+                .Where(c => c.Item1.GetFrameBooks(WeaponCategory).ContainsKey(c.Item2 ?? AnimationName) || c.Item1.GetFrameBooks(WeaponCategory).ContainsKey("default"))
+                .Select(c => new Tuple<Equip, EquipFrameBook>(c.Item1, c.Item1.GetFrameBooks(WeaponCategory).ContainsKey(c.Item2 ?? AnimationName) ? c.Item1.GetFrameBooks(WeaponCategory)[c.Item2 ?? AnimationName] : c.Item1.GetFrameBooks(WeaponCategory)["default"]))
                 .Select(c => new Tuple<Equip, EquipFrame>(c.Item1, c.Item2.frames.Count() <= Frame ? c.Item2.frames.ElementAt(Frame % c.Item2.frames.Count()) : c.Item2.frames.ElementAt(Frame)))
                 .SelectMany(c => c.Item2.Effects.Select(b => new Tuple<Equip, string, IFrame>(c.Item1, b.Key, b.Value)));
         }

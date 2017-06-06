@@ -18,6 +18,7 @@ namespace WZData.MapleStory.Items
         public const string StringPath = "Eqp.img/Eqp";
 
         public Dictionary<string, EquipFrameBook> FrameBooks;
+        public Dictionary<int, Dictionary<string, EquipFrameBook>> FrameBooksPerWeaponType;
         public string EquipGroup;
 
         public Equip(int id, string group) : base(id) { FrameBooks = new Dictionary<string, EquipFrameBook>(); EquipGroup = group; }
@@ -27,28 +28,24 @@ namespace WZData.MapleStory.Items
             Equip item = new Equip(id, group);
             try
             {
+
                 WZObject characterItem = characterWz.ResolvePath(Path.Combine(group, $"{id.ToString("D8")}.img"));
                 if (characterItem.HasChild("info")) item.MetaInfo = ItemInfo.Parse(characterWz, characterItem["info"]);
                 item.Description = ItemDescription.Parse(stringItem, StringPath);
-                bool isOnlyDefault = false;
+                
 
                 if (showEffects)
                 {
-                    foreach (WZObject obj in characterItem)
+                    bool hasEffectsPerItemType = characterItem.Where(c => c.Name != "info").All(c => int.TryParse(c.Name, out int blah));
+
+                    if (hasEffectsPerItemType)
                     {
-                        try
-                        {
-                            int frameTest = 0;
-                            if (isOnlyDefault = (obj.Type == WZObjectType.Canvas || int.TryParse(obj.Name, out frameTest))) break;
-                            if (obj.Name.Equals("info")) continue;
-
-                            item.FrameBooks.Add(obj.Name, EquipFrameBook.Parse(characterWz, characterItem, obj));
-                        }
-                        catch (Exception) { }
+                        item.FrameBooksPerWeaponType = characterItem.Where(c => c.Name != "info")
+                            .ToDictionary(c => int.Parse(c.Name), c => ProcessFrameBooks(characterWz, characterItem, c));
+                        item.FrameBooks = item.FrameBooksPerWeaponType.Values.FirstOrDefault() ?? new Dictionary<string, EquipFrameBook>();
                     }
-
-                    if (isOnlyDefault)
-                        item.FrameBooks.Add("default", EquipFrameBook.Parse(characterWz, characterItem, characterItem));
+                    else
+                        item.FrameBooks = ProcessFrameBooks(characterWz, characterItem, characterItem);
                 }
 
                 return item;
@@ -58,15 +55,28 @@ namespace WZData.MapleStory.Items
             }
         }
 
+        public Dictionary<string, EquipFrameBook> GetFrameBooks(int weaponType) => FrameBooksPerWeaponType == null ? FrameBooks : FrameBooksPerWeaponType[weaponType];
+
+        public static Dictionary<string, EquipFrameBook> ProcessFrameBooks(WZObject characterWz, WZObject characterItem, WZObject container)
+        {
+            bool isOnlyDefault = container.Where(c => c.Name != "info").Any(obj => obj.Type == WZObjectType.Canvas || int.TryParse(obj.Name, out int frameTest));
+
+            if (isOnlyDefault)
+                return new Dictionary<string, EquipFrameBook>()
+                {
+                    { "default", EquipFrameBook.Parse(characterWz, characterItem, characterItem) }
+                };
+            else
+                return container.Where(c => c.Name != "info").ToDictionary(c => c.Name, obj => EquipFrameBook.Parse(characterWz, characterItem, obj));
+        }
+
         public static Equip Search(WZDirectory characterWz, WZDirectory stringWz, int itemId)
         {
             int id = -1;
             foreach (WZObject idGrouping in stringWz.ResolvePath(StringPath))
                 foreach (WZObject item in idGrouping)
                     if (int.TryParse(item.Name, out id) && id == itemId)
-                    {
                         return Equip.Parse(characterWz, item, idGrouping.Name, id, stringWz);
-                    }
             return null;
         }
 

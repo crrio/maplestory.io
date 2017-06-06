@@ -18,8 +18,8 @@ namespace WZData.MapleStory.Images
 
             item.Effects = frame.Where(c => c is WZCanvasProperty || c is WZUOLProperty)
                 .Where(c => c.Name != "hairShade")
-                .Select(c => c is WZUOLProperty ? ((WZUOLProperty)c).ResolveFully() : c)
-                .Select(c => new Tuple<string, Frame>(c.Name, Frame.Parse(skills, skill, c)))
+                .Select(c => new Tuple<string, WZObject>(c.Name, c is WZUOLProperty ? ((WZUOLProperty)c).ResolveFully() : c))
+                .Select(c => new Tuple<string, Frame>(c.Item1, Frame.Parse(skills, skill, c.Item2)))
                 .ToDictionary(c => c.Item1, c => c.Item2);
 
             return item;
