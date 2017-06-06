@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Drawing.Imaging;
 using System.Linq;
 using System.Text;
 using WZData.MapleStory.Images;
@@ -159,12 +160,9 @@ namespace WZData.MapleStory.Characters
             int maxY = elements.Select(c => c.Item2.Y + c.Item3.Image.Height).Max();
             Size center = new Size((maxX - minX) / 2, (maxY - minY) / 2);
 
-            Bitmap destination = new Bitmap((maxX - minX) + (Padding * 2), (maxY - minY) + (Padding * 2));
+            Bitmap destination = new Bitmap((maxX - minX) + (Padding * 2), (maxY - minY) + (Padding * 2), PixelFormat.Format32bppArgb);
             using (Graphics g = Graphics.FromImage(destination))
             {
-                g.CompositingQuality = System.Drawing.Drawing2D.CompositingQuality.HighQuality;
-                g.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.HighQualityBicubic;
-                g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.HighQuality;
                 foreach (IEnumerable<Tuple<string, Point, IFrame>> elementGroup in zmapping.Ordering.Select(c => elements.Where(i => i.Item1 == c)))
                     foreach (Tuple<string, Point, IFrame> element in elementGroup)
                         g.DrawImage(element.Item3.Image, new Point((element.Item2.X - minX) + Padding, (element.Item2.Y - minY) + Padding));

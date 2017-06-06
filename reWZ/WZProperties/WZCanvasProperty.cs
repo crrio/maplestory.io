@@ -32,6 +32,7 @@ using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
+using System.Linq;
 using System.Runtime.InteropServices;
 
 namespace reWZ.WZProperties
@@ -100,61 +101,59 @@ namespace reWZ.WZProperties
             }
         }
 
-        private unsafe Bitmap ParsePNG(int width, int height, int format, byte[] data)
+        private Bitmap ParsePNG(int width, int height, int format, byte[] data)
         {
-            byte[] dec;
+            byte[] sourceData;
             using (MemoryStream @in = new MemoryStream(data, 2, data.Length - 2))
-                dec = WZBinaryReader.Inflate(@in);
-            int decLen = dec.Length;
+                sourceData = WZBinaryReader.Inflate(@in);
+            int sourceDataLength = sourceData.Length;
             switch (format) {
-                case 1:
-                    byte[] argb = new byte[width*height*4];
-                    fixed (byte* r = argb, t = dec) {
-                        byte* s = r, u = t;
-                        for (int i = 0; i < decLen; i++) {
-                            *(s++) = (byte)(((*u) & 0x0F)*0x11);
-                            *(s++) = (byte)(((*(u++) & 0xF0) >> 4)*0x11);
-                        }
+                case 1: // Transform
+                    byte[] destinationData = new byte[width*height*4];
+                    for (int i = 0; i < sourceDataLength; ++i)
+                    {
+                        destinationData[i * 2] = (byte)(((sourceData[i]) & 0x0F) * 0x11);
+                        destinationData[(i * 2) + 1] = (byte)(((sourceData[i] & 0xF0) >> 4) * 0x11);
                     }
-                    decLen *= 2;
-                    dec = argb;
+                    sourceDataLength *= 2;
+                    sourceData = destinationData;
                     goto case 2;
                 case 2:
-                    if (decLen != width * height * 4)
+                    if (sourceDataLength != width * height * 4)
                     {
                         Debug.WriteLine("Warning; dec.Length != 4wh; 32BPP");
                         byte[] proper = new byte[width*height*4];
-                        Buffer.BlockCopy(dec, 0, proper, 0, Math.Min(proper.Length, decLen));
-                        dec = proper;
+                        Buffer.BlockCopy(sourceData, 0, proper, 0, Math.Min(proper.Length, sourceDataLength));
+                        sourceData = proper;
                     }
-                    _gcH = GCHandle.Alloc(dec, GCHandleType.Pinned);
+                    _gcH = GCHandle.Alloc(sourceData, GCHandleType.Pinned);
                     return new Bitmap(width, height, width << 2, PixelFormat.Format32bppArgb, _gcH.AddrOfPinnedObject());
                 case 513:
-                    if (decLen != width * height * 2)
+                    if (sourceDataLength != width * height * 2)
                     {
                         Debug.WriteLine("Warning; dec.Length != 2wh; 16BPP");
                         byte[] proper = new byte[width*height*2];
-                        Buffer.BlockCopy(dec, 0, proper, 0, Math.Min(proper.Length, decLen));
-                        dec = proper;
+                        Buffer.BlockCopy(sourceData, 0, proper, 0, Math.Min(proper.Length, sourceDataLength));
+                        sourceData = proper;
                     }
-                    _gcH = GCHandle.Alloc(dec, GCHandleType.Pinned);
+                    _gcH = GCHandle.Alloc(sourceData, GCHandleType.Pinned);
                     return new Bitmap(width, height, width << 1, PixelFormat.Format16bppRgb565, _gcH.AddrOfPinnedObject());
                 case 517:
                     width >>= 4;
                     height >>= 4;
                     goto case 513;
                 case 1026: //dxt3
-                    argb = GetPixelDataDXT3(dec, width, height);
+                    destinationData = GetPixelDataDXT3(sourceData, width, height);
                     Bitmap pngDecoded = new Bitmap(width, height, PixelFormat.Format32bppArgb);
                     BitmapData bmpdata = pngDecoded.LockBits(new Rectangle(new Point(), pngDecoded.Size), ImageLockMode.WriteOnly, PixelFormat.Format32bppArgb);
-                    Marshal.Copy(argb, 0, bmpdata.Scan0, argb.Length);
+                    Marshal.Copy(destinationData, 0, bmpdata.Scan0, destinationData.Length);
                     pngDecoded.UnlockBits(bmpdata);
                     return pngDecoded;
                 case 2050:
-                    argb = GetPixelDataDXT5(dec, width, height);
+                    destinationData = GetPixelDataDXT5(sourceData, width, height);
                     pngDecoded = new Bitmap(width, height, PixelFormat.Format32bppArgb);
                     bmpdata = pngDecoded.LockBits(new Rectangle(new Point(), pngDecoded.Size), ImageLockMode.WriteOnly, PixelFormat.Format32bppArgb);
-                    Marshal.Copy(argb, 0, bmpdata.Scan0, argb.Length);
+                    Marshal.Copy(destinationData, 0, bmpdata.Scan0, destinationData.Length);
                     pngDecoded.UnlockBits(bmpdata);
                     return pngDecoded;
                 default:
