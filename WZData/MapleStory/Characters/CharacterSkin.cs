@@ -14,10 +14,18 @@ namespace WZData.MapleStory.Characters
     {
         public Dictionary<string, BodyAnimation> Animations;
         public int Id;
+        string bodyISlot, headISlot;
+        string bodyVSlot, headVSlot;
 
         public CharacterSkin(int Id, WZObject bodyContainer, WZObject headContainer)
         {
             this.Id = Id;
+
+            headISlot = headContainer.ResolvePath("info/islot").ValueOrDefault("Hd");
+            headVSlot = headContainer.ResolvePath("info/vslot").ValueOrDefault("Hd");
+            bodyISlot = bodyContainer.ResolvePath("info/islot").ValueOrDefault("Bd");
+            bodyVSlot = bodyContainer.ResolvePath("info/vslot").ValueOrDefault("Bd");
+
             Animations = Enumerable.Concat(headContainer, bodyContainer)
                 .AsParallel()
                 // Filter out any non-frame containing animations

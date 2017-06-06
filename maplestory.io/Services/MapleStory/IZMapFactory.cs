@@ -5,5 +5,6 @@ namespace maplestory.io.Services.MapleStory
     public interface IZMapFactory
     {
         ZMap GetZMap();
+        SMap GetSMap();
     }
 }

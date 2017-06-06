@@ -15,11 +15,13 @@ namespace maplestory.io.Services.MapleStory
         private readonly Dictionary<int, CharacterSkin> skins;
         private readonly IItemFactory itemFactory;
         private readonly ZMap zmap;
+        private readonly SMap smap;
 
         public CharacterFactory(IWZFactory factory, IItemFactory itemFactory, IZMapFactory zMapFactory)
         {
             skins = CharacterSkin.Parse(factory.GetWZFile(WZ.Character).MainDirectory).ToDictionary(c => c.Id);
             zmap = zMapFactory.GetZMap();
+            smap = zMapFactory.GetSMap();
             this.itemFactory = itemFactory;
         }
 
@@ -36,101 +38,26 @@ namespace maplestory.io.Services.MapleStory
         public Bitmap GetCharacter(int id, string animation = null, int frame = 0, bool showEars = false, int padding = 2, params int[] items)
             => GetCharacter(id, animation, frame, showEars, padding, items.Select(c => new Tuple<int, string>(c, animation)).ToArray());
 
-        public Bitmap GetCharacter(int id, string animation = null, int frame = 0, bool showEars = false, int padding = 2, params Tuple<int, string>[] items)
+        public Bitmap GetCharacter(int id, string animation = null, int frame = 0, bool showEars = false, int padding = 2, params Tuple<int, string>[] itemEntries)
         {
-            IEnumerable<Tuple<Equip, string>> equipFramesSelected = items.Select(c => new Tuple<MapleItem, string>((Equip)itemFactory.search(c.Item1), c.Item2))
-                .Where(c => c.Item1 is Equip)
-                .Select(c => new Tuple<Equip, string>((Equip)c.Item1, c.Item2)).ToArray();
+            IEnumerable<Tuple<MapleItem, string>> items = Enumerable.Select<Tuple<int, string>, Tuple<MapleItem, string>>(itemEntries, (Func<Tuple<int, string>, Tuple<MapleItem, string>>)((Tuple<int, string> c) => (Tuple<MapleItem, string>)new Tuple<MapleItem, string>((MapleItem)itemFactory.search((int)c.Item1), (string)c.Item2)));
 
-            IEnumerable<Equip> equips = equipFramesSelected.Select(c => c.Item1).ToArray();
+            CharacterSkin skin = GetSkin(id);
+            CharacterAvatar avatar = new CharacterAvatar(skin);
+            avatar.Items = items;
 
             if (animation == null)
             {
-                Equip weapon = equips.Where(c => c.EquipGroup == "Weapon").FirstOrDefault();
+                Equip weapon = avatar.Equips.Where(c => c.EquipGroup == "Weapon").FirstOrDefault();
                 animation = weapon?.FrameBooks.Select(c => c.Key).Where(c => c.Contains("stand")).FirstOrDefault() ?? "stand1";
             }
 
-            CharacterSkin skin = GetSkin(id);
-            BodyAnimation bodyAnimation = skin.Animations[animation];
-            Body bodyFrame = bodyAnimation.Frames[frame % bodyAnimation.Frames.Length];
-            bool hasFace = bodyFrame.HasFace ?? false;
-            Dictionary<string, BodyPart> bodyParts = bodyFrame.Parts;
+            avatar.AnimationName = animation;
+            avatar.Frame = frame;
+            avatar.ShowEars = showEars;
+            avatar.Padding = padding;
 
-            IEnumerable<IFrame> equipFrames = equipFramesSelected
-                .GroupBy(c => c.Item1.MetaInfo.Equip.islot)
-                .Select(c => c.FirstOrDefault(b => b.Item1.MetaInfo.Cash?.cash ?? false) ?? c.First())
-                // Some equips aren't always shown, like weapons when sitting
-                .Where(c => c.Item1.FrameBooks.ContainsKey(c.Item2 ?? animation) || c.Item1.FrameBooks.ContainsKey("default"))
-                .Select(c => c.Item1.FrameBooks.ContainsKey(c.Item2 ?? animation) ? c.Item1.FrameBooks[c.Item2 ?? animation] : c.Item1.FrameBooks["default"])
-                .Select(c => c.frames.Count() <= frame ? c.frames.ElementAt(frame % c.frames.Count()) : c.frames.ElementAt(frame))
-                .SelectMany(c => c.Effects.Values);
-
-            Dictionary<string, IFrame[]> parts = bodyParts.Values
-                .Where(c => showEars || c.Name != "ear")
-                .Select(c => (IFrame)c)
-                .Concat(bodyParts.Values.Where(c => c.Position == "body" || c.Position == "head").Select(c => new BodyPart()
-                {
-                    Image = c.Image,
-                    MapOffset = c.MapOffset,
-                    Name = c.Name.Replace("body", "Bd").Replace("head", "Hd"),
-                    Origin = c.Origin,
-                    Position = c.Position.Replace("body", "Bd").Replace("head", "Hd")
-                }))
-                .Concat(equipFrames)
-                .Where(c => hasFace || c.Position != "face")
-                .GroupBy(c => c.Position)
-                .ToDictionary(c => c.First().Position, c => c.ToArray());
-
-            Dictionary<string, Point> positions = new Dictionary<string, Point>() { { "navel", new Point(0, 0) } };
-            List<IFrame> characterParts = parts.Values.SelectMany(b => b).ToList();
-            List<Tuple<string, Point, IFrame>> elements = new List<Tuple<string, Point, IFrame>>();
-            bool hasCap = false;
-            while (characterParts.Count > 0)
-            {
-                IFrame part = characterParts.Where(c => c.MapOffset.Any(b => positions.ContainsKey(b.Key))).FirstOrDefault();
-                if (part == null)
-                    throw new InvalidOperationException("We have body parts, but none of them have an anchor point to the navel? That doesn't seem correct.");
-
-                KeyValuePair<string, Point> anchorPointEntry = part.MapOffset.Where(c => positions.ContainsKey(c.Key)).First();
-                Point anchorPoint = positions[anchorPointEntry.Key];
-                Point vectorFromPoint = anchorPointEntry.Value;
-                Point fromAnchorPoint = new Point(anchorPoint.X - vectorFromPoint.X, anchorPoint.Y - vectorFromPoint.Y);
-                foreach (KeyValuePair<string, Point> childAnchorPoint in part.MapOffset.Where(c => c.Key != anchorPointEntry.Key))
-                {
-                    Point resultAnchorPoint = new Point(fromAnchorPoint.X + childAnchorPoint.Value.X, fromAnchorPoint.Y + childAnchorPoint.Value.Y);
-                    if (!positions.ContainsKey(childAnchorPoint.Key))
-                        positions.Add(childAnchorPoint.Key, resultAnchorPoint);
-                    else if (positions[childAnchorPoint.Key].X != resultAnchorPoint.X || positions[childAnchorPoint.Key].Y != resultAnchorPoint.Y)
-                        throw new InvalidOperationException("Duplicate anchor point, but position doesn't match up, possible state corruption?");
-                }
-                Point partOrigin = part.Origin ?? Point.Empty;
-                Point withOffset = new Point(fromAnchorPoint.X - partOrigin.X, fromAnchorPoint.Y - partOrigin.Y);
-
-                elements.Add(new Tuple<string, Point, IFrame>(part.Position, withOffset, part));
-                characterParts.Remove(part);
-                // Too lazy to find the real toggle for not showing hairOverHead, this seems to work without issue
-                hasCap = hasCap || part.Position == "cap" || part.Position == "capOverHair";
-            }
-
-            int minX = elements.Select(c => c.Item2.X).Min();
-            int maxX = elements.Select(c => c.Item2.X + c.Item3.Image.Width).Max();
-            int minY = elements.Select(c => c.Item2.Y).Min();
-            int maxY = elements.Select(c => c.Item2.Y + c.Item3.Image.Height).Max();
-            Size center = new Size((maxX - minX) / 2, (maxY - minY) / 2);
-
-            Bitmap destination = new Bitmap((maxX - minX) + (padding * 2), (maxY - minY) + (padding * 2));
-            using (Graphics g = Graphics.FromImage(destination))
-            {
-                foreach (IEnumerable<Tuple<string, Point, IFrame>> elementGroup in zmap.Ordering.Where(b => !hasCap || b != "hairOverHead").Select(c => elements.Where(i => i.Item1 == c)))
-                    foreach(Tuple<string, Point, IFrame> element in elementGroup)
-                        g.DrawImage(element.Item3.Image, new Point((element.Item2.X - minX) + padding, (element.Item2.Y - minY) + padding));
-
-                g.Flush();
-            }
-
-            return destination;
+            return avatar.Render(zmap, smap);
         }
-
-       
     }
 }

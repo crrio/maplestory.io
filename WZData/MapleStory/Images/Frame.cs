@@ -96,6 +96,8 @@ namespace WZData
                 return null;
             }
         }
+        public override string ToString()
+         => $"IFrame ({Position})";
     }
 
     public interface IFrame

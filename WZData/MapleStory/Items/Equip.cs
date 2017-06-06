@@ -82,5 +82,8 @@ namespace WZData.MapleStory.Items
         private static Func<MapleItem> CreateLookup(Func<Func<WZFile, MapleItem>, MapleItem> characterWzCallback, WZObject item, string idGroupingName, int id, WZFile stringWz)
             => ()
             => characterWzCallback((characterWz) => Equip.Parse(characterWz.MainDirectory, item, idGroupingName, id, stringWz.MainDirectory, true));
+
+        public override string ToString()
+            => $"{EquipGroup} - {id}";
     }
 }
