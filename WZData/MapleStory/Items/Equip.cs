@@ -55,7 +55,7 @@ namespace WZData.MapleStory.Items
             }
         }
 
-        public Dictionary<string, EquipFrameBook> GetFrameBooks(int weaponType) => FrameBooksPerWeaponType == null ? FrameBooks : FrameBooksPerWeaponType[weaponType];
+        public Dictionary<string, EquipFrameBook> GetFrameBooks(int weaponType) => FrameBooksPerWeaponType == null || FrameBooksPerWeaponType.Count == 0 ? FrameBooks : FrameBooksPerWeaponType[weaponType];
 
         public static Dictionary<string, EquipFrameBook> ProcessFrameBooks(WZObject characterWz, WZObject characterItem, WZObject container)
         {

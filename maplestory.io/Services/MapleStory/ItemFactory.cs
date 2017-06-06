@@ -48,39 +48,39 @@ namespace maplestory.io.Services.MapleStory
             _logger.LogInformation($"Cached {itemLookup.Count} items, took {watch.ElapsedMilliseconds}ms");
             watch.Stop();
 
-            if (!env.IsDevelopment())
-            {
-                backgroundCaching = new Thread(cacheItems);
-                backgroundCaching.Start();
-            }
+            //if (!env.IsDevelopment())
+            //{
+            //    backgroundCaching = new Thread(cacheItems);
+            //    backgroundCaching.Start();
+            //}
         }
 
-        void cacheItems()
-        {
-            Stopwatch watch = Stopwatch.StartNew();
-            _logger.LogInformation("Starting background caching of item meta info");
-            itemDb.AsParallel()
-                .Where(c => itemLookup.ContainsKey(c.Id))
-                .Select(c =>
-                {
-                    try
-                    {
-                        MapleItem item = itemLookup[c.Id]();
-                        if (item != null)
-                        {
-                            // Item likely doesn't exist
-                            c.Info = item.MetaInfo;
-                        }
-                        return item;
-                    } catch (Exception ex)
-                    {
-                        _logger.LogError("Error trying to cache item {0}", c.Id);
-                    }
-                    return null;
-                }).ToArray();
-            watch.Stop();
-            _logger.LogInformation("Completed background caching of item meta info, took {0}", watch.ElapsedMilliseconds);
-        }
+        //void cacheItems()
+        //{
+        //    Stopwatch watch = Stopwatch.StartNew();
+        //    _logger.LogInformation("Starting background caching of item meta info");
+        //    itemDb.AsParallel()
+        //        .Where(c => itemLookup.ContainsKey(c.Id))
+        //        .Select(c =>
+        //        {
+        //            try
+        //            {
+        //                MapleItem item = itemLookup[c.Id]();
+        //                if (item != null)
+        //                {
+        //                    // Item likely doesn't exist
+        //                    c.Info = item.MetaInfo;
+        //                }
+        //                return item;
+        //            } catch (Exception ex)
+        //            {
+        //                _logger.LogError("Error trying to cache item {0}", c.Id);
+        //            }
+        //            return null;
+        //        }).ToArray();
+        //    watch.Stop();
+        //    _logger.LogInformation("Completed background caching of item meta info, took {0}", watch.ElapsedMilliseconds);
+        //}
 
         public IEnumerable<ItemNameInfo> GetItems() => itemDb;
         public MapleItem search(int id) => itemLookup[id]();
