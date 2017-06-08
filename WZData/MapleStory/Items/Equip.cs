@@ -20,36 +20,36 @@ namespace WZData.MapleStory.Items
         public Dictionary<string, EquipFrameBook> FrameBooks;
         public Dictionary<int, Dictionary<string, EquipFrameBook>> FrameBooksPerWeaponType;
         public string EquipGroup;
+        public Effects ItemEffects;
 
         public Equip(int id, string group) : base(id) { FrameBooks = new Dictionary<string, EquipFrameBook>(); EquipGroup = group; }
 
-        public static Equip Parse(WZDirectory characterWz, WZObject stringItem, string group, int id, WZDirectory stringWz, bool showEffects = true)
+        public static Equip Parse(WZDirectory characterWz, WZObject stringItem, string group, int id, WZDirectory stringWz, WZObject itemEffectsImg)
         {
             Equip item = new Equip(id, group);
             try
             {
-
                 WZObject characterItem = characterWz.ResolvePath(Path.Combine(group, $"{id.ToString("D8")}.img"));
                 if (characterItem.HasChild("info")) item.MetaInfo = ItemInfo.Parse(characterWz, characterItem["info"]);
                 item.Description = ItemDescription.Parse(stringItem, StringPath);
-                
 
-                if (showEffects)
+                bool hasEffectsPerItemType = characterItem.Where(c => c.Name != "info").All(c => int.TryParse(c.Name, out int blah));
+
+                if (hasEffectsPerItemType)
                 {
-                    bool hasEffectsPerItemType = characterItem.Where(c => c.Name != "info").All(c => int.TryParse(c.Name, out int blah));
-
-                    if (hasEffectsPerItemType)
-                    {
-                        item.FrameBooksPerWeaponType = characterItem.Where(c => c.Name != "info")
-                            .ToDictionary(c => int.Parse(c.Name), c => ProcessFrameBooks(characterWz, characterItem, c));
-                        item.FrameBooks = item.FrameBooksPerWeaponType.Values.FirstOrDefault() ?? new Dictionary<string, EquipFrameBook>();
-                    }
-                    else
-                        item.FrameBooks = ProcessFrameBooks(characterWz, characterItem, characterItem);
+                    item.FrameBooksPerWeaponType = characterItem.Where(c => c.Name != "info")
+                        .ToDictionary(c => int.Parse(c.Name), c => ProcessFrameBooks(characterWz, characterItem, c));
+                    item.FrameBooks = item.FrameBooksPerWeaponType.Values.FirstOrDefault() ?? new Dictionary<string, EquipFrameBook>();
                 }
+                else
+                    item.FrameBooks = ProcessFrameBooks(characterWz, characterItem, characterItem);
+
+                if (itemEffectsImg.HasChild(item.id.ToString()))
+                    item.ItemEffects = Effects.Parse(itemEffectsImg[item.id.ToString()], itemEffectsImg);
 
                 return item;
-            } catch (Exception)
+            }
+            catch (Exception)
             {
                 return null;
             }
@@ -70,30 +70,49 @@ namespace WZData.MapleStory.Items
                 return container.Where(c => c.Name != "info").ToDictionary(c => c.Name, obj => EquipFrameBook.Parse(characterWz, characterItem, obj));
         }
 
-        public static Equip Search(WZDirectory characterWz, WZDirectory stringWz, int itemId)
+        public static Equip Search(WZDirectory characterWz, WZDirectory effectWz, WZDirectory stringWz, int itemId)
         {
             int id = -1;
             foreach (WZObject idGrouping in stringWz.ResolvePath(StringPath))
                 foreach (WZObject item in idGrouping)
                     if (int.TryParse(item.Name, out id) && id == itemId)
-                        return Equip.Parse(characterWz, item, idGrouping.Name, id, stringWz);
+                        return Equip.Parse(characterWz, item, idGrouping.Name, id, stringWz, effectWz["ItemEff.img"]);
             return null;
         }
 
-        public static IEnumerable<Tuple<int, Func<MapleItem>>> GetLookup(Func<Func<WZFile, MapleItem>, MapleItem> characterWz, WZFile stringWz)
+        public static IEnumerable<Tuple<int, Func<MapleItem>>> GetLookup(Func<Func<WZFile, MapleItem>, MapleItem> characterWz, Func<Func<WZFile, MapleItem>, MapleItem> effectWzCallback, WZFile stringWz)
         {
             int id = -1;
             foreach (WZObject idGrouping in stringWz.ResolvePath(StringPath))
                 foreach (WZObject item in idGrouping)
                     if (int.TryParse(item.Name, out id))
-                        yield return new Tuple<int, Func<MapleItem>>(id, CreateLookup(characterWz, item, idGrouping.Name, id, stringWz).Memoize());
+                        yield return new Tuple<int, Func<MapleItem>>(id, CreateLookup(characterWz, effectWzCallback, item, idGrouping.Name, id, stringWz).Memoize());
         }
 
-        private static Func<MapleItem> CreateLookup(Func<Func<WZFile, MapleItem>, MapleItem> characterWzCallback, WZObject item, string idGroupingName, int id, WZFile stringWz)
+        private static Func<MapleItem> CreateLookup(Func<Func<WZFile, MapleItem>, MapleItem> characterWzCallback, Func<Func<WZFile, MapleItem>, MapleItem> effectWzCallback, WZObject item, string idGroupingName, int id, WZFile stringWz)
             => ()
-            => characterWzCallback((characterWz) => Equip.Parse(characterWz.MainDirectory, item, idGroupingName, id, stringWz.MainDirectory, true));
+            => characterWzCallback((characterWz) => effectWzCallback(effectWz => Equip.Parse(characterWz.MainDirectory, item, idGroupingName, id, stringWz.MainDirectory, effectWz.MainDirectory["ItemEff.img"])));
 
         public override string ToString()
             => $"{EquipGroup} - {id}";
+    }
+
+    public class Effects
+    {
+        public Dictionary<string, IEnumerable<FrameBook>> entries;
+
+        public static Effects Parse(WZObject itemEffect, WZObject effectsWz)
+        {
+            Effects effects = new Effects();
+
+            effects.entries = itemEffect.HasChild("effect") ? itemEffect["effect"].Where(c =>
+                !c.Name.Equals("action", StringComparison.CurrentCultureIgnoreCase) &&
+                !c.Name.Equals("actionExceptRotation", StringComparison.CurrentCultureIgnoreCase) &&
+                !c.Name.Equals("fixed", StringComparison.CurrentCultureIgnoreCase) &&
+                !c.Name.Equals("z", StringComparison.CurrentCultureIgnoreCase)
+            ).ToDictionary(c => c.Name, c => FrameBook.Parse(effectsWz, itemEffect.Parent, c)) : null;
+
+            return effects;
+        }
     }
 }

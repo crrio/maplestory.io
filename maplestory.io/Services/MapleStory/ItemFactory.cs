@@ -31,7 +31,7 @@ namespace maplestory.io.Services.MapleStory
             Stopwatch watch = Stopwatch.StartNew();
             _logger.LogInformation("Caching item lookup table");
 
-            itemLookup = Equip.GetLookup(factory.AsyncGetWZFile(WZ.Character), factory.GetWZFile(WZ.String))
+            itemLookup = Equip.GetLookup(factory.AsyncGetWZFile(WZ.Character), factory.AsyncGetWZFile(WZ.Effect), factory.GetWZFile(WZ.String))
             .Concat(Consume.GetLookup(factory.AsyncGetWZFile(WZ.Item), factory.GetWZFile(WZ.String).MainDirectory))
             .Concat(Etc.GetLookup(factory.AsyncGetWZFile(WZ.Item), factory.GetWZFile(WZ.String).MainDirectory))
             .Concat(Install.GetLookup(factory.AsyncGetWZFile(WZ.Item), factory.GetWZFile(WZ.String).MainDirectory))

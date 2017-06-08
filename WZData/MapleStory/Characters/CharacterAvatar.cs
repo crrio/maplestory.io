@@ -17,6 +17,7 @@ namespace WZData.MapleStory.Characters
         public int Padding;
         public IEnumerable<Tuple<MapleItem, string>> Items;
         public readonly CharacterSkin BaseSkin;
+        public Dictionary<string, Point> anchorPositions = new Dictionary<string, Point>() { { "navel", new Point(0, 0) } };
 
         public bool HasFace { get => EntireBodyFrame.HasFace ?? false; }
 
@@ -24,7 +25,12 @@ namespace WZData.MapleStory.Characters
         public Body EntireBodyFrame { get => SkinAnimation.Frames[Frame % SkinAnimation.Frames.Length]; }
         public Dictionary<string, BodyPart> BodyParts { get => EntireBodyFrame.Parts; }
 
-        public IEnumerable<Tuple<Equip, string>> EquipFramesSelected { get => Items.Where(c => c.Item1 is Equip).Select(c => new Tuple<Equip, string>((Equip)c.Item1, c.Item2)); }
+        public IEnumerable<Tuple<Equip, string>> EquipFramesSelected
+        {
+            get => Items.Where(c => c.Item1 is Equip)
+                .Select(c => new Tuple<Equip, string>((Equip)c.Item1, c.Item2))
+                .Where(c => c.Item1.FrameBooks.Count > 0);
+        }
         public IEnumerable<Equip> Equips { get => EquipFramesSelected.Select(c => c.Item1); }
         public int WeaponCategory {
             get => (int)Math.Floor(
@@ -38,7 +44,7 @@ namespace WZData.MapleStory.Characters
         public IEnumerable<Tuple<Equip, string, IFrame>> EquipFrames
         {
             get => EquipFramesSelected
-                .GroupBy(c => c.Item1.MetaInfo.Equip.islot)
+                .GroupBy(c => c.Item1.EquipGroup)
                 .Select(c => c.FirstOrDefault(b => b.Item1.MetaInfo.Cash?.cash ?? false) ?? c.First())
                 // Some equips aren't always shown, like weapons when sitting
                 .Where(c => c.Item1.GetFrameBooks(WeaponCategory).ContainsKey(c.Item2 ?? AnimationName) || c.Item1.GetFrameBooks(WeaponCategory).ContainsKey("default"))
@@ -47,41 +53,66 @@ namespace WZData.MapleStory.Characters
                 .SelectMany(c => c.Item2.Effects.Select(b => new Tuple<Equip, string, IFrame>(c.Item1, b.Key, b.Value)));
         }
 
+        public IEnumerable<IFrame> EffectFrames
+        {
+            get => EquipFramesSelected
+                .Where(c => c.Item1.ItemEffects?.entries?.Count > 0)
+                .Where(c => c.Item1.ItemEffects.entries.ContainsKey(c.Item2 ?? AnimationName) || c.Item1.ItemEffects.entries.ContainsKey("default"))
+                .Select(c => new Tuple<Equip, FrameBook>(c.Item1, c.Item1.ItemEffects.entries.ContainsKey(c.Item2 ?? AnimationName) ? c.Item1.ItemEffects.entries[c.Item2 ?? AnimationName].FirstOrDefault() : c.Item1.ItemEffects.entries["default"].FirstOrDefault()))
+                .Where(c => c.Item2 != null)
+                .Select(c => new Tuple<Equip, IFrame>(c.Item1, c.Item2.frames.Count() <= Frame ? c.Item2.frames.ElementAt(Frame % c.Item2.frames.Count()) : c.Item2.frames.ElementAt(Frame)))
+                .Where(c => c != null && int.TryParse(c.Item2.Position, out int blah))
+                .GroupBy(c => c.Item2.Position)
+                .Select(c => c.FirstOrDefault())
+                .GroupBy(c => c.Item1.EquipGroup)
+                .Select(c => c.FirstOrDefault(b => b.Item1.MetaInfo.Cash?.cash ?? false) ?? c.First())
+                .Select(c => c.Item2);
+        }
+
         public CharacterAvatar(CharacterSkin baseSkin)
         {
             this.BaseSkin = baseSkin;
         }
 
-        public List<Tuple<string, Point, IFrame>> GetElementPieces(ZMap zmapping, SMap smapping)
+        public List<Tuple<string, Point, IFrame>> GetElementPieces(ZMap zmapping, SMap smapping, List<IFrame> frames = null)
         {
-            Dictionary<string, Point> positions = new Dictionary<string, Point>() { { "navel", new Point(0, 0) } };
-            List<IFrame> characterParts = GetBodyPieces(zmapping, smapping).ToList();
+            if (frames == null)
+                frames = GetBodyPieces(zmapping, smapping).ToList();
 
             List<Tuple<string, Point, IFrame>> elements = new List<Tuple<string, Point, IFrame>>();
 
-            while (characterParts.Count > 0)
+            while (frames.Count > 0)
             {
-                IFrame part = characterParts.Where(c => c.MapOffset.Any(b => positions.ContainsKey(b.Key))).FirstOrDefault();
-                if (part == null)
-                    throw new InvalidOperationException("We have body parts, but none of them have an anchor point to the navel? That doesn't seem correct.");
+                IFrame part = frames.Where(c => c.MapOffset?.Any(b => anchorPositions.ContainsKey(b.Key)) ?? false).FirstOrDefault() ?? frames.First();
 
-                KeyValuePair<string, Point> anchorPointEntry = part.MapOffset.Where(c => positions.ContainsKey(c.Key)).First();
-                Point anchorPoint = positions[anchorPointEntry.Key];
-                Point vectorFromPoint = anchorPointEntry.Value;
-                Point fromAnchorPoint = new Point(anchorPoint.X - vectorFromPoint.X, anchorPoint.Y - vectorFromPoint.Y);
-                foreach (KeyValuePair<string, Point> childAnchorPoint in part.MapOffset.Where(c => c.Key != anchorPointEntry.Key))
-                {
-                    Point resultAnchorPoint = new Point(fromAnchorPoint.X + childAnchorPoint.Value.X, fromAnchorPoint.Y + childAnchorPoint.Value.Y);
-                    if (!positions.ContainsKey(childAnchorPoint.Key))
-                        positions.Add(childAnchorPoint.Key, resultAnchorPoint);
-                    else if (positions[childAnchorPoint.Key].X != resultAnchorPoint.X || positions[childAnchorPoint.Key].Y != resultAnchorPoint.Y)
-                        throw new InvalidOperationException("Duplicate anchor point, but position doesn't match up, possible state corruption?");
-                }
                 Point partOrigin = part.Origin ?? Point.Empty;
-                Point withOffset = new Point(fromAnchorPoint.X - partOrigin.X, fromAnchorPoint.Y - partOrigin.Y);
+                Point withOffset = Point.Empty;
+                if (part.MapOffset != null)
+                {
+                    KeyValuePair<string, Point> anchorPointEntry = part.MapOffset.Where(c => anchorPositions.ContainsKey(c.Key)).First();
+                    Point anchorPoint = anchorPositions[anchorPointEntry.Key];
+                    Point vectorFromPoint = anchorPointEntry.Value;
+                    Point fromAnchorPoint = new Point(anchorPoint.X - vectorFromPoint.X, anchorPoint.Y - vectorFromPoint.Y);
+
+                    foreach (KeyValuePair<string, Point> childAnchorPoint in part.MapOffset.Where(c => c.Key != anchorPointEntry.Key))
+                    {
+                        Point resultAnchorPoint = new Point(fromAnchorPoint.X + childAnchorPoint.Value.X, fromAnchorPoint.Y + childAnchorPoint.Value.Y);
+                        if (!anchorPositions.ContainsKey(childAnchorPoint.Key))
+                            anchorPositions.Add(childAnchorPoint.Key, resultAnchorPoint);
+                        else if (anchorPositions[childAnchorPoint.Key].X != resultAnchorPoint.X || anchorPositions[childAnchorPoint.Key].Y != resultAnchorPoint.Y)
+                            throw new InvalidOperationException("Duplicate anchor point, but position doesn't match up, possible state corruption?");
+                    }
+
+                    withOffset = new Point(fromAnchorPoint.X - partOrigin.X, fromAnchorPoint.Y - partOrigin.Y);
+                }
+                else
+                {
+                    Point neckPoint = (Point?)anchorPositions.FirstOrDefault(c => c.Key == "brow").Value ?? new Point(0, 0);
+                    withOffset = new Point(neckPoint.X - partOrigin.X, neckPoint.Y - partOrigin.Y);
+                }
 
                 elements.Add(new Tuple<string, Point, IFrame>(part.Position, withOffset, part));
-                characterParts.Remove(part);
+                frames.Remove(part);
             }
 
             return elements;
@@ -153,20 +184,39 @@ namespace WZData.MapleStory.Characters
         public Bitmap Render(ZMap zmapping, SMap smapping)
         {
             List<Tuple<string, Point, IFrame>> elements = GetElementPieces(zmapping, smapping);
+            List<Tuple<int, Point, IFrame>> effectFrames = GetElementPieces(zmapping, smapping, EffectFrames.ToList())
+                .Select(c => new Tuple<int, Point, IFrame>(int.Parse(c.Item1), c.Item2, c.Item3))
+                .OrderBy(c => c.Item1).ToList();
 
-            int minX = elements.Select(c => c.Item2.X).Min();
-            int maxX = elements.Select(c => c.Item2.X + c.Item3.Image.Width).Max();
-            int minY = elements.Select(c => c.Item2.Y).Min();
-            int maxY = elements.Select(c => c.Item2.Y + c.Item3.Image.Height).Max();
+            int minX = elements
+                .Select(c => c.Item2.X)
+                .Concat(effectFrames.Select(c => c.Item2.X))
+                .Min();
+            int maxX = elements
+                .Select(c => c.Item2.X + c.Item3.Image.Width)
+                .Concat(effectFrames.Select(c => c.Item2.X + c.Item3.Image.Width))
+                .Max();
+            int minY = elements
+                .Select(c => c.Item2.Y)
+                .Concat(effectFrames.Select(c => c.Item2.Y))
+                .Min();
+            int maxY = elements
+                .Select(c => c.Item2.Y + c.Item3.Image.Height)
+                .Concat(effectFrames.Select(c => c.Item2.Y + c.Item3.Image.Height))
+                .Max();
             Size center = new Size((maxX - minX) / 2, (maxY - minY) / 2);
 
             Bitmap destination = new Bitmap((maxX - minX) + (Padding * 2), (maxY - minY) + (Padding * 2), PixelFormat.Format32bppArgb);
+
             using (Graphics g = Graphics.FromImage(destination))
             {
+                foreach(Tuple<int, Point, IFrame> frame in effectFrames.Where(c => c.Item1 < 1))
+                    g.DrawImage(frame.Item3.Image, new Point((frame.Item2.X - minX) + Padding, (frame.Item2.Y - minY) + Padding));
                 foreach (IEnumerable<Tuple<string, Point, IFrame>> elementGroup in zmapping.Ordering.Select(c => elements.Where(i => i.Item1 == c)))
                     foreach (Tuple<string, Point, IFrame> element in elementGroup)
                         g.DrawImage(element.Item3.Image, new Point((element.Item2.X - minX) + Padding, (element.Item2.Y - minY) + Padding));
-
+                foreach (Tuple<int, Point, IFrame> frame in effectFrames.Where(c => c.Item1 > 0))
+                    g.DrawImage(frame.Item3.Image, new Point((frame.Item2.X - minX) + Padding, (frame.Item2.Y - minY) + Padding));
                 g.Flush();
             }
 
