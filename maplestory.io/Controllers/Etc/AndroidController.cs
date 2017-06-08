@@ -11,7 +11,7 @@ using WZData.MapleStory;
 namespace maplestory.io.Controllers.Etc
 {
     [Produces("application/json")]
-    [Route("api/androids")]
+    [Route("api/android")]
     public class AndroidController : Controller
     {
         private readonly IAndroidFactory _factory;
