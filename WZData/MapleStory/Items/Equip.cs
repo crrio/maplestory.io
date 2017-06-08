@@ -38,7 +38,8 @@ namespace WZData.MapleStory.Items
                 if (hasEffectsPerItemType)
                 {
                     item.FrameBooksPerWeaponType = characterItem.Where(c => c.Name != "info")
-                        .ToDictionary(c => int.Parse(c.Name), c => ProcessFrameBooks(characterWz, characterItem, c));
+                        .Select(c => new Tuple<string, WZObject>(c.Name, c.Type == WZObjectType.UOL ? ((WZUOLProperty)c).ResolveFully() : c))
+                        .ToDictionary(c => int.Parse(c.Item1), c => ProcessFrameBooks(characterWz, characterItem, c.Item2));
                     item.FrameBooks = item.FrameBooksPerWeaponType.Values.FirstOrDefault() ?? new Dictionary<string, EquipFrameBook>();
                 }
                 else
