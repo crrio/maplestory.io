@@ -180,6 +180,9 @@ namespace WZData.ItemMetaInfo
         public int? imdR;
 
         public string islot, vslot;
+        public int? android;
+        public int? androidGrade;
+
         public IEnumerable<string> vslots { get => (new string[vslot.Length / 2]).Select((c, i) => vslot.Substring(i * 2, 2)); }
         public IEnumerable<string> islots { get => (new string[islot.Length / 2]).Select((c, i) => islot.Substring(i * 2, 2)); }
 
@@ -283,6 +286,10 @@ namespace WZData.ItemMetaInfo
                 results.islot = info["islot"].ValueOrDefault<string>(null);
             if (info.HasChild("vslot"))
                 results.vslot = info["vslot"].ValueOrDefault<string>(null);
+            if (info.HasChild("android"))
+                results.android = info["android"].ValueOrDefault<int?>(null);
+            if (info.HasChild("grade"))
+                results.androidGrade = info["grade"].ValueOrDefault<int?>(null);
 
             return results;
         }
