@@ -3,13 +3,15 @@ using System.Linq;
 using reWZ.WZProperties;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Drawing;
 
 namespace WZData
 {
     public class FrameBook
     {
         public IEnumerable<Frame> frames;
-        internal static IEnumerable<FrameBook> Parse(WZObject file, WZObject container, WZObject self)
+
+        public static IEnumerable<FrameBook> Parse(WZObject file, WZObject container, WZObject self)
         {
             bool isSingle = self.Any(c => c is WZCanvasProperty);
 
@@ -25,7 +27,7 @@ namespace WZData
             }
         }
 
-        private static FrameBook ParseSingle(WZObject file, WZObject container, WZObject self)
+        public static FrameBook ParseSingle(WZObject file, WZObject container, WZObject self)
         {
             FrameBook effect = new FrameBook();
 

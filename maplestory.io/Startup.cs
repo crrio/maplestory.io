@@ -51,6 +51,7 @@ namespace maplestory.io
             services.AddSingleton<ITipFactory, TipFactory>();
             services.AddSingleton<IZMapFactory, ZMapFactory>();
             services.AddSingleton<ICharacterFactory, CharacterFactory>();
+            services.AddSingleton<ICraftingEffectFactory, CraftingEffectFactory>();
 
             services.AddSwaggerGen(c =>
             {
