@@ -1,9 +1,9 @@
-﻿using System;
+﻿using MoreLinq;
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.Linq;
-using System.Text;
 using WZData.MapleStory.Images;
 using WZData.MapleStory.Items;
 
@@ -178,7 +178,7 @@ namespace WZData.MapleStory.Characters
             return BodyParts.Values
                 .Where(c => ShowEars || c.Name != "ear")
                 .Select(c => (IFrame)c)
-                .Concat(requiredLayers.Where(c => c.Item3.All(slot => boundLayers[slot] == c.Item1)).Select(c => c.Item2));
+                .Concat(requiredLayers.Where(c => c.Item3.All(slot => boundLayers[slot] == c.Item1)).Select(c => c.Item2).DistinctBy(c => c.Position));
             }
 
         public Bitmap Render(ZMap zmapping, SMap smapping)
@@ -210,6 +210,8 @@ namespace WZData.MapleStory.Characters
 
             using (Graphics g = Graphics.FromImage(destination))
             {
+                g.CompositingMode = System.Drawing.Drawing2D.CompositingMode.SourceOver;
+                g.CompositingQuality = System.Drawing.Drawing2D.CompositingQuality.HighQuality;
                 foreach(Tuple<int, Point, IFrame> frame in effectFrames.Where(c => c.Item1 < 1))
                     g.DrawImage(frame.Item3.Image, new Point((frame.Item2.X - minX) + Padding, (frame.Item2.Y - minY) + Padding));
                 foreach (IEnumerable<Tuple<string, Point, IFrame>> elementGroup in zmapping.Ordering.Select(c => elements.Where(i => i.Item1 == c)))
