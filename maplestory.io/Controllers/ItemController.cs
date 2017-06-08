@@ -3,6 +3,9 @@ using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using WZData;
 using WZData.MapleStory.Items;
+using System.Linq;
+using WZData.MapleStory.Images;
+using System.Drawing;
 
 namespace maplestory.io.Controllers
 {
@@ -55,7 +58,19 @@ namespace maplestory.io.Controllers
         public IActionResult itemIcon(int itemId)
         {
             MapleItem eq = itemFactory.search(itemId);
-            return File(eq.MetaInfo.Icon.Icon.ImageToByte(), "image/png");
+            if (eq == null) return NotFound("Couldn't find the item");
+
+            if (eq.MetaInfo.Icon?.Icon != null)
+                return File(eq.MetaInfo.Icon.Icon.ImageToByte(), "image/png");
+            else if (eq is Equip)
+            {
+                Equip eqp = (Equip)eq;
+                EquipFrameBook book = eqp.FrameBooks.Select(c => c.Value).FirstOrDefault();
+                Bitmap effectImage = book?.frames?.FirstOrDefault()?.Effects?.Select(c => c.Value)?.First()?.Image;
+                if (effectImage != null)
+                    return File(effectImage.ImageToByte(), "image/png");
+            }
+            return NotFound("Item does not have an icon or a default effect");
         }
 
         [Route("{itemId}/iconRaw")]
