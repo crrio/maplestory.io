@@ -59,5 +59,27 @@ namespace maplestory.io.Services.MapleStory
 
             return avatar.Render(zmap, smap);
         }
+
+        public Image<Rgba32> GetCompactCharacter(int id, string animation = null, int frame = 0, bool showEars = false, int padding = 2, params Tuple<int, string>[] itemEntries)
+        {
+            IEnumerable<Tuple<MapleItem, string>> items = Enumerable.Select<Tuple<int, string>, Tuple<MapleItem, string>>(itemEntries, (Func<Tuple<int, string>, Tuple<MapleItem, string>>)((Tuple<int, string> c) => (Tuple<MapleItem, string>)new Tuple<MapleItem, string>((MapleItem)itemFactory.search((int)c.Item1), (string)c.Item2)));
+
+            CharacterSkin skin = GetSkin(id);
+            CharacterAvatar avatar = new CharacterAvatar(skin);
+            avatar.Items = items;
+
+            if (animation == null)
+            {
+                Equip weapon = avatar.Equips.Where(c => c.EquipGroup == "Weapon").FirstOrDefault();
+                animation = weapon?.FrameBooks.Select(c => c.Key).Where(c => c.Contains("stand")).FirstOrDefault() ?? "stand1";
+            }
+
+            avatar.AnimationName = animation;
+            avatar.Frame = frame;
+            avatar.ShowEars = showEars;
+            avatar.Padding = padding;
+
+            return avatar.RenderCompact(zmap, smap);
+        }
     }
 }

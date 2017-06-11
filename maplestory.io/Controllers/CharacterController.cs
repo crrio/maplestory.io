@@ -71,6 +71,18 @@ namespace maplestory.io.Controllers
                     .ToArray()
                 ).ImageToByte(), "image/png");
 
+        [Route("compact/{skinId}/{items}/{animation?}/{frame?}")]
+        [HttpGet]
+        [Produces("image/png")]
+        public IActionResult GetCompactCharacter(int skinId, string items, string animation = null, int frame = 0)
+        => File(_factory.GetCompactCharacter(skinId, animation, frame, items: items
+            .Split(new string[] { "," }, StringSplitOptions.RemoveEmptyEntries)
+            .Select(c => c.Split(':'))
+            .Where(c => c.Length > 0 && int.TryParse(c[0], out int blah))
+            .Select(c => new Tuple<int, string>(int.Parse(c[0]), c.Length > 1 ? c[1] : animation))
+            .ToArray()
+        ).ImageToByte(), "image/png");
+
         [Route("")]
         [HttpGet]
         [ProducesResponseType(typeof(int[]), 200)]
