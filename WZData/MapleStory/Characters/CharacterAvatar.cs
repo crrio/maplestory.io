@@ -307,7 +307,6 @@ namespace WZData.MapleStory.Characters
             result.DrawImage(destination.Crop(cropArea), 1, new Size(cropArea.Width, cropArea.Height), new Point((int)cropOffsetFromOrigin.X, (int)cropOffsetFromOrigin.Y));
 
             return result;
-//            return feetOnBottom.DrawImage(destination.Crop(cropArea), 1, new Size(cropArea.Width, cropArea.Height), offset);
         }
     }
 }
