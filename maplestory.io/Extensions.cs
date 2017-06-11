@@ -1,17 +1,21 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Drawing;
+using ImageSharp;
 using System.Linq;
 using System.Threading.Tasks;
+using System.IO;
 
 namespace maplestory.io
 {
     public static class Extensions
     {
-        public static byte[] ImageToByte(this Image img)
+        public static byte[] ImageToByte(this Image<Rgba32> img)
         {
-            ImageConverter converter = new ImageConverter();
-            return (byte[])converter.ConvertTo(img, typeof(byte[]));
+            using (MemoryStream mem = new MemoryStream())
+            {
+                img.Save(mem);
+                return mem.ToArray();
+            }
         }
     }
 }

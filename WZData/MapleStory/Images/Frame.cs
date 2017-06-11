@@ -1,17 +1,19 @@
 ﻿using System;
 using reWZ.WZProperties;
-using System.Drawing;
+using ImageSharp;
 using System.Collections.Generic;
 using System.Linq;
+using ImageSharp;
+using System.Numerics;
 
 namespace WZData
 {
     public class Frame : IFrame
     {
-        public Bitmap Image { get; set; }
+        public Image<Rgba32> Image { get; set; }
         public int delay;
-        public Point? Origin { get; set; }
-        public Dictionary<string, Point> MapOffset { get; set; }
+        public Vector2? Origin { get; set; }
+        public Dictionary<string, Vector2> MapOffset { get; set; }
         public string Position { get; set; }
 
         internal static Frame Parse(WZObject file, WZObject container, WZObject self)
@@ -20,14 +22,14 @@ namespace WZData
 
             animationFrame.Image = ResolveImage(file, container, self);
             animationFrame.delay = self.HasChild("delay") ? self["delay"].ValueOrDefault<int>(0) : 0;
-            animationFrame.Origin = self.HasChild("origin") ? ((WZPointProperty)self["origin"]).Value : new Point(0, 0);
+            animationFrame.Origin = self.HasChild("origin") ? ((WZVector2Property)self["origin"]).Value : new Vector2(0, 0);
             animationFrame.Position = self.HasChild("z") ? (self["z"].Type == WZObjectType.String ? self["z"].ValueOrDefault<string>("") : self["z"].ValueOrDefault<int>(0).ToString()) : null;
-            animationFrame.MapOffset = self.HasChild("map") ? self["map"].Select(c => new Tuple<string, Point>(c.Name, ((WZPointProperty)c).Value)).ToDictionary(b => b.Item1, b => b.Item2) : null;
+            animationFrame.MapOffset = self.HasChild("map") ? self["map"].Select(c => new Tuple<string, Vector2>(c.Name, ((WZVector2Property)c).Value)).ToDictionary(b => b.Item1, b => b.Item2) : null;
 
             return animationFrame;
         }
 
-        static Bitmap ResolveImage(WZObject file, WZObject container, WZObject self)
+        static Image<Rgba32> ResolveImage(WZObject file, WZObject container, WZObject self)
         {
             WZObject image = self;
 
@@ -74,7 +76,7 @@ namespace WZData
                     }
                     else
                     {
-                        // This does not support linking out to a different file, might need to be fixed at some point. :(
+                        // This does not support linking out to a different file, might need to be fixed at some Vector2. :(
                         image = file.ResolvePath(outlink.Substring(outlink.IndexOf('/') + 1));
                         hasChanged = true;
                     }
@@ -89,7 +91,7 @@ namespace WZData
 
             try
             {
-                return ((WZCanvasProperty)image).ValueOrDefault<Bitmap>(null);
+                return ((WZCanvasProperty)image).ImageOrDefault();
             } catch (Exception ex)
             {
                 // *shrug*
@@ -102,9 +104,9 @@ namespace WZData
 
     public interface IFrame
     {
-        Bitmap Image { get; }
-        Point? Origin { get; }
+        Image<Rgba32> Image { get; }
+        Vector2? Origin { get; }
         string Position { get; }
-        Dictionary<string, Point> MapOffset { get; }
+        Dictionary<string, Vector2> MapOffset { get; }
     }
 }

@@ -60,7 +60,7 @@ namespace reWZ
         ///   Sets the position within the backing stream to the specified value.
         /// </summary>
         /// <param name="offset"> The new position within the backing stream. This is relative to the <paramref name="loc" /> parameter, and can be positive or negative. </param>
-        /// <param name="loc"> A value of type <see cref="T:System.IO.SeekOrigin" /> , which acts as the seek reference point. This defaults to <code>SeekOrigin.Begin</code> . </param>
+        /// <param name="loc"> A value of type <see cref="T:System.IO.SeekOrigin" /> , which acts as the seek reference Vector2. This defaults to <code>SeekOrigin.Begin</code> . </param>
         internal void Seek(long offset, SeekOrigin loc = SeekOrigin.Begin)
         {
             BaseStream.Seek(offset, loc);

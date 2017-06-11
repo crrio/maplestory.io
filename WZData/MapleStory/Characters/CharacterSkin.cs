@@ -3,10 +3,11 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Drawing;
+using ImageSharp;
 using MoreLinq;
 using System.Text;
 using System.Linq;
+using System.Numerics;
 
 namespace WZData.MapleStory.Characters
 {
@@ -123,10 +124,10 @@ namespace WZData.MapleStory.Characters
     public class BodyPart : IFrame
     {
         public string Name;
-        public Bitmap Image { get; set; }
-        public Point? Origin { get; set; }
+        public Image<Rgba32> Image { get; set; }
+        public Vector2? Origin { get; set; }
         public string Position { get; set; }
-        public Dictionary<string, Point> MapOffset { get; set; }
+        public Dictionary<string, Vector2> MapOffset { get; set; }
 
         static ConcurrentDictionary<string, BodyPart> cache = new ConcurrentDictionary<string, BodyPart>();
 
@@ -140,9 +141,9 @@ namespace WZData.MapleStory.Characters
 
                 result.Name = part.Name;
                 result.Image = ResolveImage(part);
-                result.Origin = part.HasChild("origin") ? ((WZPointProperty)part["origin"]).Value : new Point(0, 0);
+                result.Origin = part.HasChild("origin") ? ((WZVector2Property)part["origin"]).Value : new Vector2(0, 0);
                 result.Position = part.HasChild("z") ? part["z"].ValueOrDefault<string>("") : null;
-                result.MapOffset = part.HasChild("map") ? part["map"].Where(c => c is WZPointProperty).Select(c => new Tuple<string, Point>(c.Name, ((WZPointProperty)c).Value)).ToDictionary(b => b.Item1, b => b.Item2) : null;
+                result.MapOffset = part.HasChild("map") ? part["map"].Where(c => c is WZVector2Property).Select(c => new Tuple<string, Vector2>(c.Name, ((WZVector2Property)c).Value)).ToDictionary(b => b.Item1, b => b.Item2) : null;
 
                 while (!cache.TryAdd(part.Path, result) && !cache.ContainsKey(part.Path)) ;
 
@@ -156,12 +157,12 @@ namespace WZData.MapleStory.Characters
             return null;
         }
 
-        public static Bitmap ResolveImage(WZObject container)
+        public static Image<Rgba32> ResolveImage(WZObject container)
         {
             while (container.HasChild("_inlink"))
                 container = container.ResolvePath($"../../../{container["_inlink"].ValueOrDefault<string>("")}");
 
-            return ((WZCanvasProperty)container).ValueOrDefault<Bitmap>(null);
+            return ((WZCanvasProperty)container).ImageOrDefault();
         }
     }
 }

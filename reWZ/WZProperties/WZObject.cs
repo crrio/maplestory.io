@@ -26,6 +26,8 @@
 // choice, provided that you also meet, for each linked independent module,
 // the terms and conditions of the license of that module. An independent
 // module is a module which is not derived from or based on reWZ.
+using ImageSharp;
+using ImageSharp.PixelFormats;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -175,6 +177,19 @@ namespace reWZ.WZProperties
         }
 
         /// <summary>
+        ///   Tries to cast this to a <see cref="WZProperty{T}" /> and returns its value, or returns a default value if the cast is invalid.
+        /// </summary>
+        /// <param name="default"> The value to return if the cast is unsuccessful. </param>
+        /// <typeparam name="T1"> The type of the WZ Property. </typeparam>
+        /// <typeparam name="T2"> The type of the value to return. </typeparam>
+        /// <returns> The value enclosed by this WZ property, or the default value. </returns>
+        public Image<Rgba32> ImageOrDefault()
+        {
+            WZProperty<Image<Rgba32>> ret = this as WZProperty<Image<Rgba32>>;
+            return ret != null ? (Image<Rgba32>)ret.Value : default(Image<Rgba32>);
+        }
+
+        /// <summary>
         ///   Resolves a path in the form "/a/b/c/.././d/e/f/".
         /// </summary>
         /// <param name="path"> The path to resolve. </param>
@@ -227,7 +242,7 @@ namespace reWZ.WZProperties
         Single,
         Double,
         String,
-        Point,
+        Vector2,
         UOL,
         Audio,
         Canvas,

@@ -27,8 +27,8 @@
 // the terms and conditions of the license of that module. An independent
 // module is a module which is not derived from or based on reWZ.
 using System;
-using System.Drawing;
 using System.Linq;
+using System.Numerics;
 
 namespace reWZ.WZProperties
 {
@@ -75,7 +75,7 @@ namespace reWZ.WZProperties
     }
 
     /// <summary>
-    ///   A floating point number with single precision property.
+    ///   A floating Vector2 number with single precision property.
     /// </summary>
     public sealed class WZSingleProperty : WZProperty<Single>
     {
@@ -91,7 +91,7 @@ namespace reWZ.WZProperties
     }
 
     /// <summary>
-    ///   A floating point number with double precision property.
+    ///   A floating Vector2 number with double precision property.
     /// </summary>
     public sealed class WZDoubleProperty : WZProperty<Double>
     {
@@ -122,12 +122,12 @@ namespace reWZ.WZProperties
     }
 
     /// <summary>
-    ///   A point property, containing an X and Y value pair.
+    ///   A Vector2 property, containing an X and Y value pair.
     /// </summary>
-    public sealed class WZPointProperty : WZProperty<Point>
+    public sealed class WZVector2Property : WZProperty<Vector2>
     {
-        internal WZPointProperty(string name, WZObject parent, WZBinaryReader wzbr, WZImage container)
-            : base(name, parent, new Point(wzbr.ReadWZInt(), wzbr.ReadWZInt()), container, false, WZObjectType.Point)
+        internal WZVector2Property(string name, WZObject parent, WZBinaryReader wzbr, WZImage container)
+            : base(name, parent, new Vector2(wzbr.ReadWZInt(), wzbr.ReadWZInt()), container, false, WZObjectType.Vector2)
         {}
     }
 

@@ -1,7 +1,7 @@
 ﻿using reWZ;
 using reWZ.WZProperties;
 using System.Collections.Generic;
-using System.Drawing;
+using ImageSharp;
 using System.Linq;
 
 namespace WZData.MapleStory.Items

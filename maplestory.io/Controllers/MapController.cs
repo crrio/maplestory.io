@@ -1,6 +1,6 @@
 using maplestory.io.Services.MapleStory;
 using Microsoft.AspNetCore.Mvc;
-using System.Drawing;
+using ImageSharp;
 using WZData.MapleStory.Maps;
 
 namespace maplestory.io.Controllers
@@ -44,7 +44,7 @@ namespace maplestory.io.Controllers
         [Produces("image/png")]
         public IActionResult GetMarkByName(string markName)
         {
-            return File((byte[])new ImageConverter().ConvertTo(_factory.GetMapMark(markName).Mark, typeof(byte[])), "image/png");
+            return File(_factory.GetMapMark(markName).Mark.ImageToByte(), "image/png");
         }
 
         [Route("{mapId}/icon")]

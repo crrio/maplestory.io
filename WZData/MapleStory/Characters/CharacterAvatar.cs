@@ -2,11 +2,11 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Drawing;
-using System.Drawing.Imaging;
+using ImageSharp;
 using System.Linq;
 using WZData.MapleStory.Images;
 using WZData.MapleStory.Items;
+using System.Numerics;
 
 namespace WZData.MapleStory.Characters
 {
@@ -18,7 +18,7 @@ namespace WZData.MapleStory.Characters
         public int Padding;
         public IEnumerable<Tuple<MapleItem, string>> Items;
         public readonly CharacterSkin BaseSkin;
-        public Dictionary<string, Point> anchorPositions = new Dictionary<string, Point>() { { "navel", new Point(0, 0) } };
+        public Dictionary<string, Vector2> anchorPositions = new Dictionary<string, Vector2>() { { "navel", new Vector2(0, 0) } };
 
         public bool HasFace { get => EntireBodyFrame.HasFace ?? false; }
 
@@ -75,44 +75,44 @@ namespace WZData.MapleStory.Characters
             this.BaseSkin = baseSkin;
         }
 
-        public List<Tuple<string, Point, IFrame>> GetElementPieces(ZMap zmapping, SMap smapping, List<IFrame> frames = null)
+        public List<Tuple<string, Vector2, IFrame>> GetElementPieces(ZMap zmapping, SMap smapping, List<IFrame> frames = null)
         {
             if (frames == null)
                 frames = GetBodyPieces(zmapping, smapping).ToList();
 
-            List<Tuple<string, Point, IFrame>> elements = new List<Tuple<string, Point, IFrame>>();
+            List<Tuple<string, Vector2, IFrame>> elements = new List<Tuple<string, Vector2, IFrame>>();
 
             while (frames.Count > 0)
             {
                 IFrame part = frames.Where(c => c.MapOffset?.Any(b => anchorPositions.ContainsKey(b.Key)) ?? false).FirstOrDefault() ?? frames.First();
 
-                Point partOrigin = part.Origin ?? Point.Empty;
-                Point withOffset = Point.Empty;
+                Vector2 partOrigin = part.Origin ?? Vector2.Zero;
+                Vector2 withOffset = Vector2.Zero;
                 if (part.MapOffset != null)
                 {
-                    KeyValuePair<string, Point> anchorPointEntry = part.MapOffset.Where(c => anchorPositions.ContainsKey(c.Key)).First();
-                    Point anchorPoint = anchorPositions[anchorPointEntry.Key];
-                    Point vectorFromPoint = anchorPointEntry.Value;
-                    Point fromAnchorPoint = new Point(anchorPoint.X - vectorFromPoint.X, anchorPoint.Y - vectorFromPoint.Y);
+                    KeyValuePair<string, Vector2> anchorVector2Entry = part.MapOffset.Where(c => anchorPositions.ContainsKey(c.Key)).First();
+                    Vector2 anchorVector2 = anchorPositions[anchorVector2Entry.Key];
+                    Vector2 vectorFromVector2 = anchorVector2Entry.Value;
+                    Vector2 fromAnchorVector2 = new Vector2(anchorVector2.X - vectorFromVector2.X, anchorVector2.Y - vectorFromVector2.Y);
 
-                    foreach (KeyValuePair<string, Point> childAnchorPoint in part.MapOffset.Where(c => c.Key != anchorPointEntry.Key))
+                    foreach (KeyValuePair<string, Vector2> childAnchorVector2 in part.MapOffset.Where(c => c.Key != anchorVector2Entry.Key))
                     {
-                        Point resultAnchorPoint = new Point(fromAnchorPoint.X + childAnchorPoint.Value.X, fromAnchorPoint.Y + childAnchorPoint.Value.Y);
-                        if (!anchorPositions.ContainsKey(childAnchorPoint.Key))
-                            anchorPositions.Add(childAnchorPoint.Key, resultAnchorPoint);
-                        else if (anchorPositions[childAnchorPoint.Key].X != resultAnchorPoint.X || anchorPositions[childAnchorPoint.Key].Y != resultAnchorPoint.Y)
-                            throw new InvalidOperationException("Duplicate anchor point, but position doesn't match up, possible state corruption?");
+                        Vector2 resultAnchorVector2 = new Vector2(fromAnchorVector2.X + childAnchorVector2.Value.X, fromAnchorVector2.Y + childAnchorVector2.Value.Y);
+                        if (!anchorPositions.ContainsKey(childAnchorVector2.Key))
+                            anchorPositions.Add(childAnchorVector2.Key, resultAnchorVector2);
+                        else if (anchorPositions[childAnchorVector2.Key].X != resultAnchorVector2.X || anchorPositions[childAnchorVector2.Key].Y != resultAnchorVector2.Y)
+                            throw new InvalidOperationException("Duplicate anchor Vector2, but position doesn't match up, possible state corruption?");
                     }
 
-                    withOffset = new Point(fromAnchorPoint.X - partOrigin.X, fromAnchorPoint.Y - partOrigin.Y);
+                    withOffset = new Vector2(fromAnchorVector2.X - partOrigin.X, fromAnchorVector2.Y - partOrigin.Y);
                 }
                 else
                 {
-                    Point neckPoint = (Point?)anchorPositions.FirstOrDefault(c => c.Key == "brow").Value ?? new Point(0, 0);
-                    withOffset = new Point(neckPoint.X - partOrigin.X, neckPoint.Y - partOrigin.Y);
+                    Vector2 neckVector2 = (Vector2?)anchorPositions.FirstOrDefault(c => c.Key == "brow").Value ?? new Vector2(0, 0);
+                    withOffset = new Vector2(neckVector2.X - partOrigin.X, neckVector2.Y - partOrigin.Y);
                 }
 
-                elements.Add(new Tuple<string, Point, IFrame>(part.Position, withOffset, part));
+                elements.Add(new Tuple<string, Vector2, IFrame>(part.Position, withOffset, part));
                 frames.Remove(part);
             }
 
@@ -211,46 +211,40 @@ namespace WZData.MapleStory.Characters
                 .Concat(requiredLayers.Where(c => c.Item3.All(slot => boundLayers[slot] == c.Item1)).Select(c => c.Item2).DistinctBy(c => c.Position));
             }
 
-        public Bitmap Render(ZMap zmapping, SMap smapping)
+        public Image<Rgba32> Render(ZMap zmapping, SMap smapping)
         {
-            List<Tuple<string, Point, IFrame>> elements = GetElementPieces(zmapping, smapping);
-            List<Tuple<int, Point, IFrame>> effectFrames = GetElementPieces(zmapping, smapping, EffectFrames.ToList())
-                .Select(c => new Tuple<int, Point, IFrame>(int.Parse(c.Item1), c.Item2, c.Item3))
+            List<Tuple<string, Vector2, IFrame>> elements = GetElementPieces(zmapping, smapping);
+            List<Tuple<int, Vector2, IFrame>> effectFrames = GetElementPieces(zmapping, smapping, EffectFrames.ToList())
+                .Select(c => new Tuple<int, Vector2, IFrame>(int.Parse(c.Item1), c.Item2, c.Item3))
                 .OrderBy(c => c.Item1).ToList();
 
-            int minX = elements
+            float minX = elements
                 .Select(c => c.Item2.X)
                 .Concat(effectFrames.Select(c => c.Item2.X))
                 .Min();
-            int maxX = elements
+            float maxX = elements
                 .Select(c => c.Item2.X + c.Item3.Image.Width)
                 .Concat(effectFrames.Select(c => c.Item2.X + c.Item3.Image.Width))
                 .Max();
-            int minY = elements
+            float minY = elements
                 .Select(c => c.Item2.Y)
                 .Concat(effectFrames.Select(c => c.Item2.Y))
                 .Min();
-            int maxY = elements
+            float maxY = elements
                 .Select(c => c.Item2.Y + c.Item3.Image.Height)
                 .Concat(effectFrames.Select(c => c.Item2.Y + c.Item3.Image.Height))
                 .Max();
-            Size center = new Size((maxX - minX) / 2, (maxY - minY) / 2);
+            Size center = new Size((int)((maxX - minX) / 2), (int)((maxY - minY) / 2));
 
-            Bitmap destination = new Bitmap((maxX - minX) + (Padding * 2), (maxY - minY) + (Padding * 2), PixelFormat.Format32bppArgb);
+            Image<Rgba32> destination = new Image<Rgba32>((int)((maxX - minX) + (Padding * 2)), (int)((maxY - minY) + (Padding * 2)));
 
-            using (Graphics g = Graphics.FromImage(destination))
-            {
-                g.CompositingMode = System.Drawing.Drawing2D.CompositingMode.SourceOver;
-                g.CompositingQuality = System.Drawing.Drawing2D.CompositingQuality.HighQuality;
-                foreach(Tuple<int, Point, IFrame> frame in effectFrames.Where(c => c.Item1 < 1))
-                    g.DrawImage(frame.Item3.Image, new Point((frame.Item2.X - minX) + Padding, (frame.Item2.Y - minY) + Padding));
-                foreach (IEnumerable<Tuple<string, Point, IFrame>> elementGroup in zmapping.Ordering.Select(c => elements.Where(i => i.Item1 == c)))
-                    foreach (Tuple<string, Point, IFrame> element in elementGroup)
-                        g.DrawImage(element.Item3.Image, new Point((element.Item2.X - minX) + Padding, (element.Item2.Y - minY) + Padding));
-                foreach (Tuple<int, Point, IFrame> frame in effectFrames.Where(c => c.Item1 > 0))
-                    g.DrawImage(frame.Item3.Image, new Point((frame.Item2.X - minX) + Padding, (frame.Item2.Y - minY) + Padding));
-                g.Flush();
-            }
+            foreach (Tuple<int, Vector2, IFrame> frame in effectFrames.Where(c => c.Item1 < 1))
+                destination.DrawImage(frame.Item3.Image,1,new Size(frame.Item3.Image.Width, frame.Item3.Image.Height), new Point((int)((frame.Item2.X - minX) + Padding), (int)((frame.Item2.Y - minY) + Padding)));
+            foreach (IEnumerable<Tuple<string, Vector2, IFrame>> elementGroup in zmapping.Ordering.Select(c => elements.Where(i => i.Item1 == c)))
+                foreach (Tuple<string, Vector2, IFrame> element in elementGroup)
+                    destination.DrawImage(element.Item3.Image, 1, new Size(element.Item3.Image.Width, element.Item3.Image.Height), new Point((int)((element.Item2.X - minX) + Padding), (int)((element.Item2.Y - minY) + Padding)));
+            foreach (Tuple<int, Vector2, IFrame> frame in effectFrames.Where(c => c.Item1 > 0))
+                destination.DrawImage(frame.Item3.Image, 1, new Size(frame.Item3.Image.Width, frame.Item3.Image.Height), new Point((int)((frame.Item2.X - minX) + Padding), (int)((frame.Item2.Y - minY) + Padding)));
 
             return destination;
         }

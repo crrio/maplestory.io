@@ -1,19 +1,18 @@
-﻿using reWZ;
+﻿using ImageSharp;
+using reWZ;
 using reWZ.WZProperties;
 using System;
 using System.Collections.Generic;
-using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using System.Drawing.Imaging;
 
 namespace WZData.ItemMetaInfo
 {
     public class IconInfo
     {
-        public Image IconRaw;
-        public Image Icon;
+        public Image<Rgba32> IconRaw;
+        public Image<Rgba32> Icon;
 
         public static IconInfo Parse(WZDirectory source, WZObject info)
         {
@@ -35,7 +34,7 @@ namespace WZData.ItemMetaInfo
 
                 if (iconName != null)
                 {
-                    Image icon = Bitmap.FromFile($"assets/{iconName}.png");
+                    Image<Rgba32> icon = Image.Load($"assets/{iconName}.png");
                     results.Icon = icon;
                     results.IconRaw = icon;
 
@@ -52,9 +51,9 @@ namespace WZData.ItemMetaInfo
             return results;
         }
 
-        static Bitmap Resolve(WZDirectory source, WZObject info, string propertyName)
+        static Image<Rgba32> Resolve(WZDirectory source, WZObject info, string propertyName)
         {
-            Bitmap Icon = null;
+            Image<Rgba32> Icon = null;
 
             if (!info.HasChild(propertyName))
                 return Icon;
@@ -63,31 +62,31 @@ namespace WZData.ItemMetaInfo
             {
                 string path = info[propertyName]["source"].ValueOrDefault<string>("");
                 path = path.Substring(path.IndexOf("/"));
-                Icon = source.ResolvePath(path).ValueOrDefault<Bitmap>(null);
+                Icon = source.ResolvePath(path).ImageOrDefault();
             }
             else if (info[propertyName].HasChild("_inlink"))
             {
                 string path = info[propertyName]["_inlink"].ValueOrDefault<string>("");
                 if (path.StartsWith("info"))
-                    Icon = info.ResolvePath(path.Substring(path.IndexOf("/"))).ValueOrDefault<Bitmap>(null);
+                    Icon = info.ResolvePath(path.Substring(path.IndexOf("/"))).ImageOrDefault();
                 else
                     try
                     {
-                        Icon = source.ResolvePath(Path.Combine(info.Path, "../../", path)).ValueOrDefault<Bitmap>(null);
+                        Icon = source.ResolvePath(Path.Combine(info.Path, "../../", path)).ImageOrDefault();
                     } catch (Exception)
                     {
-                        Icon = source.ResolvePath(Path.Combine(info.Path, "../", path)).ValueOrDefault<Bitmap>(null);
+                        Icon = source.ResolvePath(Path.Combine(info.Path, "../", path)).ImageOrDefault();
                     }
             }
             else if (info[propertyName].HasChild("_outlink"))
             {
                 string path = info[propertyName]["_outlink"].ValueOrDefault<string>("");
                 path = path.Substring(path.IndexOf("/"));
-                Icon = source.ResolvePath(path).ValueOrDefault<Bitmap>(null);
+                Icon = source.ResolvePath(path).ImageOrDefault();
             }
             else
             {
-                Icon = info[propertyName].ValueOrDefault<Bitmap>(null);
+                Icon = info[propertyName].ImageOrDefault();
                 if (Icon == null)
                 {
                     string iconPath = info[propertyName].ValueOrDefault<string>(null);
@@ -95,7 +94,7 @@ namespace WZData.ItemMetaInfo
                     {
                         try
                         {
-                            Icon = info.ResolvePath(iconPath).ValueOrDefault<Bitmap>(null);
+                            Icon = info.ResolvePath(iconPath).ImageOrDefault();
                         } catch (Exception ex)
                         {
                             // Possible trying to jump to another wz image, look for 4 digit number and add .img extension
@@ -110,7 +109,7 @@ namespace WZData.ItemMetaInfo
                             if (imgPath == null) return null;
 
                             iconPath = iconPath.Replace($"/{imgPath}/", $"/{imgPath}.img/");
-                            Icon = info.ResolvePath(iconPath).ValueOrDefault<Bitmap>(null);
+                            Icon = info.ResolvePath(iconPath).ImageOrDefault();
                         }
                     }
                 }

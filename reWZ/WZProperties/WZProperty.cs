@@ -163,7 +163,7 @@ namespace reWZ.WZProperties
                     case "Canvas":
                         return new WZCanvasProperty(name, parent, r, f);
                     case "Shape2D#Vector2D":
-                        return new WZPointProperty(name, parent, r, f);
+                        return new WZVector2Property(name, parent, r, f);
                     case "Shape2D#Convex2D":
                         return new WZConvexProperty(name, parent, r, f);
                     case "Sound_DX8":

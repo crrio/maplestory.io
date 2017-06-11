@@ -2,8 +2,8 @@
 using reWZ.WZProperties;
 using System.Collections.Generic;
 using System.Linq;
-using System.Drawing;
 using System.Diagnostics;
+using ImageSharp;
 
 namespace WZData
 {
@@ -14,7 +14,7 @@ namespace WZData
         public bool invisible;
         public int masterLevel;
         public Dictionary<string, string> properties;
-        public Image Icon, IconDisabled, IconMouseOver;
+        public Image<Rgba32> Icon, IconDisabled, IconMouseOver;
         public string[] actions;
         public string elementalAttribute;
         public int[] weapons;
@@ -76,7 +76,7 @@ namespace WZData
             return skillEntry;
         }
 
-        static Bitmap ResolveImage(WZObject skills, WZObject skill, string name)
+        static Image<Rgba32> ResolveImage(WZObject skills, WZObject skill, string name)
         {
             if (skill.HasChild(name))
             {
@@ -112,7 +112,7 @@ namespace WZData
                         hasChanged = true;
                     }
                 } while (hasChanged);
-                return ((WZCanvasProperty)icon).ValueOrDefault<Bitmap>(null);
+                return ((WZCanvasProperty)icon).ImageOrDefault();
             }
 
             return null;

@@ -10,12 +10,12 @@ Simply reference reWZ.dll in your code, and then load a WZ file like this:
 
 You can resolve a path like so:
 
-    Bitmap m = xz.ResolvePath("BasicEff.img/LevelUp/7").ValueOrDie<Bitmap>();
+    Image<Rgba32> m = xz.ResolvePath("BasicEff.img/LevelUp/7").ValueOrDie<Image<Rgba32>>();
 
 Or, if you prefer to go the old-fashioned way:
 
     WZCanvasProperty wzcp = (WZCanvasProperty)xz.MainDirectory["BasicEff.img"]["LevelUp"]["7"];
-    Bitmap m = wzcp.Value;
+    Image<Rgba32> m = wzcp.Value;
 
 Otherwise, reWZ is pretty well documented (via inline XMLdoc), but if you have any questions, feel free to send angelsl a message.
 

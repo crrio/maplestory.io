@@ -9,7 +9,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="CoreCompat.System.Drawing" Version="1.0.0-beta006" />
+    <PackageReference Include="ImageSharp" Version="1.0.0-alpha9-00139" />
+    <PackageReference Include="ImageSharp.Drawing" Version="1.0.0-alpha9-00134" />
   </ItemGroup>
 
 </Project>

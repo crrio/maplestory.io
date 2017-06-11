@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Drawing;
+using ImageSharp;
 using System.Linq;
 using System.Threading.Tasks;
 using WZData;
@@ -29,16 +29,16 @@ namespace maplestory.io.Services.MapleStory
 
         public int[] GetSkinIds() => skins.Keys.ToArray();
 
-        public Bitmap GetBase(int id, string animation = null, int frame = 0, bool showEars = false, int padding = 2)
+        public Image<Rgba32> GetBase(int id, string animation = null, int frame = 0, bool showEars = false, int padding = 2)
             => GetCharacter(id, animation, frame, showEars, padding, new Tuple<int, string>[0]);
 
-        public Bitmap GetBaseWithHair(int id, string animation = null, int frame = 0, bool showEars = false, int padding = 2, int faceId = 20305, int hairId = 37831)
+        public Image<Rgba32> GetBaseWithHair(int id, string animation = null, int frame = 0, bool showEars = false, int padding = 2, int faceId = 20305, int hairId = 37831)
             => GetCharacter(id, animation, frame, showEars, padding, faceId, hairId);
 
-        public Bitmap GetCharacter(int id, string animation = null, int frame = 0, bool showEars = false, int padding = 2, params int[] items)
+        public Image<Rgba32> GetCharacter(int id, string animation = null, int frame = 0, bool showEars = false, int padding = 2, params int[] items)
             => GetCharacter(id, animation, frame, showEars, padding, items.Select(c => new Tuple<int, string>(c, animation)).ToArray());
 
-        public Bitmap GetCharacter(int id, string animation = null, int frame = 0, bool showEars = false, int padding = 2, params Tuple<int, string>[] itemEntries)
+        public Image<Rgba32> GetCharacter(int id, string animation = null, int frame = 0, bool showEars = false, int padding = 2, params Tuple<int, string>[] itemEntries)
         {
             IEnumerable<Tuple<MapleItem, string>> items = Enumerable.Select<Tuple<int, string>, Tuple<MapleItem, string>>(itemEntries, (Func<Tuple<int, string>, Tuple<MapleItem, string>>)((Tuple<int, string> c) => (Tuple<MapleItem, string>)new Tuple<MapleItem, string>((MapleItem)itemFactory.search((int)c.Item1), (string)c.Item2)));
 

@@ -3,7 +3,7 @@ using System.Linq;
 using reWZ.WZProperties;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Drawing;
+using ImageSharp;
 
 namespace WZData
 {

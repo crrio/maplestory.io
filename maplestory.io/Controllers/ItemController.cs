@@ -5,7 +5,7 @@ using WZData;
 using WZData.MapleStory.Items;
 using System.Linq;
 using WZData.MapleStory.Images;
-using System.Drawing;
+using ImageSharp;
 
 namespace maplestory.io.Controllers
 {
@@ -66,7 +66,7 @@ namespace maplestory.io.Controllers
             {
                 Equip eqp = (Equip)eq;
                 EquipFrameBook book = eqp.FrameBooks.Select(c => c.Value).FirstOrDefault();
-                Bitmap effectImage = book?.frames?.FirstOrDefault()?.Effects?.Select(c => c.Value)?.First()?.Image;
+                Image<Rgba32> effectImage = book?.frames?.FirstOrDefault()?.Effects?.Select(c => c.Value)?.First()?.Image;
                 if (effectImage != null)
                     return File(effectImage.ImageToByte(), "image/png");
             }

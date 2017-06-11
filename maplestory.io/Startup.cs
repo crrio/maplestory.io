@@ -91,10 +91,10 @@ namespace maplestory.io
                     template: "{controller=Home}/{action=Index}/{id?}");
             });
 
-            // Enable middleware to serve generated Swagger as a JSON endpoint.
+            // Enable middleware to serve generated Swagger as a JSON endVector2.
             app.UseSwagger();
 
-            // Enable middleware to serve swagger-ui (HTML, JS, CSS etc.), specifying the Swagger JSON endpoint.
+            // Enable middleware to serve swagger-ui (HTML, JS, CSS etc.), specifying the Swagger JSON endVector2.
             app.UseSwaggerUI(c =>
             {
                 c.SwaggerEndpoint("/swagger/V2/swagger.json", "MapleStory.IO V2");

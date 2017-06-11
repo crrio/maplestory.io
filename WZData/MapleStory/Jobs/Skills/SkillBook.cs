@@ -1,15 +1,16 @@
 ﻿using System;
 using reWZ.WZProperties;
-using System.Drawing;
 using System.Collections.Generic;
 using System.Linq;
 using System.Diagnostics;
+using ImageSharp;
+using ImageSharp.PixelFormats;
 
 namespace WZData
 {
     public class SkillBook
     {
-        public Image Icon;
+        public Image<Rgba32> Icon;
         public Job Job;
 
         public IEnumerable<Skill> Skills;
@@ -35,7 +36,7 @@ namespace WZData
             return book;
         }
 
-        static Bitmap ResolveImage(WZObject skills, WZObject skillBookInfo, string name)
+        static Image<Rgba32> ResolveImage(WZObject skills, WZObject skillBookInfo, string name)
         {
             if (skillBookInfo.HasChild(name))
             { 
@@ -65,7 +66,7 @@ namespace WZData
                         hasChanged = true;
                     }
                 } while (hasChanged);
-                return ((WZCanvasProperty)icon).ValueOrDefault<Bitmap>(null);
+                return ((WZCanvasProperty)icon).ImageOrDefault();
             }
 
             return null;

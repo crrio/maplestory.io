@@ -29,8 +29,11 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Drawing;
-using System.Drawing.Imaging;
+using ImageSharp;
+using ImageSharp.ColorSpaces;
+using ImageSharp.Drawing;
+using ImageSharp.Formats;
+using ImageSharp.PixelFormats;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -38,13 +41,11 @@ using System.Runtime.InteropServices;
 namespace reWZ.WZProperties
 {
     /// <summary>
-    ///   A bitmap property, containing an image, and children.
+    ///   A Image<Rgba32> property, containing an image, and children.
     ///   Please dispose any parsed Canvas properties once they are no longer needed, and before the containing WZ file is disposed.
     /// </summary>
-    public sealed class WZCanvasProperty : WZDelayedProperty<Bitmap>, IDisposable
+    public sealed class WZCanvasProperty : WZDelayedProperty<Image<Rgba32>>, IDisposable
     {
-        private GCHandle _gcH;
-
         internal WZCanvasProperty(string name, WZObject parent, WZBinaryReader br, WZImage container)
             : base(name, parent, container, true, WZObjectType.Canvas)
         {}
@@ -57,7 +58,7 @@ namespace reWZ.WZProperties
             Dispose();
         }
 
-        internal override bool Parse(WZBinaryReader br, bool initial, out Bitmap result)
+        internal override bool Parse(WZBinaryReader br, bool initial, out Image<Rgba32> result)
         {
             bool skip = (File._flag & WZReadSelection.NeverParseCanvas) == WZReadSelection.NeverParseCanvas, eager = (File._flag & WZReadSelection.EagerParseCanvas) == WZReadSelection.EagerParseCanvas;
             if (skip && eager) {
@@ -101,7 +102,7 @@ namespace reWZ.WZProperties
             }
         }
 
-        private Bitmap ParsePNG(int width, int height, int format, byte[] data)
+        private Image<Rgba32> ParsePNG(int width, int height, int format, byte[] data)
         {
             byte[] sourceData;
             using (MemoryStream @in = new MemoryStream(data, 2, data.Length - 2))
@@ -126,8 +127,9 @@ namespace reWZ.WZProperties
                         Buffer.BlockCopy(sourceData, 0, proper, 0, Math.Min(proper.Length, sourceDataLength));
                         sourceData = proper;
                     }
-                    _gcH = GCHandle.Alloc(sourceData, GCHandleType.Pinned);
-                    return new Bitmap(width, height, width << 2, PixelFormat.Format32bppArgb, _gcH.AddrOfPinnedObject());
+                    //                    _gcH = GCHandle.Alloc(sourceData, GCHandleType.Pinned);
+                    return ImageSharp.Image.LoadPixelData<Argb32>(new Span<byte>(sourceData), width, height).To<Rgba32>();
+//                    return new Image<Rgba32>(width, height, width << 2, PixelFormat.Format32bppArgb, _gcH.AddrOfPinnedObject());
                 case 513:
                     if (sourceDataLength != width * height * 2)
                     {
@@ -136,28 +138,26 @@ namespace reWZ.WZProperties
                         Buffer.BlockCopy(sourceData, 0, proper, 0, Math.Min(proper.Length, sourceDataLength));
                         sourceData = proper;
                     }
-                    _gcH = GCHandle.Alloc(sourceData, GCHandleType.Pinned);
-                    return new Bitmap(width, height, width << 1, PixelFormat.Format16bppRgb565, _gcH.AddrOfPinnedObject());
+                    //                    _gcH = GCHandle.Alloc(sourceData, GCHandleType.Pinned);
+                    return ImageSharp.Image.LoadPixelData<Rgb565>(new Span<byte>(sourceData), width, height).To<Rgba32>();
+//                    return new Image<Rgba32>(width, height, width << 1, PixelFormat.Format16bppRgb565, _gcH.AddrOfPinnedObject());
                 case 517:
                     width >>= 4;
                     height >>= 4;
                     goto case 513;
                 case 1026: //dxt3
                     destinationData = GetPixelDataDXT3(sourceData, width, height);
-                    Bitmap pngDecoded = new Bitmap(width, height, PixelFormat.Format32bppArgb);
-                    BitmapData bmpdata = pngDecoded.LockBits(new Rectangle(new Point(), pngDecoded.Size), ImageLockMode.WriteOnly, PixelFormat.Format32bppArgb);
-                    Marshal.Copy(destinationData, 0, bmpdata.Scan0, destinationData.Length);
-                    pngDecoded.UnlockBits(bmpdata);
-                    return pngDecoded;
+                    //                    Image<Rgba32> pngDecoded = new Image<Rgba32>(width, height, PixelFormat.Format32bppArgb);
+                    //                    Image<Rgba32>Data bmpdata = pngDecoded.LockBits(new Rectangle(new Vector2(), pngDecoded.Size), ImageLockMode.WriteOnly, PixelFormat.Format32bppArgb);
+                    //                    Marshal.Copy(destinationData, 0, bmpdata.Scan0, destinationData.Length);
+                    //                    pngDecoded.UnlockBits(bmpdata);
+                    //                    return pngDecoded;
+                    return ImageSharp.Image.LoadPixelData<Argb32>(new Span<byte>(destinationData), width, height).To<Rgba32>();
                 case 2050:
                     destinationData = GetPixelDataDXT5(sourceData, width, height);
-                    pngDecoded = new Bitmap(width, height, PixelFormat.Format32bppArgb);
-                    bmpdata = pngDecoded.LockBits(new Rectangle(new Point(), pngDecoded.Size), ImageLockMode.WriteOnly, PixelFormat.Format32bppArgb);
-                    Marshal.Copy(destinationData, 0, bmpdata.Scan0, destinationData.Length);
-                    pngDecoded.UnlockBits(bmpdata);
-                    return pngDecoded;
+                    return ImageSharp.Image.LoadPixelData<Argb32>(new Span<byte>(destinationData), width, height).To<Rgba32>();
                 default:
-                    return WZFile.Die<Bitmap>(String.Format("Unknown bitmap format {0}.", format));
+                    return WZFile.Die<Image<Rgba32>>(String.Format("Unknown Image<Rgba32> format {0}.", format));
             }
         }
 
@@ -165,7 +165,7 @@ namespace reWZ.WZProperties
         {
             byte[] pixel = new byte[width * height * 4];
 
-            Color[] colorTable = new Color[4];
+            Rgba32[] colorTable = new Rgba32[4];
             int[] colorIdxTable = new int[16];
             byte[] alphaTable = new byte[16];
             for (int y = 0; y < height; y += 4)
@@ -201,7 +201,7 @@ namespace reWZ.WZProperties
         {
             byte[] pixel = new byte[width * height * 4];
 
-            Color[] colorTable = new Color[4];
+            Rgba32[] colorTable = new Rgba32[4];
             int[] colorIdxTable = new int[16];
             byte[] alphaTable = new byte[8];
             int[] alphaIdxTable = new int[16];
@@ -235,7 +235,7 @@ namespace reWZ.WZProperties
             return pixel;
         }
 
-        private static void SetPixel(byte[] pixelData, int x, int y, int width, Color color, byte alpha)
+        private static void SetPixel(byte[] pixelData, int x, int y, int width, Rgba32 color, byte alpha)
         {
             int offset = (y * width + x) * 4;
             pixelData[offset + 0] = color.B;
@@ -245,19 +245,19 @@ namespace reWZ.WZProperties
         }
 
         #region DXT1 Color
-        private static void ExpandColorTable(Color[] color, ushort c0, ushort c1)
+        private static void ExpandColorTable(Rgba32[] color, ushort c0, ushort c1)
         {
             color[0] = RGB565ToColor(c0);
             color[1] = RGB565ToColor(c1);
             if (c0 > c1)
             {
-                color[2] = Color.FromArgb(0xff, (color[0].R * 2 + color[1].R + 1) / 3, (color[0].G * 2 + color[1].G + 1) / 3, (color[0].B * 2 + color[1].B + 1) / 3);
-                color[3] = Color.FromArgb(0xff, (color[0].R + color[1].R * 2 + 1) / 3, (color[0].G + color[1].G * 2 + 1) / 3, (color[0].B + color[1].B * 2 + 1) / 3);
+                color[2] = new Rgba32((color[0].R * 2 + color[1].R + 1) / 3, (color[0].G * 2 + color[1].G + 1) / 3, (color[0].B * 2 + color[1].B + 1) / 3, 0xff);
+                color[3] = new Rgba32((color[0].R + color[1].R * 2 + 1) / 3, (color[0].G + color[1].G * 2 + 1) / 3, (color[0].B + color[1].B * 2 + 1) / 3, 0xff);
             }
             else
             {
-                color[2] = Color.FromArgb(0xff, (color[0].R + color[1].R) / 2, (color[0].G + color[1].G) / 2, (color[0].B + color[1].B) / 2);
-                color[3] = Color.FromArgb(0xff, Color.Black);
+                color[2] = new Rgba32((color[0].R + color[1].R) / 2, (color[0].G + color[1].G) / 2, (color[0].B + color[1].B) / 2, 0xff);
+                color[3] = new Rgba32(0, 0, 0, 1);
             }
         }
 
@@ -325,7 +325,7 @@ namespace reWZ.WZProperties
         }
         #endregion
 
-        public static Color RGB565ToColor(ushort val)
+        public static Rgba32 RGB565ToColor(ushort val)
         {
             const int rgb565_mask_r = 0xf800;
             const int rgb565_mask_g = 0x07e0;
@@ -333,10 +333,11 @@ namespace reWZ.WZProperties
             int r = (val & rgb565_mask_r) >> 11;
             int g = (val & rgb565_mask_g) >> 5;
             int b = (val & rgb565_mask_b);
-            var c = Color.FromArgb(
+            var c = new Rgba32(
                 (r << 3) | (r >> 2),
                 (g << 2) | (g >> 4),
-                (b << 3) | (b >> 2));
+                (b << 3) | (b >> 2), 
+                byte.MaxValue);
             return c;
         }
 
@@ -345,10 +346,7 @@ namespace reWZ.WZProperties
         /// </summary>
         public void Dispose()
         {
-            if (!_parsed || _value == null) return;
-            _value.Dispose();
-            _gcH.Free();
-            _parsed = false;
+            // There's no longer anything to dispose :^)
         }
     }
 }
