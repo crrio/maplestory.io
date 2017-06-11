@@ -1,6 +1,7 @@
 ﻿using MoreLinq;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.Linq;
@@ -118,12 +119,12 @@ namespace WZData.MapleStory.Characters
             return elements;
         }
 
-        Dictionary<string, Equip> GetBoundLayers(ZMap zmapping, SMap smapping)
+        Dictionary<string, Equip> GetBoundLayers(Tuple<Equip, string, IFrame>[] eqpFrames, ZMap zmapping, SMap smapping)
         {
             Dictionary<string, Equip> boundLayers = new Dictionary<string, Equip>();
             foreach (Tuple<string, IEnumerable<Tuple<Equip, string, IFrame>>> eqp in zmapping.Ordering
                 .Where(c => (EntireBodyFrame.HasFace ?? true) || c != "face")
-                .Select(c => new Tuple<string, IEnumerable<Tuple<Equip, string, IFrame>>>(c, EquipFrames.Where(b => b.Item1.MetaInfo.Equip.islots.Contains(c))))
+                .Select(c => new Tuple<string, IEnumerable<Tuple<Equip, string, IFrame>>>(c, eqpFrames.Where(b => b.Item1.MetaInfo.Equip.islots.Contains(c))))
                 .Where(c => c.Item2 != null))
             {
                 string currentZ = eqp.Item1;
@@ -161,13 +162,13 @@ namespace WZData.MapleStory.Characters
 
         IEnumerable<IFrame> GetBodyPieces(ZMap zmapping, SMap smapping)
         {
-            Dictionary<string, Equip> boundLayers = GetBoundLayers(zmapping, smapping);
-
+            Tuple<Equip, string, IFrame>[] eqpFrames = EquipFrames.ToArray();
+            Dictionary<string, Equip> boundLayers = GetBoundLayers(eqpFrames, zmapping, smapping);
             List<Tuple<Equip, IFrame, string[]>> requiredLayers = new List<Tuple<Equip, IFrame, string[]>>();
 
             foreach (Tuple<string, IEnumerable<Tuple<Equip, string, IFrame>>> eqp in zmapping.Ordering
                 .Where(c => (EntireBodyFrame.HasFace ?? true) || c != "face")
-                .Select(c => new Tuple<string, IEnumerable<Tuple<Equip, string, IFrame>>>(c, EquipFrames.Where(b => b.Item3.Position == c)))
+                .Select(c => new Tuple<string, IEnumerable<Tuple<Equip, string, IFrame>>>(c, eqpFrames.Where(b => b.Item3.Position == c)))
                 .Where(c => c.Item2 != null))
             {
                 string currentZ = eqp.Item1;
