@@ -118,17 +118,16 @@ namespace WZData.MapleStory.Characters
             return elements;
         }
 
-        IEnumerable<IFrame> GetBodyPieces(ZMap zmapping, SMap smapping)
+        Dictionary<string, Equip> GetBoundLayers(ZMap zmapping, SMap smapping)
         {
             Dictionary<string, Equip> boundLayers = new Dictionary<string, Equip>();
-            List<Tuple<Equip, IFrame, string[]>> requiredLayers = new List<Tuple<Equip, IFrame, string[]>>();
-
             foreach (Tuple<string, IEnumerable<Tuple<Equip, string, IFrame>>> eqp in zmapping.Ordering
                 .Where(c => (EntireBodyFrame.HasFace ?? true) || c != "face")
                 .Select(c => new Tuple<string, IEnumerable<Tuple<Equip, string, IFrame>>>(c, EquipFrames.Where(b => b.Item1.MetaInfo.Equip.islots.Contains(c))))
                 .Where(c => c.Item2 != null))
             {
                 string currentZ = eqp.Item1;
+
                 foreach (Tuple<Equip, string, IFrame> underlyingFrame in eqp.Item2)
                 {
                     Equip currentEquip = underlyingFrame.Item1;
@@ -141,20 +140,30 @@ namespace WZData.MapleStory.Characters
                             boundLayers[explicitSlot] = currentEquip;
                         else
                             boundLayers.Add(explicitSlot, currentEquip);
+                    }
 
-                        if (framePosition != "default" && (!(EntireBodyFrame.HasFace ?? true) || !framePosition.ToLower().Contains("back")))
-                        {
-                            string requiredSlots = (smapping.Ordering.FirstOrDefault(c => c.Item1 == currentFrame.Position)?.Item2 ?? "");
-                            string[] attemptSlots = (new string[requiredSlots.Length / 2]).Select((c, i) => requiredSlots.Substring(i * 2, 2)).ToArray();
-                            foreach (string slot in attemptSlots)
-                                if (!boundLayers.ContainsKey(slot))
-                                    boundLayers.Add(slot, currentEquip);
-                                else
-                                    boundLayers[slot] = currentEquip;
-                        }
+                    bool shouldUseEquipVSlot = framePosition.Equals(currentEquip.EquipGroup, StringComparison.CurrentCultureIgnoreCase) || currentZ.Equals(currentEquip.EquipGroup, StringComparison.CurrentCultureIgnoreCase) || framePosition.Equals("default", StringComparison.CurrentCultureIgnoreCase);
+                    if (!shouldUseEquipVSlot && (!(EntireBodyFrame.HasFace ?? true) || !framePosition.ToLower().Contains("back")))
+                    {
+                        string requiredSlots = (smapping.Ordering.FirstOrDefault(c => c.Item1 == currentFrame.Position)?.Item2 ?? "");
+                        string[] attemptSlots = (new string[requiredSlots.Length / 2]).Select((c, i) => requiredSlots.Substring(i * 2, 2)).ToArray();
+                        foreach (string slot in attemptSlots)
+                            if (!boundLayers.ContainsKey(slot))
+                                boundLayers.Add(slot, currentEquip);
+                            else
+                                boundLayers[slot] = currentEquip;
                     }
                 }
             }
+
+            return boundLayers;
+        }
+
+        IEnumerable<IFrame> GetBodyPieces(ZMap zmapping, SMap smapping)
+        {
+            Dictionary<string, Equip> boundLayers = GetBoundLayers(zmapping, smapping);
+
+            List<Tuple<Equip, IFrame, string[]>> requiredLayers = new List<Tuple<Equip, IFrame, string[]>>();
 
             foreach (Tuple<string, IEnumerable<Tuple<Equip, string, IFrame>>> eqp in zmapping.Ordering
                 .Where(c => (EntireBodyFrame.HasFace ?? true) || c != "face")
@@ -168,20 +177,28 @@ namespace WZData.MapleStory.Characters
                     string framePosition = underlyingFrame.Item2;
                     IFrame currentFrame = underlyingFrame.Item3;
 
-                    bool shouldUseEquipVSlot = framePosition == "default";
+                    bool shouldUseEquipVSlot = framePosition.Equals(currentEquip.EquipGroup, StringComparison.CurrentCultureIgnoreCase) || currentZ.Equals(currentEquip.EquipGroup, StringComparison.CurrentCultureIgnoreCase) || framePosition.Equals("default", StringComparison.CurrentCultureIgnoreCase);
 
-                    string requiredSlots = shouldUseEquipVSlot ? currentEquip.MetaInfo.Equip.vslot : (smapping.Ordering.FirstOrDefault(c => c.Item1 == currentZ)?.Item2 ?? "");
-                    string[] attemptSlots = (new string[requiredSlots.Length / 2]).Select((c, i) => requiredSlots.Substring(i * 2, 2)).ToArray();
-                    foreach (string slot in attemptSlots) if (!boundLayers.ContainsKey(slot)) boundLayers.Add(slot, currentEquip);
-                    requiredLayers.Add(new Tuple<Equip, IFrame, string[]>(currentEquip, currentFrame, attemptSlots));
-
-                    if (framePosition != currentZ && !shouldUseEquipVSlot)
+                    string[] slotInstances = new string[]
                     {
-                        string requiredSlotsFrame = (smapping.Ordering.FirstOrDefault(c => c.Item1 == framePosition)?.Item2 ?? "");
-                        string[] attemptSlotsFrame = (new string[requiredSlotsFrame.Length / 2]).Select((c, i) => requiredSlotsFrame.Substring(i * 2, 2)).ToArray();
-                        foreach (string slot in attemptSlotsFrame) if (!boundLayers.ContainsKey(slot)) boundLayers.Add(slot, currentEquip);
-                        requiredLayers.Add(new Tuple<Equip, IFrame, string[]>(currentEquip, currentFrame, attemptSlotsFrame));
-                    }
+                        // Equip vslot position
+                        shouldUseEquipVSlot ? currentEquip.MetaInfo.Equip.vslot : null,
+                        // Z position on frame part
+                        smapping.Ordering.FirstOrDefault(c => c.Item1 == currentZ)?.Item2,
+                        // Frame part position on item
+                        smapping.Ordering.FirstOrDefault(c => c.Item1 == framePosition)?.Item2
+                    };
+
+                    slotInstances.Where(c => c != null).ForEach(requiredSlots =>
+                    {
+                        string[] attemptSlots = (new string[requiredSlots.Length / 2]).Select((c, i) => requiredSlots.Substring(i * 2, 2)).ToArray();
+
+                        foreach (string slot in attemptSlots)
+                            if (!boundLayers.ContainsKey(slot))
+                                boundLayers.Add(slot, currentEquip);
+
+                        requiredLayers.Add(new Tuple<Equip, IFrame, string[]>(currentEquip, currentFrame, attemptSlots));
+                    });
                 }
             }
 
