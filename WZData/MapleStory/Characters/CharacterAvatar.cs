@@ -189,6 +189,8 @@ namespace WZData.MapleStory.Characters
                         smapping.Ordering.FirstOrDefault(c => c.Item1 == framePosition)?.Item2
                     };
 
+                    slotInstances = slotInstances.Where(c => c != null).DefaultIfEmpty(currentEquip.MetaInfo.Equip.vslot).ToArray();
+
                     slotInstances.Where(c => c != null).ForEach(requiredSlots =>
                     {
                         string[] attemptSlots = (new string[requiredSlots.Length / 2]).Select((c, i) => requiredSlots.Substring(i * 2, 2)).ToArray();
