@@ -143,8 +143,8 @@ namespace WZData.MapleStory.Characters
                             boundLayers.Add(explicitSlot, currentEquip);
                     }
 
-                    bool shouldUseEquipVSlot = framePosition.Equals(currentEquip.EquipGroup, StringComparison.CurrentCultureIgnoreCase) || currentZ.Equals(currentEquip.EquipGroup, StringComparison.CurrentCultureIgnoreCase) || framePosition.Equals("default", StringComparison.CurrentCultureIgnoreCase);
-                    if (!shouldUseEquipVSlot && (!(EntireBodyFrame.HasFace ?? true) || !framePosition.ToLower().Contains("back")))
+                    bool shouldUseEquipVSlot = framePosition.Equals(currentEquip.EquipGroup, StringComparison.CurrentCultureIgnoreCase) || currentZ.Equals(currentEquip.EquipGroup, StringComparison.CurrentCultureIgnoreCase) || framePosition.StartsWith("default", StringComparison.CurrentCultureIgnoreCase);
+                    if (!shouldUseEquipVSlot && !(EntireBodyFrame.HasFace ?? true))
                     {
                         string requiredSlots = (smapping.Ordering.FirstOrDefault(c => c.Item1 == currentFrame.Position)?.Item2 ?? "");
                         string[] attemptSlots = (new string[requiredSlots.Length / 2]).Select((c, i) => requiredSlots.Substring(i * 2, 2)).ToArray();
@@ -178,7 +178,7 @@ namespace WZData.MapleStory.Characters
                     string framePosition = underlyingFrame.Item2;
                     IFrame currentFrame = underlyingFrame.Item3;
 
-                    bool shouldUseEquipVSlot = framePosition.Equals(currentEquip.EquipGroup, StringComparison.CurrentCultureIgnoreCase) || currentZ.Equals(currentEquip.EquipGroup, StringComparison.CurrentCultureIgnoreCase) || framePosition.Equals("default", StringComparison.CurrentCultureIgnoreCase);
+                    bool shouldUseEquipVSlot = framePosition.Equals(currentEquip.EquipGroup, StringComparison.CurrentCultureIgnoreCase) || currentZ.Equals(currentEquip.EquipGroup, StringComparison.CurrentCultureIgnoreCase) || framePosition.StartsWith("default", StringComparison.CurrentCultureIgnoreCase);
 
                     string[] slotInstances = new string[]
                     {
