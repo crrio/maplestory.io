@@ -160,7 +160,6 @@ namespace reWZ.WZProperties
                     return WZFile.Die<Image<Rgba32>>(String.Format("Unknown Image<Rgba32> format {0}.", format));
             }
         }
-
         public static byte[] GetPixelDataDXT3(byte[] rawData, int width, int height)
         {
             byte[] pixel = new byte[width * height * 4];
@@ -251,13 +250,13 @@ namespace reWZ.WZProperties
             color[1] = RGB565ToColor(c1);
             if (c0 > c1)
             {
-                color[2] = new Rgba32((color[0].R * 2 + color[1].R + 1) / 3, (color[0].G * 2 + color[1].G + 1) / 3, (color[0].B * 2 + color[1].B + 1) / 3, 0xff);
-                color[3] = new Rgba32((color[0].R + color[1].R * 2 + 1) / 3, (color[0].G + color[1].G * 2 + 1) / 3, (color[0].B + color[1].B * 2 + 1) / 3, 0xff);
+                color[2] = new Rgba32((byte)((color[0].R * 2f + color[1].R + 1) / 3f), (byte)((color[0].G * 2f + color[1].G + 1) / 3f), (byte)((color[0].B * 2f + color[1].B + 1) / 3f), 255);
+                color[3] = new Rgba32((byte)((color[0].R + color[1].R * 2f + 1) / 3f), (byte)((color[0].G + color[1].G * 2f + 1) / 3f), (byte)((color[0].B + color[1].B * 2f + 1) / 3f), 255);
             }
             else
             {
-                color[2] = new Rgba32((color[0].R + color[1].R) / 2, (color[0].G + color[1].G) / 2, (color[0].B + color[1].B) / 2, 0xff);
-                color[3] = new Rgba32(0, 0, 0, 1);
+                color[2] = new Rgba32((byte)((color[0].R + color[1].R) / 2f), (byte)((color[0].G + color[1].G) / 2f), (byte)((color[0].B + color[1].B) / 2f), 255);
+                color[3] = new Rgba32(0, 0, 0f);
             }
         }
 
@@ -334,10 +333,9 @@ namespace reWZ.WZProperties
             int g = (val & rgb565_mask_g) >> 5;
             int b = (val & rgb565_mask_b);
             var c = new Rgba32(
-                (r << 3) | (r >> 2),
-                (g << 2) | (g >> 4),
-                (b << 3) | (b >> 2), 
-                byte.MaxValue);
+                (byte)((r << 3) | (r >> 2)),
+                (byte)((g << 2) | (g >> 4)),
+                (byte)((b << 3) | (b >> 2)));
             return c;
         }
 
