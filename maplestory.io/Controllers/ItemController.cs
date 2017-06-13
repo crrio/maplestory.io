@@ -48,7 +48,7 @@ namespace maplestory.io.Controllers
 
         [Route("category")]
         [HttpGet]
-        [ProducesResponseType(string[])]
+        [ProducesResponseType(typeof(string[]), 200)]
         public IActionResult GetCategories() => Json(itemFactory.GetItemCategories());
 
         [Route("category/{overallCategory}")]
