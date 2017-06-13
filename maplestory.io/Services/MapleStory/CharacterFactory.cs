@@ -103,5 +103,19 @@ namespace maplestory.io.Services.MapleStory
 
             return avatar.RenderCenter(zmap, smap);
         }
+
+        public string[] GetActions(params int[] itemEntries)
+        {
+            Equip[] eqps = itemEntries.Select(itemFactory.search)
+                .Where(c => c is Equip)
+                .Select(c => (Equip)c)
+                .Where(c => c.FrameBooks.ContainsKey("stand1") || c.FrameBooks.ContainsKey("stand2"))
+                .ToArray();
+
+            Equip first = eqps.FirstOrDefault();
+            if (first == null) return new string[0];
+
+            return first.FrameBooks.Keys.Where(c => eqps.All(e => e.FrameBooks.ContainsKey(c))).ToArray();
+        }
     }
 }

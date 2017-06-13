@@ -95,6 +95,17 @@ namespace maplestory.io.Controllers
                 .ToArray()
             ).ImageToByte(), "image/png");
 
+        [Route("actions/{items}")]
+        [HttpGet]
+        [Produces("image/png")]
+        public IActionResult GetPossibleActions(string items)
+            => Json(_factory.GetActions(items
+                .Split(new string[] { "," }, StringSplitOptions.RemoveEmptyEntries)
+                .Select(c => c.Split(':'))
+                .Where(c => c.Length > 0 && int.TryParse(c[0], out int blah))
+                .Select(c => int.Parse(c[0]))
+                .ToArray()));
+
         [Route("")]
         [HttpGet]
         [ProducesResponseType(typeof(int[]), 200)]
