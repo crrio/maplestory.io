@@ -350,7 +350,7 @@ namespace WZData.MapleStory.Characters
 
             Tuple<string, Vector2, IFrame> body = elements.Where(c => c.Item1.Equals("body")).First();
             Vector2 bodyPosition = body.Item2;
-            Vector2 bodyCenter = Vector2.Add(body.Item2, new Vector2(body.Item3.Image.Width / 2f, body.Item3.Image.Height / 2f));
+            Vector2 bodyCenter = Vector2.Add(body.Item2, new Vector2(body.Item3.Image.Width / 2f, 0));
             Vector2 imageCenter = new Vector2(destination.Width / 2, destination.Height / 2);
             // Positive values = body is left/above, negative = body is right/below
             Vector2 distanceFromCenter = Vector2.Multiply(2, Vector2.Subtract(imageCenter, bodyCenter));
