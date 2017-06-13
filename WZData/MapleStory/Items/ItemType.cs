@@ -557,7 +557,7 @@ namespace WZData
             },
         };
 
-        static Dictionary<string, Dictionary<string, Tuple<string, int, int>[]>> overall = new Dictionary<string, Dictionary<string, Tuple<string, int, int>[]>>{
+        public static Dictionary<string, Dictionary<string, Tuple<string, int, int>[]>> overall = new Dictionary<string, Dictionary<string, Tuple<string, int, int>[]>>{
             {"Equip", equips},
             {"Use", use},
             {"Setup", setup},

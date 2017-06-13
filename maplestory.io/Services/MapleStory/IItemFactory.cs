@@ -8,5 +8,6 @@ namespace maplestory.io.Services.MapleStory
     {
         MapleItem search(int id);
         IEnumerable<ItemNameInfo> GetItems();
+        IEnumerable<string> GetItemCategories();
     }
 }

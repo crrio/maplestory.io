@@ -37,14 +37,19 @@ namespace maplestory.io.Controllers
         [Route("list")]
         [Route("")]
         [HttpGet]
-        [ProducesResponseType(typeof(ItemNameInfo), 200)]
+        [ProducesResponseType(typeof(ItemNameInfo[]), 200)]
         public IActionResult List() 
             => Json(itemFactory.GetItems(), serializerSettings);
 
         [Route("full")]
         [HttpGet]
-        [ProducesResponseType(typeof(ItemNameInfo), 200)]
+        [ProducesResponseType(typeof(ItemNameInfo[]), 200)]
         public IActionResult FullList() => Json(itemFactory.GetItems());
+
+        [Route("category")]
+        [HttpGet]
+        [ProducesResponseType(string[])]
+        public IActionResult GetCategories() => Json(itemFactory.GetItemCategories());
 
         [Route("category/{overallCategory}")]
         [HttpGet]

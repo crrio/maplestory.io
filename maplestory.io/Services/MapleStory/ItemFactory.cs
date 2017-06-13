@@ -49,6 +49,8 @@ namespace maplestory.io.Services.MapleStory
             watch.Stop();
         }
 
+        public IEnumerable<string> GetItemCategories() => ItemType.overall.Keys;
+
         public IEnumerable<ItemNameInfo> GetItems() => itemDb;
         public MapleItem search(int id) => itemLookup[id]();
     }

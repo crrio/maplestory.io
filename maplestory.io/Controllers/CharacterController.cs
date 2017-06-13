@@ -97,7 +97,7 @@ namespace maplestory.io.Controllers
 
         [Route("actions/{items}")]
         [HttpGet]
-        [Produces("image/png")]
+        [ProducesResponseType(typeof(string[]), 200)]
         public IActionResult GetPossibleActions(string items)
             => Json(_factory.GetActions(items
                 .Split(new string[] { "," }, StringSplitOptions.RemoveEmptyEntries)
