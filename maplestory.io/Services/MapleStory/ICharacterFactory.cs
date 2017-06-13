@@ -16,5 +16,6 @@ namespace maplestory.io.Services.MapleStory
         Image<Rgba32> GetCharacter(int id, string animation = null, int frame = 0, bool showEars = false, int padding = 2, params int[] items);
         Image<Rgba32> GetCharacter(int id, string animation = null, int frame = 0, bool showEars = false, int padding = 2, params Tuple<int,string>[] items);
         Image<Rgba32> GetCompactCharacter(int id, string animation = null, int frame = 0, bool showEars = false, int padding = 2, params Tuple<int, string>[] items);
+        Image<Rgba32> GetCenteredCharacter(int id, string animation = null, int frame = 0, bool showEars = false, int padding = 2, params Tuple<int, string>[] items);
     }
 }

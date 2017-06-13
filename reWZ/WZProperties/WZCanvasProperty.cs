@@ -127,9 +127,7 @@ namespace reWZ.WZProperties
                         Buffer.BlockCopy(sourceData, 0, proper, 0, Math.Min(proper.Length, sourceDataLength));
                         sourceData = proper;
                     }
-                    //                    _gcH = GCHandle.Alloc(sourceData, GCHandleType.Pinned);
                     return ImageSharp.Image.LoadPixelData<Argb32>(new Span<byte>(sourceData), width, height).To<Rgba32>();
-//                    return new Image<Rgba32>(width, height, width << 2, PixelFormat.Format32bppArgb, _gcH.AddrOfPinnedObject());
                 case 513:
                     if (sourceDataLength != width * height * 2)
                     {
@@ -138,20 +136,13 @@ namespace reWZ.WZProperties
                         Buffer.BlockCopy(sourceData, 0, proper, 0, Math.Min(proper.Length, sourceDataLength));
                         sourceData = proper;
                     }
-                    //                    _gcH = GCHandle.Alloc(sourceData, GCHandleType.Pinned);
                     return ImageSharp.Image.LoadPixelData<Rgb565>(new Span<byte>(sourceData), width, height).To<Rgba32>();
-//                    return new Image<Rgba32>(width, height, width << 1, PixelFormat.Format16bppRgb565, _gcH.AddrOfPinnedObject());
                 case 517:
                     width >>= 4;
                     height >>= 4;
                     goto case 513;
                 case 1026: //dxt3
                     destinationData = GetPixelDataDXT3(sourceData, width, height);
-                    //                    Image<Rgba32> pngDecoded = new Image<Rgba32>(width, height, PixelFormat.Format32bppArgb);
-                    //                    Image<Rgba32>Data bmpdata = pngDecoded.LockBits(new Rectangle(new Vector2(), pngDecoded.Size), ImageLockMode.WriteOnly, PixelFormat.Format32bppArgb);
-                    //                    Marshal.Copy(destinationData, 0, bmpdata.Scan0, destinationData.Length);
-                    //                    pngDecoded.UnlockBits(bmpdata);
-                    //                    return pngDecoded;
                     return ImageSharp.Image.LoadPixelData<Argb32>(new Span<byte>(destinationData), width, height).To<Rgba32>();
                 case 2050:
                     destinationData = GetPixelDataDXT5(sourceData, width, height);
