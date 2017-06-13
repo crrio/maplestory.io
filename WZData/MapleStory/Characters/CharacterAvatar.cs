@@ -288,7 +288,7 @@ namespace WZData.MapleStory.Characters
             foreach (Tuple<int, Vector2, IFrame> frame in effectFrames.Where(c => c.Item1 > 0))
                 destination.DrawImage(frame.Item3.Image, 1, new Size(frame.Item3.Image.Width, frame.Item3.Image.Height), new Point((int)frame.Item2.X, (int)frame.Item2.Y));
 
-            Tuple<string, Vector2, IFrame> body = elements.Where(c => c.Item1.Equals("body")).First();
+            Tuple<string, Vector2, IFrame> body = elements.Where(c => c.Item1.Equals("body") || c.Item1.Equals("backBody")).First();
             Vector2 bodyPosition = body.Item2;
             Vector2 bodyShouldBe = new Vector2(36, 55);
             Vector2 cropOrigin = Vector2.Subtract(bodyPosition, bodyShouldBe);
@@ -348,7 +348,7 @@ namespace WZData.MapleStory.Characters
             foreach (Tuple<int, Vector2, IFrame> frame in effectFrames.Where(c => c.Item1 > 0))
                 destination.DrawImage(frame.Item3.Image, 1, new Size(frame.Item3.Image.Width, frame.Item3.Image.Height), new Point((int)frame.Item2.X, (int)frame.Item2.Y));
 
-            Tuple<string, Vector2, IFrame> body = elements.Where(c => c.Item1.Equals("body")).First();
+            Tuple<string, Vector2, IFrame> body = elements.Where(c => c.Item1.Equals("body") || c.Item1.Equals("backBody")).First();
             Vector2 bodyPosition = body.Item2;
             Vector2 bodyCenter = Vector2.Add(body.Item2, new Vector2(body.Item3.Image.Width / 2f, 0));
             Vector2 imageCenter = new Vector2(destination.Width / 2, destination.Height / 2);
