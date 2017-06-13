@@ -12,7 +12,9 @@ namespace WZData.MapleStory.Images
         {
             EquipFrameBook effect = new EquipFrameBook();
 
-            bool isSingle = frameContainer.Any(c => c is WZCanvasProperty);
+            if (frameContainer.Type == WZObjectType.UOL) frameContainer = ((WZUOLProperty)frameContainer).ResolveFully();
+
+            bool isSingle = frameContainer.Any(c => c.Type == WZObjectType.Canvas);
 
             if (!isSingle)
             {
