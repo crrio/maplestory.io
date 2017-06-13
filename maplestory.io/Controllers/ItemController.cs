@@ -22,6 +22,8 @@ namespace maplestory.io.Controllers
 
             IgnorableSerializerContractResolver resolver = new IgnorableSerializerContractResolver();
             resolver.Ignore<ItemNameInfo>(a => a.Info);
+            resolver.Ignore<ItemType>(a => a.HighItemId);
+            resolver.Ignore<ItemType>(a => a.LowItemId);
 
             serializerSettings = new JsonSerializerSettings()
             {
