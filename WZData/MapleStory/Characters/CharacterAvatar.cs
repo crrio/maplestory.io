@@ -45,7 +45,7 @@ namespace WZData.MapleStory.Characters
         public IEnumerable<Tuple<Equip, string, IFrame>> EquipFrames
         {
             get => EquipFramesSelected
-                .GroupBy(c => c.Item1.EquipGroup)
+                .GroupBy(c => c.Item1.TypeInfo.SubCategory)
                 .Select(c => c.FirstOrDefault(b => b.Item1.MetaInfo.Cash?.cash ?? false) ?? c.First())
                 // Some equips aren't always shown, like weapons when sitting
                 .Where(c => c.Item1.GetFrameBooks(WeaponCategory).ContainsKey(c.Item2 ?? AnimationName) || c.Item1.GetFrameBooks(WeaponCategory).ContainsKey("default"))
