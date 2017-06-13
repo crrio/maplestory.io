@@ -62,7 +62,7 @@ namespace maplestory.io.Controllers
         [Route("{skinId}/{items?}/{animation?}/{frame?}")]
         [HttpGet]
         [Produces("image/png")]
-        public IActionResult GetCharacter(int skinId, string items = "", string animation = null, int frame = 0)
+        public IActionResult GetCharacter(int skinId, string items = "1102039", string animation = null, int frame = 0)
             => File(_factory.GetCharacter(skinId, animation, frame, items: items
                     .Split(new string[] { "," }, StringSplitOptions.RemoveEmptyEntries)
                     .Select(c => c.Split(':'))
@@ -74,7 +74,7 @@ namespace maplestory.io.Controllers
         [Route("compact/{skinId}/{items?}/{animation?}/{frame?}")]
         [HttpGet]
         [Produces("image/png")]
-        public IActionResult GetCompactCharacter(int skinId, string items = "", string animation = null, int frame = 0)
+        public IActionResult GetCompactCharacter(int skinId, string items = "1102039", string animation = null, int frame = 0)
         => File(_factory.GetCompactCharacter(skinId, animation, frame, items: items
             .Split(new string[] { "," }, StringSplitOptions.RemoveEmptyEntries)
             .Select(c => c.Split(':'))
@@ -86,7 +86,7 @@ namespace maplestory.io.Controllers
         [Route("center/{skinId}/{items?}/{animation?}/{frame?}")]
         [HttpGet]
         [Produces("image/png")]
-        public IActionResult GetCenteredCharacter(int skinId, string items = "", string animation = null, int frame = 0)
+        public IActionResult GetCenteredCharacter(int skinId, string items = "1102039", string animation = null, int frame = 0)
             => File(_factory.GetCenteredCharacter(skinId, animation, frame, items: items
                 .Split(new string[] { "," }, StringSplitOptions.RemoveEmptyEntries)
                 .Select(c => c.Split(':'))
@@ -98,7 +98,7 @@ namespace maplestory.io.Controllers
         [Route("actions/{items?}")]
         [HttpGet]
         [ProducesResponseType(typeof(string[]), 200)]
-        public IActionResult GetPossibleActions(string items = "")
+        public IActionResult GetPossibleActions(string items = "1102039")
             => Json(_factory.GetActions(items
                 .Split(new string[] { "," }, StringSplitOptions.RemoveEmptyEntries)
                 .Select(c => c.Split(':'))
