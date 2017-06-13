@@ -36,6 +36,8 @@ namespace maplestory.io
                 })
                 .AddJsonOptions(options => options.SerializerSettings.Converters.Add(new ImageConverter()));
 
+            services.AddCors();
+
             services.Configure<RethinkDbOptions>(Configuration.GetSection("RethinkDb"));
             services.Configure<WZOptions>(Configuration.GetSection("WZ"));
             services.AddSingleton<IRethinkDbConnectionFactory, RethinkDbConnectionFactory>();
@@ -83,6 +85,8 @@ namespace maplestory.io
             app.UseStaticFiles();
             app.UseResponseCompression();
             app.UseResponseCaching();
+
+            app.UseCors(builder => builder.AllowAnyOrigin().AllowAnyMethod());
 
             app.UseMvc(routes =>
             {
