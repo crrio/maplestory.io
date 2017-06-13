@@ -6,6 +6,7 @@ using WZData.MapleStory.Items;
 using System.Linq;
 using WZData.MapleStory.Images;
 using ImageSharp;
+using System;
 
 namespace maplestory.io.Controllers
 {
@@ -44,6 +45,12 @@ namespace maplestory.io.Controllers
         [HttpGet]
         [ProducesResponseType(typeof(ItemNameInfo), 200)]
         public IActionResult FullList() => Json(itemFactory.GetItems());
+
+        [Route("category/{overallCategory}")]
+        [HttpGet]
+        [ProducesResponseType(typeof(ItemNameInfo), 200)]
+        public IActionResult ListByCategory(string overallCategory)
+            => Json(itemFactory.GetItems().Where(c => c.TypeInfo.OverallCategory.Equals(overallCategory, StringComparison.CurrentCultureIgnoreCase)), serializerSettings);
 
         [Route("{itemId}")]
         [HttpGet]
