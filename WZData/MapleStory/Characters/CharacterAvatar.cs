@@ -90,7 +90,10 @@ namespace WZData.MapleStory.Characters
                 Vector2 withOffset = Vector2.Zero;
                 if (part.MapOffset != null)
                 {
-                    KeyValuePair<string, Vector2> anchorVector2Entry = part.MapOffset.Where(c => anchorPositions.ContainsKey(c.Key)).First();
+                    KeyValuePair<string, Vector2>? anchorVector2EntryTest = part.MapOffset.Where(c => anchorPositions.ContainsKey(c.Key)).FirstOrDefault();
+                    if (anchorVector2EntryTest == null || string.IsNullOrEmpty(anchorVector2EntryTest.Value.Key))
+                        break;
+                    KeyValuePair<string, Vector2> anchorVector2Entry = anchorVector2EntryTest.Value;
                     Vector2 anchorVector2 = anchorPositions[anchorVector2Entry.Key];
                     Vector2 vectorFromVector2 = anchorVector2Entry.Value;
                     Vector2 fromAnchorVector2 = new Vector2(anchorVector2.X - vectorFromVector2.X, anchorVector2.Y - vectorFromVector2.Y);
