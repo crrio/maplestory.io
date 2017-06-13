@@ -112,10 +112,9 @@ namespace maplestory.io.Services.MapleStory
                 .Where(c => c.FrameBooks.ContainsKey("stand1") || c.FrameBooks.ContainsKey("stand2"))
                 .ToArray();
 
-            Equip first = eqps.FirstOrDefault();
-            if (first == null) return new string[0];
+            CharacterSkin skin = GetSkin(2000);
 
-            return first.FrameBooks.Keys.Where(c => eqps.All(e => e.FrameBooks.ContainsKey(c))).ToArray();
+            return skin.Animations.Keys.Where(c => eqps.All(e => e.FrameBooks.ContainsKey(c))).ToArray();
         }
     }
 }
