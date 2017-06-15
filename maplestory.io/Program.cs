@@ -12,7 +12,7 @@ namespace maplestory.io
                 {
                     options.Limits.MaxRequestLineSize = 99999999;
                     options.ThreadCount = 24;
-                    options.Limits.MaxRequestBufferSize = int.MaxValue
+                    options.Limits.MaxRequestBufferSize = int.MaxValue;
                 })
                 .UseContentRoot(Directory.GetCurrentDirectory())
                 .UseUrls("http://*:5000")
