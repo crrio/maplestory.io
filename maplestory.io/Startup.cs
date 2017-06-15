@@ -15,6 +15,7 @@ namespace maplestory.io
     public class Startup
     {
         public static bool Ready;
+        public static bool Started;
 
         public Startup(IHostingEnvironment env)
         {
@@ -93,7 +94,7 @@ namespace maplestory.io
 
             app.Use((req, next) =>
             {
-                if (!Startup.Ready && !env.IsDevelopment())
+                if ((!Startup.Ready && !env.IsDevelopment()) || !Startup.Started)
                 {
                     req.Abort();
                     return Task.Run(() => { });

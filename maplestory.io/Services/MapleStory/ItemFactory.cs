@@ -49,6 +49,7 @@ namespace maplestory.io.Services.MapleStory
             watch.Stop();
             if (!env.IsDevelopment())
             {
+                Startup.Started = true;
                 backgroundCaching = new Thread(cacheItems);
                 backgroundCaching.Start();
             }
