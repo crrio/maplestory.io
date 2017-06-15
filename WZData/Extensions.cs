@@ -7,44 +7,36 @@ namespace WZData
 {
     public static class Extensions
     {
-        public static Func<A,K> Memoize<A,K>(this Func<A,K> that)
+        public static MemoizedThrowFunc<K> Memoize<K>(this Func<K> that)
             where K : class
         {
-            Dictionary<A, Tuple<EventWaitHandle, K>> history = new Dictionary<A, Tuple<EventWaitHandle, K>>();
+            return new MemoizedThrowFunc<K>(that);
+        }
+    }
 
-            return (input) =>
-            {
-                if (history.ContainsKey(input))
-                {
-                    history[input].Item1.WaitOne();
-                    return history[input].Item2;
-                }
-                EventWaitHandle wait = new EventWaitHandle(false, EventResetMode.ManualReset);
+    public class MemoizedThrowFunc<K>
+        where K : class
+    {
+        Func<K> Callback;
+        EventWaitHandle wait = null;
+        K memoizedValue = default(K);
+        bool running;
 
-                history.Add(input, new Tuple<EventWaitHandle, K>(wait, null));
-                K result = that(input);
-                history[input] = new Tuple<EventWaitHandle, K>(wait, result);
-
-                wait.Set();
-                return result;
-            };
+        public MemoizedThrowFunc(Func<K> that)
+        {
+            Callback = that;
         }
 
-        public static Func<K> Memoize<K>(this Func<K> that)
-            where K : class
+        K Invoke()
         {
-            K result = null;
-            EventWaitHandle wait = null;
-
-            return () =>
+            if (running) throw new Exception("Wait for the previous to finish");
+            else if (memoizedValue != default(K)) return memoizedValue;
+            else
             {
-                if (wait != null) wait.WaitOne();
-                else wait = new EventWaitHandle(false, EventResetMode.ManualReset);
-                if (result != null) return result;
-                result = that();
-                wait.Set();
-                return result;
-            };
+                running = true;
+                memoizedValue = Callback();
+                return memoizedValue;
+            }
         }
     }
 }
