@@ -50,7 +50,7 @@ namespace maplestory.io.Services.MapleStory
             return (a) =>
             {
                 WZFile wz = _files[file].Item2.FirstOrDefault(c => !c.InUse);
-                if (wz == null && _files[file].Item2.Count < 20)
+                if (wz == null && _files[file].Item2.Count < 10)
                 {
                     _logger?.LogInformation($"Provisioning new {file}");
                     wz = new WZFile(_files[file].Item1, WZVariant.GMS, false);

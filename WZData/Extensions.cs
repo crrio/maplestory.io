@@ -12,14 +12,14 @@ namespace WZData
         {
             K result = null;
             EventWaitHandle wait = null;
-            bool running = false;
 
             return () =>
             {
-                if (running) throw new Exception("No concurrent loading of memoized data");
+                if (wait != null) wait.WaitOne();
+                else wait = new EventWaitHandle(false, EventResetMode.ManualReset);
                 if (result != null) return result;
-                running = true;
                 result = that();
+                wait.Set();
                 return result;
             };
         }
