@@ -50,7 +50,7 @@ namespace maplestory.io.Services.MapleStory
             return (a) =>
             {
                 WZFile wz = _files[file].Item2.FirstOrDefault(c => !c.InUse);
-                if (wz == null)
+                if (wz == null && _files[file].Item2.Count < 20)
                 {
                     _logger?.LogInformation($"Provisioning new {file}");
                     wz = new WZFile(_files[file].Item1, WZVariant.GMS, false);
@@ -58,6 +58,9 @@ namespace maplestory.io.Services.MapleStory
                     _files[file].Item2.Add(wz);
                 } else
                     wz.InUse = true;
+
+                if (wz == null) throw new IOException("Too many open WZ files of that type");
+
                 try
                 {
                     MapleItem result = a(wz);

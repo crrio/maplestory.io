@@ -92,18 +92,18 @@ namespace maplestory.io
 
             app.UseCors(builder => builder.AllowAnyOrigin().AllowAnyMethod());
 
-            app.Use((req, next) =>
-            {
-                if ((!Startup.Ready && !env.IsDevelopment()) && Startup.Started)
-                {
-                    if (req.Request.Path.HasValue && (req.Request.Path.Value.ToLower().Contains("character") || req.Request.Path.Value.ToLower().Contains("item")))
-                    {
-                        req.Abort();
-                        return Task.Run(() => { });
-                    }
-                    else return next();
-                } else return next();
-            });
+            //app.Use((req, next) =>
+            //{
+            //    if ((!Startup.Ready && !env.IsDevelopment()) && Startup.Started)
+            //    {
+            //        if (req.Request.Path.HasValue && (req.Request.Path.Value.ToLower().Contains("character") || req.Request.Path.Value.ToLower().Contains("item")))
+            //        {
+            //            req.Abort();
+            //            return Task.Run(() => { });
+            //        }
+            //        else return next();
+            //    } else return next();
+            //});
 
             app.UseMvc(routes =>
             {
