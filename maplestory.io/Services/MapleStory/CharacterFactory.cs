@@ -109,6 +109,7 @@ namespace maplestory.io.Services.MapleStory
             Equip[] eqps = itemEntries.Select(itemFactory.search)
                 .Where(c => c is Equip)
                 .Select(c => (Equip)c)
+                .Concat(new[] { (Equip)itemFactory.search(1040004) })
                 .Where(c => c.FrameBooks.ContainsKey("stand1") || c.FrameBooks.ContainsKey("stand2"))
                 .ToArray();
 

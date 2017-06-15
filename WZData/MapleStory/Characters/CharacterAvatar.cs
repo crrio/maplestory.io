@@ -216,52 +216,12 @@ namespace WZData.MapleStory.Characters
                 .Concat(eqpFrames.Where(c => int.TryParse(c.Item2, out int blah)).Select(c => c.Item3));
             }
 
-        public Image<Rgba32> Render(ZMap zmapping, SMap smapping)
+        public Tuple<List<Tuple<string, Vector2, IFrame>>, List<Tuple<int, Vector2, IFrame>>, float, float, float, float> GetElements(ZMap zmapping, SMap smapping)
         {
             List<Tuple<string, Vector2, IFrame>> elements = GetElementPieces(zmapping, smapping);
             List<Tuple<int, Vector2, IFrame>> effectFrames = GetElementPieces(zmapping, smapping, EffectFrames.ToList())
                 .Select(c => new Tuple<int, Vector2, IFrame>(int.Parse(c.Item1), c.Item2, c.Item3))
                 .Concat(elements.Where(c => int.TryParse(c.Item1, out int blah)).Select(c => new Tuple<int, Vector2, IFrame>(int.Parse(c.Item1), c.Item2, c.Item3)))
-                .OrderBy(c => c.Item1).ToList();
-
-            elements = elements.Where(c => !int.TryParse(c.Item1, out int blah)).ToList();
-
-            float minX = elements
-                .Select(c => c.Item2.X)
-                .Concat(effectFrames.Select(c => c.Item2.X))
-                .Min();
-            float maxX = elements
-                .Select(c => c.Item2.X + c.Item3.Image.Width)
-                .Concat(effectFrames.Select(c => c.Item2.X + c.Item3.Image.Width))
-                .Max();
-            float minY = elements
-                .Select(c => c.Item2.Y)
-                .Concat(effectFrames.Select(c => c.Item2.Y))
-                .Min();
-            float maxY = elements
-                .Select(c => c.Item2.Y + c.Item3.Image.Height)
-                .Concat(effectFrames.Select(c => c.Item2.Y + c.Item3.Image.Height))
-                .Max();
-            Size center = new Size((int)((maxX - minX) / 2), (int)((maxY - minY) / 2));
-
-            Image<Rgba32> destination = new Image<Rgba32>((int)((maxX - minX) + (Padding * 2)), (int)((maxY - minY) + (Padding * 2)));
-
-            foreach (Tuple<int, Vector2, IFrame> frame in effectFrames.Where(c => c.Item1 < 1))
-                destination.DrawImage(frame.Item3.Image, 1, new Size(frame.Item3.Image.Width, frame.Item3.Image.Height), new Point((int)((frame.Item2.X - minX) + Padding), (int)((frame.Item2.Y - minY) + Padding)));
-            foreach (IEnumerable<Tuple<string, Vector2, IFrame>> elementGroup in zmapping.Ordering.Select(c => elements.Where(i => i.Item1 == c)))
-                foreach (Tuple<string, Vector2, IFrame> element in elementGroup)
-                    destination.DrawImage(element.Item3.Image, 1, new Size(element.Item3.Image.Width, element.Item3.Image.Height), new Point((int)((element.Item2.X - minX) + Padding), (int)((element.Item2.Y - minY) + Padding)));
-            foreach (Tuple<int, Vector2, IFrame> frame in effectFrames.Where(c => c.Item1 > 0))
-                destination.DrawImage(frame.Item3.Image, 1, new Size(frame.Item3.Image.Width, frame.Item3.Image.Height), new Point((int)((frame.Item2.X - minX) + Padding), (int)((frame.Item2.Y - minY) + Padding)));
-
-            return destination;
-        }
-
-        public Image<Rgba32> RenderCompact(ZMap zmapping, SMap smapping)
-        {
-            List<Tuple<string, Vector2, IFrame>> elements = GetElementPieces(zmapping, smapping);
-            List<Tuple<int, Vector2, IFrame>> effectFrames = GetElementPieces(zmapping, smapping, EffectFrames.ToList())
-                .Select(c => new Tuple<int, Vector2, IFrame>(int.Parse(c.Item1), c.Item2, c.Item3))
                 .OrderBy(c => c.Item1).ToList();
 
             float minX = elements
@@ -285,6 +245,36 @@ namespace WZData.MapleStory.Characters
 
             elements = elements.Select(c => new Tuple<string, Vector2, IFrame>(c.Item1, Vector2.Subtract(c.Item2, offset), c.Item3)).ToList();
             effectFrames = effectFrames.Select(c => new Tuple<int, Vector2, IFrame>(c.Item1, Vector2.Subtract(c.Item2, offset), c.Item3)).ToList();
+
+            return new Tuple<List<Tuple<string, Vector2, IFrame>>, List<Tuple<int, Vector2, IFrame>>, float, float, float, float>(elements, effectFrames, minX, minY, maxX, maxY);
+        }
+
+        public Image<Rgba32> Render(ZMap zmapping, SMap smapping)
+        {
+            var eleContainer = GetElements(zmapping, smapping);
+            List<Tuple<string, Vector2, IFrame>> elements = eleContainer.Item1;
+            List<Tuple<int, Vector2, IFrame>> effectFrames = eleContainer.Item2;
+            float minX = eleContainer.Item3, minY = eleContainer.Item4, maxX = eleContainer.Item5, maxY = eleContainer.Item6;
+
+            Image<Rgba32> destination = new Image<Rgba32>((int)((maxX - minX) + (Padding * 2)), (int)((maxY - minY) + (Padding * 2)));
+
+            foreach (Tuple<int, Vector2, IFrame> frame in effectFrames.Where(c => c.Item1 < 1))
+                destination.DrawImage(frame.Item3.Image, 1, new Size(frame.Item3.Image.Width, frame.Item3.Image.Height), new Point((int)((frame.Item2.X - minX) + Padding), (int)((frame.Item2.Y - minY) + Padding)));
+            foreach (IEnumerable<Tuple<string, Vector2, IFrame>> elementGroup in zmapping.Ordering.Select(c => elements.Where(i => i.Item1 == c)))
+                foreach (Tuple<string, Vector2, IFrame> element in elementGroup)
+                    destination.DrawImage(element.Item3.Image, 1, new Size(element.Item3.Image.Width, element.Item3.Image.Height), new Point((int)((element.Item2.X - minX) + Padding), (int)((element.Item2.Y - minY) + Padding)));
+            foreach (Tuple<int, Vector2, IFrame> frame in effectFrames.Where(c => c.Item1 > 0))
+                destination.DrawImage(frame.Item3.Image, 1, new Size(frame.Item3.Image.Width, frame.Item3.Image.Height), new Point((int)((frame.Item2.X - minX) + Padding), (int)((frame.Item2.Y - minY) + Padding)));
+
+            return destination;
+        }
+
+        public Image<Rgba32> RenderCompact(ZMap zmapping, SMap smapping)
+        {
+            var eleContainer = GetElements(zmapping, smapping);
+            List<Tuple<string, Vector2, IFrame>> elements = eleContainer.Item1;
+            List<Tuple<int, Vector2, IFrame>> effectFrames = eleContainer.Item2;
+            float minX = eleContainer.Item3, minY = eleContainer.Item4, maxX = eleContainer.Item5, maxY = eleContainer.Item6;
 
             Image<Rgba32> destination = new Image<Rgba32>((int)(maxX - minX), (int)(maxY - minY));
 
@@ -319,32 +309,10 @@ namespace WZData.MapleStory.Characters
 
         public Image<Rgba32> RenderCenter(ZMap zmapping, SMap smapping)
         {
-            List<Tuple<string, Vector2, IFrame>> elements = GetElementPieces(zmapping, smapping);
-            List<Tuple<int, Vector2, IFrame>> effectFrames = GetElementPieces(zmapping, smapping, EffectFrames.ToList())
-                .Select(c => new Tuple<int, Vector2, IFrame>(int.Parse(c.Item1), c.Item2, c.Item3))
-                .OrderBy(c => c.Item1).ToList();
-
-            float minX = elements
-                .Select(c => c.Item2.X)
-                .Concat(effectFrames.Select(c => c.Item2.X))
-                .Min();
-            float maxX = elements
-                .Select(c => c.Item2.X + c.Item3.Image.Width)
-                .Concat(effectFrames.Select(c => c.Item2.X + c.Item3.Image.Width))
-                .Max();
-            float minY = elements
-                .Select(c => c.Item2.Y)
-                .Concat(effectFrames.Select(c => c.Item2.Y))
-                .Min();
-            float maxY = elements
-                .Select(c => c.Item2.Y + c.Item3.Image.Height)
-                .Concat(effectFrames.Select(c => c.Item2.Y + c.Item3.Image.Height))
-                .Max();
-            Size center = new Size((int)((maxX - minX) / 2), (int)((maxY - minY) / 2));
-            Vector2 offset = new Vector2(minX, minY);
-
-            elements = elements.Select(c => new Tuple<string, Vector2, IFrame>(c.Item1, Vector2.Subtract(c.Item2, offset), c.Item3)).ToList();
-            effectFrames = effectFrames.Select(c => new Tuple<int, Vector2, IFrame>(c.Item1, Vector2.Subtract(c.Item2, offset), c.Item3)).ToList();
+            var eleContainer = GetElements(zmapping, smapping);
+            List<Tuple<string, Vector2, IFrame>> elements = eleContainer.Item1;
+            List<Tuple<int, Vector2, IFrame>> effectFrames = eleContainer.Item2;
+            float minX = eleContainer.Item3, minY = eleContainer.Item4, maxX = eleContainer.Item5, maxY = eleContainer.Item6;
 
             Image<Rgba32> destination = new Image<Rgba32>((int)(maxX - minX), (int)(maxY - minY));
 

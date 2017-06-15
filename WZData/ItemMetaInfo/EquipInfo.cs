@@ -45,7 +45,7 @@ namespace WZData.ItemMetaInfo
         /// </summary>
         public int? reqLevel;
         /// <summary>
-        /// Unk
+        /// Scroll Count?
         /// </summary>
         public int? tuc;
         /// <summary>
@@ -287,9 +287,9 @@ namespace WZData.ItemMetaInfo
             if (info.HasChild("vslot"))
                 results.vslot = info["vslot"].ValueOrDefault<string>(null);
             if (info.HasChild("android"))
-                results.android = info["android"].ValueOrDefault<int?>(null);
+                results.android = info["android"].ValueOrDefault<int>(0);
             if (info.HasChild("grade"))
-                results.androidGrade = info["grade"].ValueOrDefault<int?>(null);
+                results.androidGrade = info["grade"].ValueOrDefault<int>(0);
 
             return results;
         }

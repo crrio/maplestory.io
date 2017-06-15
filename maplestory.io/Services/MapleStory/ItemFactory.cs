@@ -22,16 +22,24 @@ namespace maplestory.io.Services.MapleStory
         private readonly List<ItemNameInfo> itemDb;
         private readonly ILogger<ItemFactory> _logger;
         Thread backgroundCaching;
+        private readonly Dictionary<int, Func<MapleItem>> equipLookup;
+        private readonly ISkillFactory _skillFactory;
 
-        public ItemFactory(IWZFactory factory, ILogger<ItemFactory> logger, IHostingEnvironment env)
+        public ItemFactory(IWZFactory factory, ISkillFactory skillFactory, ILogger<ItemFactory> logger, IHostingEnvironment env)
         {
             itemDb = new List<ItemNameInfo>();
             _logger = logger;
+            _skillFactory = skillFactory;
 
             Stopwatch watch = Stopwatch.StartNew();
             _logger?.LogInformation("Caching item lookup table");
 
-            itemLookup = Equip.GetLookup(factory.AsyncGetWZFile(WZ.Character), factory.AsyncGetWZFile(WZ.Effect), factory.GetWZFile(WZ.String))
+            var tmpEquipLookup = Equip.GetLookup(factory.AsyncGetWZFile(WZ.Character), factory.AsyncGetWZFile(WZ.Effect), factory.GetWZFile(WZ.String), factory.GetWZFile(WZ.Character));
+            equipLookup = tmpEquipLookup
+                .DistinctBy((p) => p.Item1)
+                .ToDictionary(a => a.Item1, a => a.Item2);
+
+            itemLookup = tmpEquipLookup
             .Concat(Consume.GetLookup(factory.AsyncGetWZFile(WZ.Item), factory.GetWZFile(WZ.String).MainDirectory))
             .Concat(Etc.GetLookup(factory.AsyncGetWZFile(WZ.Item), factory.GetWZFile(WZ.String).MainDirectory))
             .Concat(Install.GetLookup(factory.AsyncGetWZFile(WZ.Item), factory.GetWZFile(WZ.String).MainDirectory))
@@ -47,6 +55,46 @@ namespace maplestory.io.Services.MapleStory
             itemDb = ItemNameInfo.GetNames(factory.GetWZFile(WZ.String)).ToList();
             _logger?.LogInformation($"Cached {itemLookup.Count} items, took {watch.ElapsedMilliseconds}ms");
             watch.Stop();
+            if (!env.IsDevelopment())
+            {
+                Startup.Started = true;
+                backgroundCaching = new Thread(cacheItems);
+                backgroundCaching.Start();
+            }
+        }
+
+        void cacheItems()
+        {
+            Stopwatch watch = Stopwatch.StartNew();
+            _logger.LogWarning("Starting background caching of item meta info");
+            int totalRemaining = itemLookup.Count(c => equipLookup.ContainsKey(c.Key));
+            itemDb.AsParallel()
+                .Where(c => itemLookup.ContainsKey(c.Id) && equipLookup.ContainsKey(c.Id))
+                .Select(c =>
+                {
+                    try
+                    {
+                        _logger.LogInformation($"Processing {c.Id}");
+                        Equip item = (Equip)itemLookup[c.Id]();
+                        if (item != null)
+                        {
+                            c.Info = item.MetaInfo;
+                            c.RequiredJob = _skillFactory.GetJob(item.MetaInfo.Equip.reqJob ?? 0);
+                            c.RequiredLevel = item.MetaInfo.Equip.reqLevel ?? 0;
+                        }
+                        Interlocked.Decrement(ref totalRemaining);
+                        _logger.LogInformation($"Processed {c.Id}, Total remaining: {totalRemaining}");
+                        return item;
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError("Error trying to cache item {0}", c.Id);
+                    }
+                    return null;
+                }).ToArray();
+            watch.Stop();
+            Startup.Ready = true;
+            _logger.LogInformation("Completed background caching of item meta info, took {0}", watch.ElapsedMilliseconds);
         }
 
         public IEnumerable<string> GetItemCategories() => ItemType.overall.Keys;
