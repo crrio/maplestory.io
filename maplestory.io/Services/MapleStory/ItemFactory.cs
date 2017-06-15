@@ -58,7 +58,7 @@ namespace maplestory.io.Services.MapleStory
         void cacheItems()
         {
             Stopwatch watch = Stopwatch.StartNew();
-            _logger.LogInformation("Starting background caching of item meta info");
+            _logger.LogWarning("Starting background caching of item meta info");
             itemDb.AsParallel()
                 .Where(c => itemLookup.ContainsKey(c.Id))
                 .Select(c =>
