@@ -8,7 +8,11 @@ namespace maplestory.io
         public static void Main(string[] args)
         {
             var host = new WebHostBuilder()
-                .UseKestrel()
+                .UseKestrel(options =>
+                {
+                    options.Limits.MaxRequestLineSize = int.MaxValue;
+                    options.ThreadCount = 24;
+                })
                 .UseContentRoot(Directory.GetCurrentDirectory())
                 .UseUrls("http://*:5000")
                 .UseIISIntegration()

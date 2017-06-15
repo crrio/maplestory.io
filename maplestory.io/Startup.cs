@@ -67,7 +67,6 @@ namespace maplestory.io
 
             services.Configure<GzipCompressionProviderOptions>(options => options.Level = System.IO.Compression.CompressionLevel.Optimal);
             services.AddResponseCompression();
-            services.AddResponseCaching();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -92,10 +91,13 @@ namespace maplestory.io
 
             app.UseCors(builder => builder.AllowAnyOrigin().AllowAnyMethod());
 
+            ILogger log = loggerFactory.CreateLogger("Bouncer");
             app.Use((req, next) =>
             {
                 if ((!Startup.Ready && !env.IsDevelopment()) && Startup.Started)
                 {
+                    var state = ItemFactory.backgroundCaching.ThreadState
+                    log.LogWarning($"Request bounced, {Startup.Ready}, {env.IsDevelopment()}, {Startup.Started}, {state}");
                     if (req.Request.Path.HasValue && (req.Request.Path.Value.ToLower().Contains("character") || req.Request.Path.Value.ToLower().Contains("item")))
                     {
                         req.Abort();

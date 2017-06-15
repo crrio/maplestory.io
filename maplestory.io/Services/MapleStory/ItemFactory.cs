@@ -21,7 +21,7 @@ namespace maplestory.io.Services.MapleStory
         private readonly Dictionary<int, Func<MapleItem>> itemLookup;
         private readonly List<ItemNameInfo> itemDb;
         private readonly ILogger<ItemFactory> _logger;
-        Thread backgroundCaching;
+        public static Thread backgroundCaching;
         private readonly Dictionary<int, Func<MapleItem>> equipLookup;
         private readonly ISkillFactory _skillFactory;
 
@@ -57,9 +57,9 @@ namespace maplestory.io.Services.MapleStory
             watch.Stop();
             if (!env.IsDevelopment())
             {
-                Startup.Started = true;
                 backgroundCaching = new Thread(cacheItems);
                 backgroundCaching.Start();
+                Startup.Started = true;
             }
         }
 
