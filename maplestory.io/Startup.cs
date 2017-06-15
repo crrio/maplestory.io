@@ -87,7 +87,6 @@ namespace maplestory.io
 
             app.UseStaticFiles();
             app.UseResponseCompression();
-            app.UseResponseCaching();
 
             app.UseCors(builder => builder.AllowAnyOrigin().AllowAnyMethod());
 
