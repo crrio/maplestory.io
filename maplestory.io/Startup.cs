@@ -13,6 +13,8 @@ namespace maplestory.io
 {
     public class Startup
     {
+        public static bool Ready;
+
         public Startup(IHostingEnvironment env)
         {
             var builder = new ConfigurationBuilder()
@@ -87,6 +89,13 @@ namespace maplestory.io
             app.UseResponseCaching();
 
             app.UseCors(builder => builder.AllowAnyOrigin().AllowAnyMethod());
+
+            app.Use((req, next) =>
+            {
+                if (Startup.Ready || env.IsDevelopment())
+                    req.Abort();
+                return next();
+            });
 
             app.UseMvc(routes =>
             {
