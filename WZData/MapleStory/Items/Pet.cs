@@ -95,7 +95,7 @@ namespace WZData.MapleStory.Items
             }
         }
 
-        public static IEnumerable<Tuple<int, MemoizedThrowFunc<MapleItem>>> GetLookup(WZDirectory itemWz, WZDirectory stringWz)
+        public static IEnumerable<Tuple<int, Func<MapleItem>>> GetLookup(WZDirectory itemWz, WZDirectory stringWz)
         {
             foreach (WZObject petId in stringWz.ResolvePath(StringPath))
             {
@@ -114,7 +114,7 @@ namespace WZData.MapleStory.Items
                     continue;
                 }
 
-                yield return new Tuple<int, MemoizedThrowFunc<MapleItem>>(id, CreateLookup(id, itemWz, petEntry, petId).Memoize());
+                yield return new Tuple<int, Func<MapleItem>>(id, CreateLookup(id, itemWz, petEntry, petId).Memoize());
             }
             
         }
