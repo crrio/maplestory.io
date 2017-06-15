@@ -60,7 +60,7 @@ namespace WZData.MapleStory.Characters
             get => EquipFramesSelected
                 .Where(c => c.Item1.ItemEffects?.entries?.Count > 0)
                 .Where(c => c.Item1.ItemEffects.entries.ContainsKey(c.Item2 ?? AnimationName) || c.Item1.ItemEffects.entries.ContainsKey("default"))
-                .Select(c => new Tuple<Equip, FrameBook>(c.Item1, c.Item1.ItemEffects.entries.ContainsKey(c.Item2 ?? AnimationName) ? c.Item1.ItemEffects.entries[c.Item2 ?? AnimationName].FirstOrDefault() : c.Item1.ItemEffects.entries["default"].FirstOrDefault()))
+                .Select(c => new Tuple<Equip, FrameBook>(c.Item1, c.Item1.ItemEffects.entries.ContainsKey(c.Item2 ?? AnimationName) && c.Item1.ItemEffects.entries[c.Item2 ?? AnimationName].Count() > 0 ? c.Item1.ItemEffects.entries[c.Item2 ?? AnimationName].FirstOrDefault() : c.Item1.ItemEffects.entries["default"].FirstOrDefault()))
                 .Where(c => c.Item2 != null)
                 .Select(c => new Tuple<Equip, IFrame>(c.Item1, c.Item2.frames.Count() <= Frame ? c.Item2.frames.ElementAt(Frame % c.Item2.frames.Count()) : c.Item2.frames.ElementAt(Frame)))
                 .Where(c => c != null && int.TryParse(c.Item2.Position, out int blah))
@@ -212,7 +212,8 @@ namespace WZData.MapleStory.Characters
             return BodyParts.Values
                 .Where(c => ShowEars || c.Name != "ear")
                 .Select(c => (IFrame)c)
-                .Concat(requiredLayers.Where(c => c.Item3.All(slot => boundLayers[slot] == c.Item1)).Select(c => c.Item2).DistinctBy(c => c.Position));
+                .Concat(requiredLayers.Where(c => c.Item3.All(slot => boundLayers[slot] == c.Item1)).Select(c => c.Item2).DistinctBy(c => c.Position))
+                .Concat(eqpFrames.Where(c => int.TryParse(c.Item2, out int blah)).Select(c => c.Item3));
             }
 
         public Image<Rgba32> Render(ZMap zmapping, SMap smapping)
@@ -220,7 +221,10 @@ namespace WZData.MapleStory.Characters
             List<Tuple<string, Vector2, IFrame>> elements = GetElementPieces(zmapping, smapping);
             List<Tuple<int, Vector2, IFrame>> effectFrames = GetElementPieces(zmapping, smapping, EffectFrames.ToList())
                 .Select(c => new Tuple<int, Vector2, IFrame>(int.Parse(c.Item1), c.Item2, c.Item3))
+                .Concat(elements.Where(c => int.TryParse(c.Item1, out int blah)).Select(c => new Tuple<int, Vector2, IFrame>(int.Parse(c.Item1), c.Item2, c.Item3)))
                 .OrderBy(c => c.Item1).ToList();
+
+            elements = elements.Where(c => !int.TryParse(c.Item1, out int blah)).ToList();
 
             float minX = elements
                 .Select(c => c.Item2.X)

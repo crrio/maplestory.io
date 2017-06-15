@@ -23,7 +23,11 @@ namespace WZData
             animationFrame.Image = ResolveImage(file, container, self);
             animationFrame.delay = self.HasChild("delay") ? self["delay"].ValueOrDefault<int>(0) : 0;
             animationFrame.Origin = self.HasChild("origin") ? ((WZVector2Property)self["origin"]).Value : new Vector2(0, 0);
-            animationFrame.Position = self.HasChild("z") ? (self["z"].Type == WZObjectType.String ? self["z"].ValueOrDefault<string>("") : self["z"].ValueOrDefault<int>(0).ToString()) : null;
+            if (self.Parent.HasChild("z")) {
+                WZObject zContainer = self.Parent["z"];
+                animationFrame.Position = zContainer.Type == WZObjectType.String ? zContainer.ValueOrDefault<string>("") : zContainer.ValueOrDefault<int>(0).ToString();
+            } else if (self.HasChild("z"))
+                animationFrame.Position = self["z"].Type == WZObjectType.String ? self["z"].ValueOrDefault<string>("") : self["z"].ValueOrDefault<int>(0).ToString();
             animationFrame.MapOffset = self.HasChild("map") ? self["map"].Select(c => new Tuple<string, Vector2>(c.Name, ((WZVector2Property)c).Value)).ToDictionary(b => b.Item1, b => b.Item2) : null;
 
             return animationFrame;

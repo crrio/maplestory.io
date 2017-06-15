@@ -106,6 +106,8 @@ namespace WZData.MapleStory.Items
         {
             Effects effects = new Effects();
 
+            int z = itemEffect["effect"].HasChild("z") ? itemEffect["effect"]["z"].ValueOrDefault<int>(0) : 0;
+
             effects.entries = itemEffect.HasChild("effect") ? itemEffect["effect"].Where(c =>
                 !c.Name.Equals("action", StringComparison.CurrentCultureIgnoreCase) &&
                 !c.Name.Equals("actionExceptRotation", StringComparison.CurrentCultureIgnoreCase) &&
