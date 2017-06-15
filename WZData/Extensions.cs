@@ -7,36 +7,21 @@ namespace WZData
 {
     public static class Extensions
     {
-        public static MemoizedThrowFunc<K> Memoize<K>(this Func<K> that)
+        public static Func<K> Memoize<K>(this Func<K> that)
             where K : class
         {
-            return new MemoizedThrowFunc<K>(that);
-        }
-    }
+            K result = null;
+            EventWaitHandle wait = null;
+            bool running = false;
 
-    public class MemoizedThrowFunc<K>
-        where K : class
-    {
-        Func<K> Callback;
-        EventWaitHandle wait = null;
-        K memoizedValue = default(K);
-        bool running;
-
-        public MemoizedThrowFunc(Func<K> that)
-        {
-            Callback = that;
-        }
-
-        K Invoke()
-        {
-            if (running) throw new Exception("Wait for the previous to finish");
-            else if (memoizedValue != default(K)) return memoizedValue;
-            else
+            return () =>
             {
+                if (running) throw new Exception("No concurrent loading of memoized data");
+                if (result != null) return result;
                 running = true;
-                memoizedValue = Callback();
-                return memoizedValue;
-            }
+                result = that();
+                return result;
+            };
         }
     }
 }
