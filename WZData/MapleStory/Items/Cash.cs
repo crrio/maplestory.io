@@ -40,12 +40,12 @@ namespace WZData.MapleStory.Items
             return item;
         }
 
-        public static IEnumerable<Tuple<int, Func<MapleItem>>> GetLookup(Func<Func<WZFile, MapleItem>, MapleItem> itemWzCallback, WZDirectory stringWz)
+        public static IEnumerable<Tuple<int, MemoizedThrowFunc<MapleItem>>> GetLookup(Func<Func<WZFile, MapleItem>, MapleItem> itemWzCallback, WZDirectory stringWz)
         {
             int id = -1;
             foreach (WZObject item in stringWz.ResolvePath(StringPath))
                 if (int.TryParse(item.Name, out id))
-                    yield return new Tuple<int, Func<MapleItem>>(id, CreateLookup(itemWzCallback, item, id, stringWz).Memoize());
+                    yield return new Tuple<int, MemoizedThrowFunc<MapleItem>>(id, CreateLookup(itemWzCallback, item, id, stringWz).Memoize());
         }
 
         private static Func<MapleItem> CreateLookup(Func<Func<WZFile, MapleItem>, MapleItem> itemWzCallback, WZObject item, int id, WZDirectory stringWz)

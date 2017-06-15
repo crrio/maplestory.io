@@ -27,7 +27,7 @@ namespace WZData
             Callback = that;
         }
 
-        K Invoke()
+        public K Invoke()
         {
             if (running) throw new Exception("Wait for the previous to finish");
             else if (memoizedValue != default(K)) return memoizedValue;

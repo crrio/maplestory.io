@@ -18,7 +18,7 @@ namespace maplestory.io.Services.MapleStory
 {
     public class ItemFactory : IItemFactory
     {
-        private readonly Dictionary<int, Func<MapleItem>> itemLookup;
+        private readonly Dictionary<int, MemoizedThrowFunc<MapleItem>> itemLookup;
         private readonly List<ItemNameInfo> itemDb;
         private readonly ILogger<ItemFactory> _logger;
         Thread backgroundCaching;
