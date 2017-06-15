@@ -7,6 +7,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Swashbuckle.AspNetCore.Swagger;
+using System.Threading.Tasks;
 using WZData;
 
 namespace maplestory.io
@@ -93,8 +94,10 @@ namespace maplestory.io
             app.Use((req, next) =>
             {
                 if (Startup.Ready || env.IsDevelopment())
+                {
                     req.Abort();
-                return next();
+                    return Task.Run(() => { });
+                } else return next();
             });
 
             app.UseMvc(routes =>
