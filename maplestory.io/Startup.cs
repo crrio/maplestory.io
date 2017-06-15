@@ -96,7 +96,7 @@ namespace maplestory.io
             {
                 if ((!Startup.Ready && !env.IsDevelopment()) && Startup.Started)
                 {
-                    var state = ItemFactory.backgroundCaching.ThreadState
+                    var state = ItemFactory.backgroundCaching.ThreadState;
                     log.LogWarning($"Request bounced, {Startup.Ready}, {env.IsDevelopment()}, {Startup.Started}, {state}");
                     if (req.Request.Path.HasValue && (req.Request.Path.Value.ToLower().Contains("character") || req.Request.Path.Value.ToLower().Contains("item")))
                     {
