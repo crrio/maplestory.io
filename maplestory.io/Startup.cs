@@ -93,7 +93,7 @@ namespace maplestory.io
 
             app.Use((req, next) =>
             {
-                if (Startup.Ready || env.IsDevelopment())
+                if (!Startup.Ready && !env.IsDevelopment())
                 {
                     req.Abort();
                     return Task.Run(() => { });
