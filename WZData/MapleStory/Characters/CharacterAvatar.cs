@@ -259,12 +259,12 @@ namespace WZData.MapleStory.Characters
             Image<Rgba32> destination = new Image<Rgba32>((int)((maxX - minX) + (Padding * 2)), (int)((maxY - minY) + (Padding * 2)));
 
             foreach (Tuple<int, Vector2, IFrame> frame in effectFrames.Where(c => c.Item1 < 1))
-                destination.DrawImage(frame.Item3.Image, 1, new Size(frame.Item3.Image.Width, frame.Item3.Image.Height), new Point((int)((frame.Item2.X - minX) + Padding), (int)((frame.Item2.Y - minY) + Padding)));
+                destination.DrawImage(frame.Item3.Image, 1, new Size(frame.Item3.Image.Width, frame.Item3.Image.Height), new Point((int)(frame.Item2.X + Padding), (int)(frame.Item2.Y + Padding)));
             foreach (IEnumerable<Tuple<string, Vector2, IFrame>> elementGroup in zmapping.Ordering.Select(c => elements.Where(i => i.Item1 == c)))
                 foreach (Tuple<string, Vector2, IFrame> element in elementGroup)
-                    destination.DrawImage(element.Item3.Image, 1, new Size(element.Item3.Image.Width, element.Item3.Image.Height), new Point((int)((element.Item2.X - minX) + Padding), (int)((element.Item2.Y - minY) + Padding)));
+                    destination.DrawImage(element.Item3.Image, 1, new Size(element.Item3.Image.Width, element.Item3.Image.Height), new Point((int)(element.Item2.X + Padding), (int)(element.Item2.Y + Padding)));
             foreach (Tuple<int, Vector2, IFrame> frame in effectFrames.Where(c => c.Item1 > 0))
-                destination.DrawImage(frame.Item3.Image, 1, new Size(frame.Item3.Image.Width, frame.Item3.Image.Height), new Point((int)((frame.Item2.X - minX) + Padding), (int)((frame.Item2.Y - minY) + Padding)));
+                destination.DrawImage(frame.Item3.Image, 1, new Size(frame.Item3.Image.Width, frame.Item3.Image.Height), new Point((int)(frame.Item2.X + Padding), (int)(frame.Item2.Y + Padding)));
 
             return destination;
         }
