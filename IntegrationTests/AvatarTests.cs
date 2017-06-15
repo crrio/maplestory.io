@@ -19,7 +19,7 @@ namespace IntegrationTests
         static AvatarTests()
         {
             wzFactory = new WZFactory(WZPath);
-            itemFactory = new ItemFactory(wzFactory, null);
+            itemFactory = new ItemFactory(wzFactory, null, null);
             zmapFactory = new ZMapFactory(wzFactory);
             characterFactory = new CharacterFactory(wzFactory, itemFactory, zmapFactory);
         }

@@ -23,10 +23,10 @@ namespace maplestory.io.Services.MapleStory
             _logger?.LogInformation("Caching WZ Files");
             string maplePath = options.Value.WZPath;
             string[] fileNames = Directory.GetFiles(maplePath, "*.wz");
-            IEnumerable<Tuple<WZ, string, WZFile>> WZFiles = fileNames
+            IEnumerable<Tuple<WZ, string, IEnumerable<WZFile>>> WZFiles = fileNames
                 .Where(c => Path.GetFileNameWithoutExtension(c) != "Data")
-                .Select(c => new Tuple<WZ, string, WZFile>((WZ)Enum.Parse(typeof(WZ), Path.GetFileNameWithoutExtension(c), true), c, new WZFile(c, WZVariant.GMS, false)));
-            foreach (Tuple<WZ, string, WZFile> file in WZFiles) _files.Add(file.Item1, new Tuple<string, List<WZFile>>(file.Item2, new List<WZFile>() { file.Item3 }));
+                .Select(c => new Tuple<WZ, string, IEnumerable<WZFile>>((WZ)Enum.Parse(typeof(WZ), Path.GetFileNameWithoutExtension(c), true), c, Enumerable.Range(0, 20).Select(b => new WZFile(c, WZVariant.GMS, false))));
+            foreach (Tuple<WZ, string, IEnumerable<WZFile>> file in WZFiles) _files.Add(file.Item1, new Tuple<string, List<WZFile>>(file.Item2, file.Item3.ToList()));
             _logger?.LogInformation($"Found {_files.Count} WZFiles");
         }
 
