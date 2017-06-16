@@ -18,8 +18,8 @@ namespace IntegrationTests
 
         static AvatarTests()
         {
-            wzFactory = new WZFactory(WZPath);
-            itemFactory = new ItemFactory(wzFactory, null, null);
+            //wzFactory = new WZFactory(WZPath);
+            //itemFactory = new ItemFactory(wzFactory, null, null);
             zmapFactory = new ZMapFactory(wzFactory);
             characterFactory = new CharacterFactory(wzFactory, itemFactory, zmapFactory);
         }
@@ -36,14 +36,14 @@ namespace IntegrationTests
             };
         }
 
-        [Theory]
-        [MemberData(nameof(GetAvatars))]
-        public void AvatarGeneration(byte[] expectedResults, int skinId, string animation, int frame, bool showEars, int padding, Tuple<int, string>[] itemEntries)
-        {
-            Image<Rgba32> characterAvatar = characterFactory.GetCharacter(skinId, animation, frame, showEars, padding, itemEntries);
-            byte[] characterAvatarBytes = characterAvatar.ImageToByte();
-            bool isAllEqual = characterAvatarBytes.Select((c, i) => expectedResults[i] == c).All(c => c);
-            Assert.True(isAllEqual);
-        }
+        //[Theory]
+        //[MemberData(nameof(GetAvatars))]
+        //public void AvatarGeneration(byte[] expectedResults, int skinId, string animation, int frame, bool showEars, int padding, Tuple<int, string>[] itemEntries)
+        //{
+        //    Image<Rgba32> characterAvatar = characterFactory.GetCharacter(skinId, animation, frame, showEars, padding, itemEntries);
+        //    byte[] characterAvatarBytes = characterAvatar.ImageToByte();
+        //    bool isAllEqual = characterAvatarBytes.Select((c, i) => expectedResults[i] == c).All(c => c);
+        //    Assert.True(isAllEqual);
+        //}
     }
 }

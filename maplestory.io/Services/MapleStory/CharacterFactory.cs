@@ -70,10 +70,5 @@ namespace maplestory.io.Services.MapleStory
 
             return skin.Animations.Where(c => c.Value.AnimationName.Equals(c.Key, StringComparison.CurrentCultureIgnoreCase)).Select(c => c.Key).Where(c => eqps.All(e => e.FrameBooks.ContainsKey(c))).ToArray();
         }
-
-        public string[] GetFrameCount(int skinId, string action, params Tuple<int, string>[] itemEntries)
-        {
-
-        }
     }
 }
