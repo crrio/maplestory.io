@@ -18,18 +18,17 @@ namespace maplestory.io.Services.MapleStory
 {
     public class ItemFactory : IItemFactory
     {
-        private readonly Dictionary<int, Func<MapleItem>> itemLookup;
-        private readonly List<ItemNameInfo> itemDb;
-        private readonly ILogger<ItemFactory> _logger;
+        private static Dictionary<int, Func<MapleItem>> itemLookup;
+        private static List<ItemNameInfo> itemDb;
+        private static ILogger<ItemFactory> _logger;
         public static Thread backgroundCaching;
-        private readonly Dictionary<int, Func<MapleItem>> equipLookup;
-        private readonly ISkillFactory _skillFactory;
+        private static Dictionary<int, Func<MapleItem>> equipLookup;
+        private static ISkillFactory _skillFactory;
 
-        public ItemFactory(IWZFactory factory, ISkillFactory skillFactory, ILogger<ItemFactory> logger, IHostingEnvironment env)
+        public static void Load(IWZFactory factory, ILogger<ItemFactory> logger)
         {
             itemDb = new List<ItemNameInfo>();
             _logger = logger;
-            _skillFactory = skillFactory;
 
             Stopwatch watch = Stopwatch.StartNew();
             _logger?.LogInformation("Caching item lookup table");
@@ -55,15 +54,9 @@ namespace maplestory.io.Services.MapleStory
             itemDb = ItemNameInfo.GetNames(factory.GetWZFile(WZ.String)).ToList();
             _logger?.LogInformation($"Cached {itemLookup.Count} items, took {watch.ElapsedMilliseconds}ms");
             watch.Stop();
-            if (!env.IsDevelopment())
-            {
-                backgroundCaching = new Thread(cacheItems);
-                backgroundCaching.Start();
-                Startup.Started = true;
-            }
         }
 
-        void cacheItems()
+        public static void cacheItems()
         {
             Stopwatch watch = Stopwatch.StartNew();
             _logger.LogWarning("Starting background caching of item meta info");

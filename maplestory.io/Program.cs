@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Hosting;
+﻿using maplestory.io.Services.MapleStory;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Logging;
 using System;
 using System.IO;
 
@@ -8,6 +10,13 @@ namespace maplestory.io
     {
         public static void Main(string[] args)
         {
+            dynamic obj = Newtonsoft.Json.JsonConvert.DeserializeObject(File.ReadAllText("./appsettings.json"));
+            string wzPath = obj.WZ.WZPath;
+            LoggerFactory logging = new LoggerFactory();
+            WZFactory wzFactory = new WZFactory(logging.CreateLogger<WZFactory>(), wzPath);
+            ItemFactory.Load(wzFactory, logging.CreateLogger<ItemFactory>());
+            ItemFactory.cacheItems();
+
             var host = new WebHostBuilder()
                 .UseKestrel(options =>
                 {

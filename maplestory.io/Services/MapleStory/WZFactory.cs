@@ -15,14 +15,15 @@ namespace maplestory.io.Services.MapleStory
         private readonly Dictionary<WZ, Tuple<string, List<WZFile>>> _files;
         private readonly ILogger _logger;
 
-        public WZFactory(ILogger<WZFactory> logger, IOptions<WZOptions> options)
+        public WZFactory(ILogger<WZFactory> logger, IOptions<WZOptions> options) : this(logger, options.Value.WZPath) { }
+
+        public WZFactory(ILogger<WZFactory> logger, string wzPath)
         {
             _logger = logger;
             _files = new Dictionary<WZ, Tuple<string, List<WZFile>>>();
 
             _logger?.LogInformation("Caching WZ Files");
-            string maplePath = options.Value.WZPath;
-            string[] fileNames = Directory.GetFiles(maplePath, "*.wz");
+            string[] fileNames = Directory.GetFiles(wzPath, "*.wz");
             IEnumerable<Tuple<WZ, string, IEnumerable<WZFile>>> WZFiles = fileNames
                 .Where(c => Path.GetFileNameWithoutExtension(c) != "Data")
                 .Select(c => new Tuple<WZ, string, IEnumerable<WZFile>>((WZ)Enum.Parse(typeof(WZ), Path.GetFileNameWithoutExtension(c), true), c, Enumerable.Range(0, 10).Select(b => new WZFile(c, WZVariant.GMS, false))));
