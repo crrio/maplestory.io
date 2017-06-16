@@ -214,9 +214,9 @@ namespace WZData.MapleStory.Characters
                 .Select(c => (IFrame)c)
                 .Concat(requiredLayers.Where(c => c.Item3.All(slot => boundLayers[slot] == c.Item1)).Select(c => c.Item2).DistinctBy(c => c.Position))
                 .Concat(eqpFrames.Where(c => int.TryParse(c.Item2, out int blah)).Select(c => c.Item3));
-            }
+        }
 
-        public Tuple<List<Tuple<string, Vector2, IFrame>>, List<Tuple<int, Vector2, IFrame>>, float, float, float, float> GetElements(ZMap zmapping, SMap smapping)
+        public Image<Rgba32> Render(ZMap zmapping, SMap smapping, string renderMode)
         {
             List<Tuple<string, Vector2, IFrame>> elements = GetElementPieces(zmapping, smapping);
             List<Tuple<int, Vector2, IFrame>> effectFrames = GetElementPieces(zmapping, smapping, EffectFrames.ToList())
@@ -246,15 +246,8 @@ namespace WZData.MapleStory.Characters
             elements = elements.Select(c => new Tuple<string, Vector2, IFrame>(c.Item1, Vector2.Subtract(c.Item2, offset), c.Item3)).ToList();
             effectFrames = effectFrames.Select(c => new Tuple<int, Vector2, IFrame>(c.Item1, Vector2.Subtract(c.Item2, offset), c.Item3)).ToList();
 
-            return new Tuple<List<Tuple<string, Vector2, IFrame>>, List<Tuple<int, Vector2, IFrame>>, float, float, float, float>(elements, effectFrames, minX, minY, maxX, maxY);
-        }
-
-        public Image<Rgba32> Render(ZMap zmapping, SMap smapping)
-        {
-            var eleContainer = GetElements(zmapping, smapping);
-            List<Tuple<string, Vector2, IFrame>> elements = eleContainer.Item1;
-            List<Tuple<int, Vector2, IFrame>> effectFrames = eleContainer.Item2;
-            float minX = eleContainer.Item3, minY = eleContainer.Item4, maxX = eleContainer.Item5, maxY = eleContainer.Item6;
+            Tuple<string, Vector2, IFrame> body = elements.Where(c => c.Item1.Equals("body") || c.Item1.Equals("backBody")).First();
+            Vector2 bodyPosition = body.Item2;
 
             Image<Rgba32> destination = new Image<Rgba32>((int)((maxX - minX) + (Padding * 2)), (int)((maxY - minY) + (Padding * 2)));
 
@@ -266,74 +259,38 @@ namespace WZData.MapleStory.Characters
             foreach (Tuple<int, Vector2, IFrame> frame in effectFrames.Where(c => c.Item1 > 0))
                 destination.DrawImage(frame.Item3.Image, 1, new Size(frame.Item3.Image.Width, frame.Item3.Image.Height), new Point((int)(frame.Item2.X + Padding), (int)(frame.Item2.Y + Padding)));
 
+            if (renderMode == "compact")
+            {
+                Vector2 bodyShouldBe = new Vector2(36, 55);
+                Vector2 cropOrigin = Vector2.Subtract(bodyPosition, bodyShouldBe);
+                Rectangle cropArea = new Rectangle((int)Math.Max(cropOrigin.X, 0), (int)Math.Max(cropOrigin.Y, 0), 96, 96);
+                Vector2 cropOffsetFromOrigin = new Vector2(cropArea.X - cropOrigin.X, cropArea.Y - cropOrigin.Y);
+
+                if (cropArea.Right > destination.Width) cropArea.Width = (int)(destination.Width - cropOrigin.X);
+                if (cropArea.Bottom > destination.Height) cropArea.Height = (int)(destination.Height - cropOrigin.Y);
+
+                Image<Rgba32> compact = new Image<Rgba32>(96, 96);
+                compact.DrawImage(
+                    destination.Crop(cropArea), 
+                    1, 
+                    new Size(cropArea.Width, cropArea.Height), 
+                    new Point((int)cropOffsetFromOrigin.X, (int)cropOffsetFromOrigin.Y)
+                );
+
+                return compact;
+            } else if (renderMode == "center")
+            {
+                Vector2 bodyCenter = Vector2.Add(body.Item2, new Vector2(body.Item3.Image.Width / 2f, 0));
+                Vector2 imageCenter = new Vector2(destination.Width / 2, destination.Height / 2);
+                // Positive values = body is left/above, negative = body is right/below
+                Vector2 distanceFromCenter = Vector2.Multiply(2, Vector2.Subtract(imageCenter, bodyCenter));
+                Image<Rgba32> centered = new Image<Rgba32>(destination.Width + (int)Math.Abs(distanceFromCenter.X), destination.Height + (int)Math.Abs(distanceFromCenter.Y));
+                centered.DrawImage(destination, 1, new Size(destination.Width, destination.Height), new Point((int)Math.Max(distanceFromCenter.X, 0), (int)Math.Max(distanceFromCenter.Y, 0)));
+
+                return centered;
+            }
+
             return destination;
-        }
-
-        public Image<Rgba32> RenderCompact(ZMap zmapping, SMap smapping)
-        {
-            var eleContainer = GetElements(zmapping, smapping);
-            List<Tuple<string, Vector2, IFrame>> elements = eleContainer.Item1;
-            List<Tuple<int, Vector2, IFrame>> effectFrames = eleContainer.Item2;
-            float minX = eleContainer.Item3, minY = eleContainer.Item4, maxX = eleContainer.Item5, maxY = eleContainer.Item6;
-
-            Image<Rgba32> destination = new Image<Rgba32>((int)(maxX - minX), (int)(maxY - minY));
-
-            foreach (Tuple<int, Vector2, IFrame> frame in effectFrames.Where(c => c.Item1 < 1))
-                destination.DrawImage(frame.Item3.Image, 1, new Size(frame.Item3.Image.Width, frame.Item3.Image.Height), new Point((int)frame.Item2.X, (int)frame.Item2.Y));
-            foreach (IEnumerable<Tuple<string, Vector2, IFrame>> elementGroup in zmapping.Ordering.Select(c => elements.Where(i => i.Item1 == c)))
-                foreach (Tuple<string, Vector2, IFrame> element in elementGroup)
-                    destination.DrawImage(element.Item3.Image, 1, new Size(element.Item3.Image.Width, element.Item3.Image.Height), new Point((int)element.Item2.X, (int)element.Item2.Y));
-            foreach (Tuple<int, Vector2, IFrame> frame in effectFrames.Where(c => c.Item1 > 0))
-                destination.DrawImage(frame.Item3.Image, 1, new Size(frame.Item3.Image.Width, frame.Item3.Image.Height), new Point((int)frame.Item2.X, (int)frame.Item2.Y));
-
-            Tuple<string, Vector2, IFrame> body = elements.Where(c => c.Item1.Equals("body") || c.Item1.Equals("backBody")).First();
-            Vector2 bodyPosition = body.Item2;
-            Vector2 bodyShouldBe = new Vector2(36, 55);
-            Vector2 cropOrigin = Vector2.Subtract(bodyPosition, bodyShouldBe);
-            Rectangle cropArea = new Rectangle(
-                (int)Math.Max(cropOrigin.X, 0),
-                (int)Math.Max(cropOrigin.Y, 0),
-                96,
-                96
-            );
-            Vector2 cropOffsetFromOrigin = new Vector2(cropArea.X - cropOrigin.X, cropArea.Y - cropOrigin.Y);
-
-            if (cropArea.Right > destination.Width) cropArea.Width = (int)(destination.Width - cropOrigin.X);
-            if (cropArea.Bottom > destination.Height) cropArea.Height = (int)(destination.Height - cropOrigin.Y);
-
-            Image<Rgba32> result = new Image<Rgba32>(96, 96);
-            result.DrawImage(destination.Crop(cropArea), 1, new Size(cropArea.Width, cropArea.Height), new Point((int)cropOffsetFromOrigin.X, (int)cropOffsetFromOrigin.Y));
-
-            return result;
-        }
-
-        public Image<Rgba32> RenderCenter(ZMap zmapping, SMap smapping)
-        {
-            var eleContainer = GetElements(zmapping, smapping);
-            List<Tuple<string, Vector2, IFrame>> elements = eleContainer.Item1;
-            List<Tuple<int, Vector2, IFrame>> effectFrames = eleContainer.Item2;
-            float minX = eleContainer.Item3, minY = eleContainer.Item4, maxX = eleContainer.Item5, maxY = eleContainer.Item6;
-
-            Image<Rgba32> destination = new Image<Rgba32>((int)(maxX - minX), (int)(maxY - minY));
-
-            foreach (Tuple<int, Vector2, IFrame> frame in effectFrames.Where(c => c.Item1 < 1))
-                destination.DrawImage(frame.Item3.Image, 1, new Size(frame.Item3.Image.Width, frame.Item3.Image.Height), new Point((int)frame.Item2.X, (int)frame.Item2.Y));
-            foreach (IEnumerable<Tuple<string, Vector2, IFrame>> elementGroup in zmapping.Ordering.Select(c => elements.Where(i => i.Item1 == c)))
-                foreach (Tuple<string, Vector2, IFrame> element in elementGroup)
-                    destination.DrawImage(element.Item3.Image, 1, new Size(element.Item3.Image.Width, element.Item3.Image.Height), new Point((int)element.Item2.X, (int)element.Item2.Y));
-            foreach (Tuple<int, Vector2, IFrame> frame in effectFrames.Where(c => c.Item1 > 0))
-                destination.DrawImage(frame.Item3.Image, 1, new Size(frame.Item3.Image.Width, frame.Item3.Image.Height), new Point((int)frame.Item2.X, (int)frame.Item2.Y));
-
-            Tuple<string, Vector2, IFrame> body = elements.Where(c => c.Item1.Equals("body") || c.Item1.Equals("backBody")).First();
-            Vector2 bodyPosition = body.Item2;
-            Vector2 bodyCenter = Vector2.Add(body.Item2, new Vector2(body.Item3.Image.Width / 2f, 0));
-            Vector2 imageCenter = new Vector2(destination.Width / 2, destination.Height / 2);
-            // Positive values = body is left/above, negative = body is right/below
-            Vector2 distanceFromCenter = Vector2.Multiply(2, Vector2.Subtract(imageCenter, bodyCenter));
-            Image<Rgba32> centered = new Image<Rgba32>(destination.Width + (int)Math.Abs(distanceFromCenter.X), destination.Height + (int)Math.Abs(distanceFromCenter.Y));
-            centered.DrawImage(destination, 1, new Size(destination.Width, destination.Height), new Point((int)Math.Max(distanceFromCenter.X, 0), (int)Math.Max(distanceFromCenter.Y, 0)));
-
-            return centered;
         }
     }
 }

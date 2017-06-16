@@ -29,16 +29,13 @@ namespace maplestory.io.Services.MapleStory
 
         public int[] GetSkinIds() => skins.Keys.ToArray();
 
-        public Image<Rgba32> GetBase(int id, string animation = null, int frame = 0, bool showEars = false, int padding = 2)
-            => GetCharacter(id, animation, frame, showEars, padding, new Tuple<int, string>[0]);
+        public Image<Rgba32> GetBase(int id, string animation = null, int frame = 0, bool showEars = false, int padding = 2, string renderMode = "default")
+            => GetCharacter(id, animation, frame, showEars, padding, renderMode, new Tuple<int, string>[0]);
 
-        public Image<Rgba32> GetBaseWithHair(int id, string animation = null, int frame = 0, bool showEars = false, int padding = 2, int faceId = 20305, int hairId = 37831)
-            => GetCharacter(id, animation, frame, showEars, padding, faceId, hairId);
+        public Image<Rgba32> GetBaseWithHair(int id, string animation = null, int frame = 0, bool showEars = false, int padding = 2, int faceId = 20305, int hairId = 37831, string renderMode = "default")
+            => GetCharacter(id, animation, frame, showEars, padding, renderMode, new Tuple<int, string>(faceId, null), new Tuple<int, string>(hairId, null));
 
-        public Image<Rgba32> GetCharacter(int id, string animation = null, int frame = 0, bool showEars = false, int padding = 2, params int[] items)
-            => GetCharacter(id, animation, frame, showEars, padding, items.Select(c => new Tuple<int, string>(c, animation)).ToArray());
-
-        public Image<Rgba32> GetCharacter(int id, string animation = null, int frame = 0, bool showEars = false, int padding = 2, params Tuple<int, string>[] itemEntries)
+        public Image<Rgba32> GetCharacter(int id, string animation = null, int frame = 0, bool showEars = false, int padding = 2, string renderMode = "default", params Tuple<int, string>[] itemEntries)
         {
             IEnumerable<Tuple<MapleItem, string>> items = Enumerable.Select<Tuple<int, string>, Tuple<MapleItem, string>>(itemEntries, (Func<Tuple<int, string>, Tuple<MapleItem, string>>)((Tuple<int, string> c) => (Tuple<MapleItem, string>)new Tuple<MapleItem, string>((MapleItem)itemFactory.search((int)c.Item1), (string)c.Item2)));
 
@@ -57,51 +54,7 @@ namespace maplestory.io.Services.MapleStory
             avatar.ShowEars = showEars;
             avatar.Padding = padding;
 
-            return avatar.Render(zmap, smap);
-        }
-
-        public Image<Rgba32> GetCompactCharacter(int skinId, string animation = null, int frame = 0, bool showEars = false, int padding = 2, params Tuple<int, string>[] itemEntries)
-        {
-            IEnumerable<Tuple<MapleItem, string>> items = Enumerable.Select<Tuple<int, string>, Tuple<MapleItem, string>>(itemEntries, (Func<Tuple<int, string>, Tuple<MapleItem, string>>)((Tuple<int, string> c) => (Tuple<MapleItem, string>)new Tuple<MapleItem, string>((MapleItem)itemFactory.search((int)c.Item1), (string)c.Item2)));
-
-            CharacterSkin skin = GetSkin(skinId);
-            CharacterAvatar avatar = new CharacterAvatar(skin);
-            avatar.Items = items;
-
-            if (animation == null)
-            {
-                Equip weapon = avatar.Equips.Where(c => c.EquipGroup == "Weapon").FirstOrDefault();
-                animation = weapon?.FrameBooks.Select(c => c.Key).Where(c => c.Contains("stand")).FirstOrDefault() ?? "stand1";
-            }
-
-            avatar.AnimationName = animation;
-            avatar.Frame = frame;
-            avatar.ShowEars = showEars;
-            avatar.Padding = padding;
-
-            return avatar.RenderCompact(zmap, smap);
-        }
-
-        public Image<Rgba32> GetCenteredCharacter(int skinId, string animation = null, int frame = 0, bool showEars = false, int padding = 2, params Tuple<int, string>[] itemEntries)
-        {
-            IEnumerable<Tuple<MapleItem, string>> items = Enumerable.Select<Tuple<int, string>, Tuple<MapleItem, string>>(itemEntries, (Func<Tuple<int, string>, Tuple<MapleItem, string>>)((Tuple<int, string> c) => (Tuple<MapleItem, string>)new Tuple<MapleItem, string>((MapleItem)itemFactory.search((int)c.Item1), (string)c.Item2)));
-
-            CharacterSkin skin = GetSkin(skinId);
-            CharacterAvatar avatar = new CharacterAvatar(skin);
-            avatar.Items = items;
-
-            if (animation == null)
-            {
-                Equip weapon = avatar.Equips.Where(c => c.EquipGroup == "Weapon").FirstOrDefault();
-                animation = weapon?.FrameBooks.Select(c => c.Key).Where(c => c.Contains("stand")).FirstOrDefault() ?? "stand1";
-            }
-
-            avatar.AnimationName = animation;
-            avatar.Frame = frame;
-            avatar.ShowEars = showEars;
-            avatar.Padding = padding;
-
-            return avatar.RenderCenter(zmap, smap);
+            return avatar.Render(zmap, smap, renderMode);
         }
 
         public string[] GetActions(params int[] itemEntries)
@@ -116,6 +69,11 @@ namespace maplestory.io.Services.MapleStory
             CharacterSkin skin = GetSkin(2000);
 
             return skin.Animations.Where(c => c.Value.AnimationName.Equals(c.Key, StringComparison.CurrentCultureIgnoreCase)).Select(c => c.Key).Where(c => eqps.All(e => e.FrameBooks.ContainsKey(c))).ToArray();
+        }
+
+        public string[] GetFrameCount(int skinId, string action, params Tuple<int, string>[] itemEntries)
+        {
+
         }
     }
 }

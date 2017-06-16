@@ -24,6 +24,15 @@ namespace maplestory.io.Services.MapleStory
         public static Thread backgroundCaching;
         private static Dictionary<int, Func<MapleItem>> equipLookup;
         private static ISkillFactory _skillFactory;
+        public static Dictionary<int, string> JobNameLookup = new Dictionary<int, string>()
+        {
+            { 0, "Beginner" },
+            { 1, "Warrior" },
+            { 2, "Magician"},
+            { 4, "Bowman" },
+            { 8, "Thief" },
+            { 16, "Pirate" }
+        };
 
         public static void Load(IWZFactory factory, ILogger<ItemFactory> logger)
         {
@@ -72,8 +81,9 @@ namespace maplestory.io.Services.MapleStory
                         if (item != null)
                         {
                             c.Info = item.MetaInfo;
-//                            c.RequiredJob = _skillFactory.GetJob(item.MetaInfo.Equip.reqJob ?? 0);
-                            c.RequiredLevel = item.MetaInfo?.Equip.reqLevel ?? 0;
+                            c.RequiredJobs = JobNameLookup.Where(b => (b.Key & item.MetaInfo.Equip.reqJob) == b.Key).Select(b => b.Value).ToArray();
+                            c.RequiredLevel = item.MetaInfo?.Equip?.reqLevel ?? 0;
+                            c.IsCash = item.MetaInfo?.Cash?.cash ?? false;
                         }
                         Interlocked.Decrement(ref totalRemaining);
                         _logger.LogInformation($"Processed {c.Id}, Total remaining: {totalRemaining}");

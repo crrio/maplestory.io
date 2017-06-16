@@ -40,7 +40,7 @@ namespace maplestory.io.Controllers
         static readonly int[] skinIds = new int[] { 2000, 2001, 2002, 2003, 2004, 2005, 2009, 2010, 2011, 2012, 2013 };
 
         public CharacterController(ICharacterFactory factory, IItemFactory items, ILogger<WZFactory> logger)
-        { 
+        {
             _factory = factory;
             _itemFactory = items;
             _logging = logger;
@@ -62,8 +62,8 @@ namespace maplestory.io.Controllers
         [Route("{skinId}/{items?}/{animation?}/{frame?}")]
         [HttpGet]
         [Produces("image/png")]
-        public IActionResult GetCharacter(int skinId, string items = "1102039", string animation = null, int frame = 0)
-            => File(_factory.GetCharacter(skinId, animation, frame, items: items
+        public IActionResult GetCharacter(int skinId, string items = "1102039", string animation = null, int frame = 0, [FromQuery] string renderMode = "default", [FromQuery] bool showEars = false, [FromQuery] int padding = 2)
+            => File(_factory.GetCharacter(skinId, animation, frame, showEars, padding, renderMode, items
                     .Split(new string[] { "," }, StringSplitOptions.RemoveEmptyEntries)
                     .Select(c => c.Split(':'))
                     .Where(c => c.Length > 0 && int.TryParse(c[0], out int blah))
@@ -74,26 +74,14 @@ namespace maplestory.io.Controllers
         [Route("compact/{skinId}/{items?}/{animation?}/{frame?}")]
         [HttpGet]
         [Produces("image/png")]
-        public IActionResult GetCompactCharacter(int skinId, string items = "1102039", string animation = null, int frame = 0)
-        => File(_factory.GetCompactCharacter(skinId, animation, frame, items: items
-            .Split(new string[] { "," }, StringSplitOptions.RemoveEmptyEntries)
-            .Select(c => c.Split(':'))
-            .Where(c => c.Length > 0 && int.TryParse(c[0], out int blah))
-            .Select(c => new Tuple<int, string>(int.Parse(c[0]), c.Length > 1 ? c[1] : animation))
-            .ToArray()
-        ).ImageToByte(), "image/png");
+        public IActionResult GetCompactCharacter(int skinId, string items = "1102039", string animation = null, int frame = 0, [FromQuery] bool showEars = false, [FromQuery] int padding = 2)
+        => GetCharacter(skinId, items, animation, frame, "compact", showEars, padding);
 
         [Route("center/{skinId}/{items?}/{animation?}/{frame?}")]
         [HttpGet]
         [Produces("image/png")]
-        public IActionResult GetCenteredCharacter(int skinId, string items = "1102039", string animation = null, int frame = 0)
-            => File(_factory.GetCenteredCharacter(skinId, animation, frame, items: items
-                .Split(new string[] { "," }, StringSplitOptions.RemoveEmptyEntries)
-                .Select(c => c.Split(':'))
-                .Where(c => c.Length > 0 && int.TryParse(c[0], out int blah))
-                .Select(c => new Tuple<int, string>(int.Parse(c[0]), c.Length > 1 ? c[1] : animation))
-                .ToArray()
-            ).ImageToByte(), "image/png");
+        public IActionResult GetCenteredCharacter(int skinId, string items = "1102039", string animation = null, int frame = 0, [FromQuery] bool showEars = false, [FromQuery] int padding = 2)
+            => GetCharacter(skinId, items, animation, frame, "center", showEars, padding)
 
         [Route("actions/{items?}")]
         [HttpGet]

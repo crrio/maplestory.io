@@ -12,12 +12,10 @@ namespace maplestory.io.Services.MapleStory
 {
     public class WZFactory : IWZFactory, IDisposable
     {
-        private readonly Dictionary<WZ, Tuple<string, List<WZFile>>> _files;
-        private readonly ILogger _logger;
+        private static Dictionary<WZ, Tuple<string, List<WZFile>>> _files;
+        private static ILogger _logger;
 
-        public WZFactory(ILogger<WZFactory> logger, IOptions<WZOptions> options) : this(logger, options.Value.WZPath) { }
-
-        public WZFactory(ILogger<WZFactory> logger, string wzPath)
+        public static void Load(ILogger<WZFactory> logger, string wzPath)
         {
             _logger = logger;
             _files = new Dictionary<WZ, Tuple<string, List<WZFile>>>();
@@ -29,18 +27,6 @@ namespace maplestory.io.Services.MapleStory
                 .Select(c => new Tuple<WZ, string, IEnumerable<WZFile>>((WZ)Enum.Parse(typeof(WZ), Path.GetFileNameWithoutExtension(c), true), c, Enumerable.Range(0, 10).Select(b => new WZFile(c, WZVariant.GMS, false))));
             foreach (Tuple<WZ, string, IEnumerable<WZFile>> file in WZFiles) _files.Add(file.Item1, new Tuple<string, List<WZFile>>(file.Item2, file.Item3.ToList()));
             _logger?.LogInformation($"Found {_files.Count} WZFiles");
-        }
-
-        public WZFactory(string wzPath)
-        {
-            _files = new Dictionary<WZ, Tuple<string, List<WZFile>>>();
-
-            string maplePath = wzPath;
-            string[] fileNames = Directory.GetFiles(maplePath, "*.wz");
-            IEnumerable<Tuple<WZ, string, WZFile>> WZFiles = fileNames
-                .Where(c => Path.GetFileNameWithoutExtension(c) != "Data")
-                .Select(c => new Tuple<WZ, string, WZFile>((WZ)Enum.Parse(typeof(WZ), Path.GetFileNameWithoutExtension(c), true), c, new WZFile(c, WZVariant.GMS, false)));
-            foreach (Tuple<WZ, string, WZFile> file in WZFiles) _files.Add(file.Item1, new Tuple<string, List<WZFile>>(file.Item2, new List<WZFile>() { file.Item3 }));
         }
 
         public WZFile GetWZFile(WZ file)

@@ -7,6 +7,7 @@ namespace reWZ
 {
     using System;
     using System.Runtime.CompilerServices;
+    using System.Linq;
 
     /// <summary>
     /// Provides single-precision floating Vector2 constants and static methods for trigonometric, logarithmic, and other common mathematical functions.
@@ -289,6 +290,23 @@ namespace reWZ
 
             return x;
         }
+
+        public static int GreatestCommonFactor(int a, int b)
+        {
+            while (b != 0)
+            {
+                int temp = b;
+                b = a % b;
+                a = temp;
+            }
+            return a;
+        }
+
+        static int LeastCommonMultiple(int a, int b)
+            => (a / GreatestCommonFactor(a, b)) * b;
+
+        static int LeastCommonMultiple(params int[] factors)
+            => factors.Aggregate(1, LeastCommonMultiple);
     }
 
     // <copyright file="Constants.cs" company="James Jackson-South">

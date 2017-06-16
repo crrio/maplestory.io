@@ -10,8 +10,10 @@ namespace WZData.MapleStory.Items
     public class ItemNameInfo : ItemName
     {
         public ItemInfo Info;
-        public Job RequiredJob;
+        public string[] RequiredJobs;
         public int? RequiredLevel;
+        public bool IsCash;
+
         public int? RequiredGender
         {
             get {
