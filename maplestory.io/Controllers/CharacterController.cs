@@ -81,7 +81,7 @@ namespace maplestory.io.Controllers
         [HttpGet]
         [Produces("image/png")]
         public IActionResult GetCenteredCharacter(int skinId, string items = "1102039", string animation = null, int frame = 0, [FromQuery] bool showEars = false, [FromQuery] int padding = 2)
-            => GetCharacter(skinId, items, animation, frame, "center", showEars, padding)
+            => GetCharacter(skinId, items, animation, frame, "center", showEars, padding);
 
         [Route("actions/{items?}")]
         [HttpGet]
