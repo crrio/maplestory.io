@@ -68,12 +68,12 @@ namespace maplestory.io.Services.MapleStory
                     try
                     {
                         _logger.LogInformation($"Processing {c.Id}");
-                        Equip item = (Equip)itemLookup[c.Id]();
+                         Equip item = (Equip)itemLookup[c.Id]();
                         if (item != null)
                         {
                             c.Info = item.MetaInfo;
-                            c.RequiredJob = _skillFactory.GetJob(item.MetaInfo.Equip.reqJob ?? 0);
-                            c.RequiredLevel = item.MetaInfo.Equip.reqLevel ?? 0;
+//                            c.RequiredJob = _skillFactory.GetJob(item.MetaInfo.Equip.reqJob ?? 0);
+                            c.RequiredLevel = item.MetaInfo?.Equip.reqLevel ?? 0;
                         }
                         Interlocked.Decrement(ref totalRemaining);
                         _logger.LogInformation($"Processed {c.Id}, Total remaining: {totalRemaining}");

@@ -17,6 +17,9 @@ namespace maplestory.io
             ItemFactory.Load(wzFactory, logging.CreateLogger<ItemFactory>());
             ItemFactory.cacheItems();
 
+            ILogger prog = logging.CreateLogger<Program>();
+            prog.LogInformation("Starting aspnet kestrel");
+
             var host = new WebHostBuilder()
                 .UseKestrel(options =>
                 {
