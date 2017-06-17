@@ -18,7 +18,7 @@ namespace WZData.MapleStory.Characters
         public int Padding;
         public IEnumerable<Tuple<MapleItem, string, int?>> Items;
         public readonly CharacterSkin BaseSkin;
-        public Dictionary<string, Vector2> anchorPositions = new Dictionary<string, Vector2>() { { "navel", new Vector2(0, 0) } };
+        public Dictionary<string, Vector2> anchorPositions;
 
         public bool HasFace { get => EntireBodyFrame.HasFace ?? false; }
 
@@ -97,15 +97,17 @@ namespace WZData.MapleStory.Characters
                     KeyValuePair<string, Vector2> anchorVector2Entry = anchorVector2EntryTest.Value;
                     Vector2 anchorVector2 = anchorPositions[anchorVector2Entry.Key];
                     Vector2 vectorFromVector2 = anchorVector2Entry.Value;
-                    Vector2 fromAnchorVector2 = new Vector2(anchorVector2.X - vectorFromVector2.X, anchorVector2.Y - vectorFromVector2.Y);
+                    Vector2 fromAnchorVector2 = new Vector2(anchorVector2.X + vectorFromVector2.X, anchorVector2.Y - vectorFromVector2.Y);
 
                     foreach (KeyValuePair<string, Vector2> childAnchorVector2 in part.MapOffset.Where(c => c.Key != anchorVector2Entry.Key))
                     {
-                        Vector2 resultAnchorVector2 = new Vector2(fromAnchorVector2.X + childAnchorVector2.Value.X, fromAnchorVector2.Y + childAnchorVector2.Value.Y);
+                        Vector2 resultAnchorVector2 = new Vector2(fromAnchorVector2.X - childAnchorVector2.Value.X, fromAnchorVector2.Y + childAnchorVector2.Value.Y);
                         if (!anchorPositions.ContainsKey(childAnchorVector2.Key))
                             anchorPositions.Add(childAnchorVector2.Key, resultAnchorVector2);
                         else if (anchorPositions[childAnchorVector2.Key].X != resultAnchorVector2.X || anchorPositions[childAnchorVector2.Key].Y != resultAnchorVector2.Y)
-                            throw new InvalidOperationException("Duplicate anchor Vector2, but position doesn't match up, possible state corruption?");
+                        {
+                            //throw new InvalidOperationException("Duplicate anchor Vector2, but position doesn't match up, possible state corruption?");
+                        }
                     }
 
                     withOffset = new Vector2(fromAnchorVector2.X - partOrigin.X, fromAnchorVector2.Y - partOrigin.Y);
@@ -218,6 +220,7 @@ namespace WZData.MapleStory.Characters
 
         public Image<Rgba32> Render(ZMap zmapping, SMap smapping, string renderMode)
         {
+            anchorPositions = new Dictionary<string, Vector2>() { { "navel", new Vector2(0, 0) } };
             List<Tuple<string, Vector2, IFrame>> elements = GetElementPieces(zmapping, smapping);
             List<Tuple<int, Vector2, IFrame>> effectFrames = GetElementPieces(zmapping, smapping, EffectFrames.ToList())
                 .Select(c => new Tuple<int, Vector2, IFrame>(int.Parse(c.Item1), c.Item2, c.Item3))

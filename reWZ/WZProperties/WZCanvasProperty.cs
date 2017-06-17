@@ -37,6 +37,7 @@ using ImageSharp.PixelFormats;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Security.Cryptography;
 
 namespace reWZ.WZProperties
 {
@@ -102,12 +103,44 @@ namespace reWZ.WZProperties
             }
         }
 
+        static Dictionary<int, Dictionary<int, Dictionary<int, Dictionary<string, Image<Rgba32>>>>> ParsedImages = new Dictionary<int, Dictionary<int, Dictionary<int, Dictionary<string, Image<Rgba32>>>>>();
+
+        public Image<Rgba32> GetFromCache(int width, int height, int format, string hash)
+        {
+            if (!ParsedImages.ContainsKey(width))
+            {
+                ParsedImages.Add(width, new Dictionary<int, Dictionary<int, Dictionary<string, Image<Rgba32>>>>());
+                return null;
+            }
+            if (!ParsedImages[width].ContainsKey(height))
+            {
+                ParsedImages[width].Add(height, new Dictionary<int, Dictionary<string, Image<Rgba32>>>());
+                return null;
+            }
+            if (!ParsedImages[width][height].ContainsKey(format))
+            {
+                ParsedImages[width][height].Add(format, new Dictionary<string, Image<Rgba32>>());
+                return null;
+            }
+            if (!ParsedImages[width][height][format].ContainsKey(hash)) return null;
+            return ParsedImages[width][height][format][hash];
+        }
+
+        public void AddToCache(int width, int height, int format, string hash, Image<Rgba32> result)
+            => ParsedImages[width][height][format].Add(hash, result);
+
         private Image<Rgba32> ParsePNG(int width, int height, int format, byte[] data)
         {
+            byte[] hash = SHA256.Create().ComputeHash(data);
+            string hashStr = $"{width}-{height}-{format}-{BitConverter.ToString(hash).Replace("-", "")}";
+            Image<Rgba32> result = GetFromCache(width, height, format, hashStr);
+            if (result != null) return result; 
+
             byte[] sourceData;
             using (MemoryStream @in = new MemoryStream(data, 2, data.Length - 2))
                 sourceData = WZBinaryReader.Inflate(@in);
             int sourceDataLength = sourceData.Length;
+
             switch (format) {
                 case 1: // Transform
                     byte[] destinationData = new byte[width*height*4];
@@ -127,7 +160,8 @@ namespace reWZ.WZProperties
                         Buffer.BlockCopy(sourceData, 0, proper, 0, Math.Min(proper.Length, sourceDataLength));
                         sourceData = proper;
                     }
-                    return ImageSharp.Image.LoadPixelData<Argb32>(new Span<byte>(sourceData), width, height).To<Rgba32>();
+                    result = ImageSharp.Image.LoadPixelData<Argb32>(new Span<byte>(sourceData), width, height).To<Rgba32>();
+                    break;
                 case 513:
                     if (sourceDataLength != width * height * 2)
                     {
@@ -136,20 +170,26 @@ namespace reWZ.WZProperties
                         Buffer.BlockCopy(sourceData, 0, proper, 0, Math.Min(proper.Length, sourceDataLength));
                         sourceData = proper;
                     }
-                    return ImageSharp.Image.LoadPixelData<Rgb565>(new Span<byte>(sourceData), width, height).To<Rgba32>();
+                    result = ImageSharp.Image.LoadPixelData<Rgb565>(new Span<byte>(sourceData), width, height).To<Rgba32>();
+                    break;
                 case 517:
                     width >>= 4;
                     height >>= 4;
                     goto case 513;
                 case 1026: //dxt3
                     destinationData = GetPixelDataDXT3(sourceData, width, height);
-                    return ImageSharp.Image.LoadPixelData<Argb32>(new Span<byte>(destinationData), width, height).To<Rgba32>();
+                    result = ImageSharp.Image.LoadPixelData<Argb32>(new Span<byte>(destinationData), width, height).To<Rgba32>();
+                    break;
                 case 2050:
                     destinationData = GetPixelDataDXT5(sourceData, width, height);
-                    return ImageSharp.Image.LoadPixelData<Argb32>(new Span<byte>(destinationData), width, height).To<Rgba32>();
+                    result = ImageSharp.Image.LoadPixelData<Argb32>(new Span<byte>(destinationData), width, height).To<Rgba32>();
+                    break;
                 default:
                     return WZFile.Die<Image<Rgba32>>(String.Format("Unknown Image<Rgba32> format {0}.", format));
             }
+
+            AddToCache(width, height, format, hashStr, result);
+            return result;
         }
         public static byte[] GetPixelDataDXT3(byte[] rawData, int width, int height)
         {
