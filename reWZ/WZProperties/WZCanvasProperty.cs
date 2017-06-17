@@ -127,7 +127,12 @@ namespace reWZ.WZProperties
         }
 
         public void AddToCache(int width, int height, int format, string hash, Image<Rgba32> result)
-            => ParsedImages[width][height][format].Add(hash, result);
+        {
+            if (!ParsedImages.ContainsKey(width)) ParsedImages.Add(width, new Dictionary<int, Dictionary<int, Dictionary<string, Image<Rgba32>>>>());
+            if (!ParsedImages[width].ContainsKey(height)) ParsedImages[width].Add(height, new Dictionary<int, Dictionary<string, Image<Rgba32>>>());
+            if (!ParsedImages[width][height].ContainsKey(format)) ParsedImages[width][height].Add(format, new Dictionary<string, Image<Rgba32>>());
+            if (!ParsedImages[width][height][format].ContainsKey(hash)) ParsedImages[width][height][format].Add(hash, result);
+        }
 
         private Image<Rgba32> ParsePNG(int width, int height, int format, byte[] data)
         {
