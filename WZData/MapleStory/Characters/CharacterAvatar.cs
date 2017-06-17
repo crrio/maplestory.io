@@ -16,7 +16,7 @@ namespace WZData.MapleStory.Characters
         public string AnimationName;
         public int Frame;
         public int Padding;
-        public IEnumerable<Tuple<MapleItem, string>> Items;
+        public IEnumerable<Tuple<MapleItem, string, int?>> Items;
         public readonly CharacterSkin BaseSkin;
         public Dictionary<string, Vector2> anchorPositions = new Dictionary<string, Vector2>() { { "navel", new Vector2(0, 0) } };
 
@@ -26,10 +26,10 @@ namespace WZData.MapleStory.Characters
         public Body EntireBodyFrame { get => SkinAnimation.Frames[Frame % SkinAnimation.Frames.Length]; }
         public Dictionary<string, BodyPart> BodyParts { get => EntireBodyFrame.Parts; }
 
-        public IEnumerable<Tuple<Equip, string>> EquipFramesSelected
+        public IEnumerable<Tuple<Equip, string, int?>> EquipFramesSelected
         {
             get => Items.Where(c => c.Item1 is Equip)
-                .Select(c => new Tuple<Equip, string>((Equip)c.Item1, c.Item2))
+                .Select(c => new Tuple<Equip, string, int?>((Equip)c.Item1, c.Item2, c.Item3))
                 .Where(c => c.Item1.FrameBooks.Count > 0);
         }
         public IEnumerable<Equip> Equips { get => EquipFramesSelected.Select(c => c.Item1); }
@@ -49,9 +49,9 @@ namespace WZData.MapleStory.Characters
                 .Select(c => c.FirstOrDefault(b => b.Item1.MetaInfo.Cash?.cash ?? false) ?? c.First())
                 // Some equips aren't always shown, like weapons when sitting
                 .Where(c => c.Item1.GetFrameBooks(WeaponCategory).ContainsKey(c.Item2 ?? AnimationName) || c.Item1.GetFrameBooks(WeaponCategory).ContainsKey("default"))
-                .Select(c => new Tuple<Equip, EquipFrameBook>(c.Item1, c.Item1.GetFrameBooks(WeaponCategory).ContainsKey(c.Item2 ?? AnimationName) && c.Item1.GetFrameBooks(WeaponCategory)[c.Item2 ?? AnimationName].frames.Count() > 0 ? c.Item1.GetFrameBooks(WeaponCategory)[c.Item2 ?? AnimationName] : c.Item1.GetFrameBooks(WeaponCategory)["default"]))
-                .Where(c => c.Item2.frames.Count() > 0)
-                .Select(c => new Tuple<Equip, EquipFrame>(c.Item1, c.Item2.frames.Count() <= Frame ? c.Item2.frames.ElementAt(Frame % c.Item2.frames.Count()) : c.Item2.frames.ElementAt(Frame)))
+                .Select(c => new Tuple<Equip, EquipFrameBook, int?>(c.Item1, c.Item1.GetFrameBooks(WeaponCategory).ContainsKey(c.Item2 ?? AnimationName) && c.Item1.GetFrameBooks(WeaponCategory)[c.Item2 ?? AnimationName].frames.Count() > 0 ? c.Item1.GetFrameBooks(WeaponCategory)[c.Item2 ?? AnimationName] : c.Item1.GetFrameBooks(WeaponCategory)["default"], c.Item3))
+                .Where(c => c.Item2.frames.Count() > (c.Item3 ?? 0))
+                .Select(c => new Tuple<Equip, EquipFrame>(c.Item1, c.Item2.frames.Count() <= (c.Item3 ?? Frame) ? c.Item2.frames.ElementAt((c.Item3 ?? Frame) % c.Item2.frames.Count()) : c.Item2.frames.ElementAt((c.Item3 ?? Frame))))
                 .SelectMany(c => c.Item2.Effects.Select(b => new Tuple<Equip, string, IFrame>(c.Item1, b.Key, b.Value)));
         }
 
@@ -60,9 +60,9 @@ namespace WZData.MapleStory.Characters
             get => EquipFramesSelected
                 .Where(c => c.Item1.ItemEffects?.entries?.Count > 0)
                 .Where(c => c.Item1.ItemEffects.entries.ContainsKey(c.Item2 ?? AnimationName) || c.Item1.ItemEffects.entries.ContainsKey("default"))
-                .Select(c => new Tuple<Equip, FrameBook>(c.Item1, c.Item1.ItemEffects.entries.ContainsKey(c.Item2 ?? AnimationName) && c.Item1.ItemEffects.entries[c.Item2 ?? AnimationName].Count() > 0 ? c.Item1.ItemEffects.entries[c.Item2 ?? AnimationName].FirstOrDefault() : c.Item1.ItemEffects.entries["default"].FirstOrDefault()))
+                .Select(c => new Tuple<Equip, FrameBook, int?>(c.Item1, c.Item1.ItemEffects.entries.ContainsKey(c.Item2 ?? AnimationName) && c.Item1.ItemEffects.entries[c.Item2 ?? AnimationName].Count() > 0 ? c.Item1.ItemEffects.entries[c.Item2 ?? AnimationName].FirstOrDefault() : c.Item1.ItemEffects.entries["default"].FirstOrDefault(), c.Item3))
                 .Where(c => c.Item2 != null)
-                .Select(c => new Tuple<Equip, IFrame>(c.Item1, c.Item2.frames.Count() <= Frame ? c.Item2.frames.ElementAt(Frame % c.Item2.frames.Count()) : c.Item2.frames.ElementAt(Frame)))
+                .Select(c => new Tuple<Equip, IFrame>(c.Item1, c.Item2.frames.Count() <= (c.Item3 ?? Frame) ? c.Item2.frames.ElementAt((c.Item3 ?? Frame) % c.Item2.frames.Count()) : c.Item2.frames.ElementAt((c.Item3 ?? Frame))))
                 .Where(c => c != null && int.TryParse(c.Item2.Position, out int blah))
                 .GroupBy(c => c.Item2.Position)
                 .Select(c => c.FirstOrDefault())

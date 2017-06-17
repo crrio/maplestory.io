@@ -117,5 +117,14 @@ namespace maplestory.io.Controllers
                     .ToArray()
                 ).ImageToByte(), "image/png");
         }
+
+        [Route("download/{skinId}/{items?}")]
+        [HttpGet]
+        [Produces("application/zip")]
+        public IActionResult GetSpritesheet(int skinId, string items = "1102039", [FromQuery] string renderMode = "default", [FromQuery] bool showEars = false, [FromQuery] int padding = 2)
+            => File(_factory.GetSpriteSheet(skinId, showEars, padding, renderMode, items
+                .Split(new string[] { "," }, StringSplitOptions.RemoveEmptyEntries)
+                .Select(c => int.Parse(c))
+                .ToArray()), "application/zip", "CharacterSpriteSheet.zip");
     }
 }

@@ -7,6 +7,9 @@ using WZData;
 using WZData.MapleStory;
 using WZData.MapleStory.Characters;
 using WZData.MapleStory.Items;
+using System.IO.Compression;
+using System.IO;
+using WZData.MapleStory.Images;
 
 namespace maplestory.io.Services.MapleStory
 {
@@ -36,8 +39,11 @@ namespace maplestory.io.Services.MapleStory
             => GetCharacter(id, animation, frame, showEars, padding, renderMode, new Tuple<int, string>(faceId, null), new Tuple<int, string>(hairId, null));
 
         public Image<Rgba32> GetCharacter(int id, string animation = null, int frame = 0, bool showEars = false, int padding = 2, string renderMode = "default", params Tuple<int, string>[] itemEntries)
+            => GetCharacter(id, animation, frame, showEars, padding, renderMode, itemEntries.Select(c => new Tuple<int, string, int?>(c.Item1, c.Item2, null)).ToArray());
+
+        public Image<Rgba32> GetCharacter(int id, string animation = null, int frame = 0, bool showEars = false, int padding = 2, string renderMode = "default", params Tuple<int, string, int?>[] itemEntries)
         {
-            IEnumerable<Tuple<MapleItem, string>> items = Enumerable.Select<Tuple<int, string>, Tuple<MapleItem, string>>(itemEntries, (Func<Tuple<int, string>, Tuple<MapleItem, string>>)((Tuple<int, string> c) => (Tuple<MapleItem, string>)new Tuple<MapleItem, string>((MapleItem)itemFactory.search((int)c.Item1), (string)c.Item2)));
+            IEnumerable<Tuple<MapleItem, string, int?>> items = itemEntries.Select((c) => new Tuple<MapleItem, string, int?>(itemFactory.search(c.Item1), c.Item2, c.Item3));
 
             CharacterSkin skin = GetSkin(id);
             CharacterAvatar avatar = new CharacterAvatar(skin);
@@ -63,12 +69,65 @@ namespace maplestory.io.Services.MapleStory
                 .Where(c => c is Equip)
                 .Select(c => (Equip)c)
                 .Concat(new[] { (Equip)itemFactory.search(1040004) })
-                .Where(c => c.FrameBooks.ContainsKey("stand1") || c.FrameBooks.ContainsKey("stand2"))
                 .ToArray();
 
+            return GetActions(eqps);
+        }
+
+        public string[] GetActions(params Equip[] eqps)
+        {
             CharacterSkin skin = GetSkin(2000);
+            eqps = eqps.Where(c => c.FrameBooks.ContainsKey("stand1") || c.FrameBooks.ContainsKey("stand2")).ToArray();
 
             return skin.Animations.Where(c => c.Value.AnimationName.Equals(c.Key, StringComparison.CurrentCultureIgnoreCase)).Select(c => c.Key).Where(c => eqps.All(e => e.FrameBooks.ContainsKey(c))).ToArray();
+        }
+
+        public byte[] GetSpriteSheet(int id, bool showEars = false, int padding = 2, string renderMode = "default", params int[] itemEntries)
+        {
+            Equip[] eqps = itemEntries
+                .Select(itemFactory.search)
+                .Where(c => c is Equip)
+                .Select(c => (Equip)c)
+                .ToArray();
+
+            Equip face = eqps.Where(c => c.id >= 20000 && c.id <= 25000).FirstOrDefault();
+
+            CharacterSkin skin = GetSkin(id);
+
+            string[] actions = GetActions(eqps);
+
+            using (MemoryStream mem = new MemoryStream())
+            {
+                using (ZipArchive archive = new ZipArchive(mem, ZipArchiveMode.Create, true))
+                {
+                    foreach (string emotion in face.FrameBooks.Keys)
+                    {
+                        EquipFrame[] emotionFrames = face.FrameBooks[emotion].frames.ToArray();
+                        for (int emotionFrame = 0; emotionFrame < emotionFrames.Length; ++emotionFrame)
+                        {
+                            foreach (string animation in actions)
+                            {
+                                for (int frame = 0; frame < skin.Animations[animation].Frames.Length; ++frame)
+                                {
+                                    ZipArchiveEntry entry = archive.CreateEntry($"{emotion}/{emotionFrame}/{animation}_{frame}.png", CompressionLevel.Optimal);
+                                    using (Stream entryData = entry.Open())
+                                    {
+                                        Tuple<int, string, int?>[] items = itemEntries
+                                            .Select(c => new Tuple<int, string, int?>(c, (c == face?.id) ? emotion : null, (c == face?.id) ? (int?)emotionFrame : null))
+                                            .ToArray();
+                                        Image<Rgba32> frameImage = GetCharacter(id, animation, frame, showEars, padding, renderMode, items);
+                                        frameImage.SaveAsPng(entryData);
+
+                                        entryData.Flush();
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                return mem.ToArray();
+            }
         }
     }
 }
