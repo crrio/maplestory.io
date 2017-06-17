@@ -97,11 +97,11 @@ namespace WZData.MapleStory.Characters
                     KeyValuePair<string, Vector2> anchorVector2Entry = anchorVector2EntryTest.Value;
                     Vector2 anchorVector2 = anchorPositions[anchorVector2Entry.Key];
                     Vector2 vectorFromVector2 = anchorVector2Entry.Value;
-                    Vector2 fromAnchorVector2 = new Vector2(anchorVector2.X + vectorFromVector2.X, anchorVector2.Y - vectorFromVector2.Y);
+                    Vector2 fromAnchorVector2 = new Vector2(anchorVector2.X - vectorFromVector2.X, anchorVector2.Y - vectorFromVector2.Y);
 
                     foreach (KeyValuePair<string, Vector2> childAnchorVector2 in part.MapOffset.Where(c => c.Key != anchorVector2Entry.Key))
                     {
-                        Vector2 resultAnchorVector2 = new Vector2(fromAnchorVector2.X - childAnchorVector2.Value.X, fromAnchorVector2.Y + childAnchorVector2.Value.Y);
+                        Vector2 resultAnchorVector2 = new Vector2(fromAnchorVector2.X + childAnchorVector2.Value.X, fromAnchorVector2.Y + childAnchorVector2.Value.Y);
                         if (!anchorPositions.ContainsKey(childAnchorVector2.Key))
                             anchorPositions.Add(childAnchorVector2.Key, resultAnchorVector2);
                         else if (anchorPositions[childAnchorVector2.Key].X != resultAnchorVector2.X || anchorPositions[childAnchorVector2.Key].Y != resultAnchorVector2.Y)
