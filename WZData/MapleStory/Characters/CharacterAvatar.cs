@@ -92,11 +92,23 @@ namespace WZData.MapleStory.Characters
                 if (part.MapOffset != null)
                 {
                     KeyValuePair<string, Vector2>? anchorVector2EntryTest = part.MapOffset.Where(c => anchorPositions.ContainsKey(c.Key)).FirstOrDefault();
+                    KeyValuePair<string, Vector2> anchorVector2Entry;
+                    Vector2 anchorVector2 = Vector2.Zero;
+                    Vector2 vectorFromVector2 = Vector2.Zero;
+
                     if (anchorVector2EntryTest == null || string.IsNullOrEmpty(anchorVector2EntryTest.Value.Key))
-                        break;
-                    KeyValuePair<string, Vector2> anchorVector2Entry = anchorVector2EntryTest.Value;
-                    Vector2 anchorVector2 = anchorPositions[anchorVector2Entry.Key];
-                    Vector2 vectorFromVector2 = anchorVector2Entry.Value;
+                    {
+                        Tuple<string, Vector2, IFrame> body = elements.FirstOrDefault(c => c.Item1.Equals("head"));
+                        vectorFromVector2 = part.MapOffset.First().Value;
+                        anchorVector2 = vectorFromVector2 + partOrigin + new Vector2(-11, (Math.Abs(body.Item2.Y) - partOrigin.Y + vectorFromVector2.Y));
+                    }
+                    else
+                    {
+                        anchorVector2Entry = anchorVector2EntryTest.Value;
+                        anchorVector2 = anchorPositions[anchorVector2Entry.Key];
+                        vectorFromVector2 = anchorVector2Entry.Value;
+                    }
+
                     Vector2 fromAnchorVector2 = new Vector2(anchorVector2.X - vectorFromVector2.X, anchorVector2.Y - vectorFromVector2.Y);
 
                     foreach (KeyValuePair<string, Vector2> childAnchorVector2 in part.MapOffset.Where(c => c.Key != anchorVector2Entry.Key))
