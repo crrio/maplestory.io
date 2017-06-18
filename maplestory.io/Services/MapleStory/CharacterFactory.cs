@@ -100,10 +100,10 @@ namespace maplestory.io.Services.MapleStory
             {
                 using (ZipArchive archive = new ZipArchive(mem, ZipArchiveMode.Create, true))
                 {
-                    foreach (string emotion in face.FrameBooks.Keys)
+                    foreach (string emotion in face?.FrameBooks?.Keys?.ToArray() ?? new[] { "default" })
                     {
-                        EquipFrame[] emotionFrames = face.FrameBooks[emotion].frames.ToArray();
-                        for (int emotionFrame = 0; emotionFrame < emotionFrames.Length; ++emotionFrame)
+                        int emotionFrames = face?.FrameBooks[emotion]?.frames?.Count() ?? 1;
+                        for (int emotionFrame = 0; emotionFrame < emotionFrames; ++emotionFrame)
                         {
                             foreach (string animation in actions)
                             {
