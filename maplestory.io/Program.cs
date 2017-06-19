@@ -12,8 +12,10 @@ namespace maplestory.io
         {
             dynamic obj = Newtonsoft.Json.JsonConvert.DeserializeObject(File.ReadAllText("./appsettings.json"));
             string wzPath = obj.WZ.WZPath;
+            string krWzPath = obj.WZ.KRWZPath;
+            string jpWzPath = obj.WZ.JPWZPath;
             ILoggerFactory logging = (new LoggerFactory()).AddConsole(LogLevel.Trace);
-            WZFactory.Load(logging.CreateLogger<WZFactory>(), wzPath);
+            WZFactory.Load(logging.CreateLogger<WZFactory>(), wzPath, krWzPath, jpWzPath);
             WZFactory wzFactory = new WZFactory();
             ItemFactory.Load(wzFactory, logging.CreateLogger<ItemFactory>());
             ItemFactory.cacheItems();

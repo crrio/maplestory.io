@@ -9,6 +9,16 @@ namespace WZData.MapleStory.Items
 {
     public class ItemNameInfo : ItemName
     {
+        public static Dictionary<int, string> JobNameLookup = new Dictionary<int, string>()
+        {
+            { 0, "Beginner" },
+            { 1, "Warrior" },
+            { 2, "Magician"},
+            { 4, "Bowman" },
+            { 8, "Thief" },
+            { 16, "Pirate" }
+        };
+
         public ItemInfo Info;
         public string[] RequiredJobs;
         public int? RequiredLevel;
@@ -45,44 +55,55 @@ namespace WZData.MapleStory.Items
                 }
             }
         }
-
-        public static ItemNameInfo Parse(WZObject c)
-            => new ItemNameInfo() {
-                Id = int.Parse(c.Name),
-                Name = c.HasChild("name") ? c["name"].ValueOrDefault<string>(null) : null, Desc = c.HasChild("desc") ? c["desc"].ValueOrDefault<string>(null) : null
-            };
-
-        public static IEnumerable<ItemNameInfo> GetNames(WZFile stringFile)
+        
+        public static ItemNameInfo Parse(WZObject stringItem, Func<int, MapleItem> getMetaInfo = null)
         {
+            int itemId = int.Parse(stringItem.Name);
+            MapleItem item = getMetaInfo != null ? getMetaInfo(itemId) : null;
+            return new ItemNameInfo()
+            {
+                Id = itemId,
+                Name = stringItem.HasChild("name") ? stringItem["name"].ValueOrDefault<string>(null) : null,
+                Desc = stringItem.HasChild("desc") ? stringItem["desc"].ValueOrDefault<string>(null) : null,
+                Info = item?.MetaInfo,
+                RequiredJobs = item != null ? JobNameLookup.Where(b => (b.Key & item.MetaInfo.Equip.reqJob) == b.Key).Select(b => b.Value).ToArray() : null,
+                RequiredLevel = item?.MetaInfo?.Equip?.reqLevel ?? 0,
+                IsCash = item?.MetaInfo?.Cash?.cash ?? false
+            };
+        }
+
+        public static IEnumerable<ItemNameInfo> GetNames(WZFile stringFile, Func<int, MapleItem> getMetaInfo = null)
+        {
+            // TODO: getMetaInfo for all items
             return stringFile
                 .ResolvePath("/Eqp.img/Eqp")
                 .SelectMany(c => c)
-                .Select(ItemNameInfo.Parse)
+                .Select(c => ItemNameInfo.Parse(c, getMetaInfo))
             //Etc
             .Concat(
             stringFile.ResolvePath("Etc.img/Etc")
-                .Select(ItemNameInfo.Parse)
+                .Select(c => ItemNameInfo.Parse(c, null))
             )
             //Cash
             .Concat(
             stringFile.ResolvePath("Cash.img")
-                .Select(ItemNameInfo.Parse)
+                .Select(c => ItemNameInfo.Parse(c, null))
             )
             //Ins
             .Concat(
             stringFile.ResolvePath("Ins.img")
-                .Select(ItemNameInfo.Parse)
+                .Select(c => ItemNameInfo.Parse(c, null))
             )
             //Consume
             .Concat(
             stringFile.ResolvePath("Consume.img")
-                .Select(ItemNameInfo.Parse)
+                .Select(c => ItemNameInfo.Parse(c, null))
             )
             //Pet
             .Concat(
             stringFile.ResolvePath("Pet.img")
-                .Select(ItemNameInfo.Parse)
-            );
+                .Select(c => ItemNameInfo.Parse(c, null))
+            ).AsParallel();
         }
     }
 }

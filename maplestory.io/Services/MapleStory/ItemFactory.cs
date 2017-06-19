@@ -13,30 +13,23 @@ using System.Linq;
 using reWZ.WZProperties;
 using System.Threading;
 using Microsoft.AspNetCore.Hosting;
+using WZData.MapleStory;
 
 namespace maplestory.io.Services.MapleStory
 {
     public class ItemFactory : IItemFactory
     {
         private static Dictionary<int, Func<MapleItem>> itemLookup;
-        private static List<ItemNameInfo> itemDb;
+        private static Dictionary<WZLanguage, List<ItemNameInfo>> itemDb;
+        private static Dictionary<WZLanguage, List<ItemNameInfo>> alternativeLanguages;
         private static ILogger<ItemFactory> _logger;
         public static Thread backgroundCaching;
         private static Dictionary<int, Func<MapleItem>> equipLookup;
         private static ISkillFactory _skillFactory;
-        public static Dictionary<int, string> JobNameLookup = new Dictionary<int, string>()
-        {
-            { 0, "Beginner" },
-            { 1, "Warrior" },
-            { 2, "Magician"},
-            { 4, "Bowman" },
-            { 8, "Thief" },
-            { 16, "Pirate" }
-        };
 
-        public static void Load(IWZFactory factory, ILogger<ItemFactory> logger)
+        public static void Load(IWZFactory factory, ILogger<ItemFactory> logger, bool preloadItems = true)
         {
-            itemDb = new List<ItemNameInfo>();
+            itemDb = new Dictionary<WZLanguage, List<ItemNameInfo>>();
             _logger = logger;
 
             Stopwatch watch = Stopwatch.StartNew();
@@ -60,7 +53,27 @@ namespace maplestory.io.Services.MapleStory
             _logger?.LogInformation($"Cached {itemLookup.Count} item lookups, took {watch.ElapsedMilliseconds}ms");
             _logger?.LogInformation($"Caching {itemLookup.Count} high level item information");
             watch.Restart();
-            itemDb = ItemNameInfo.GetNames(factory.GetWZFile(WZ.String)).ToList();
+            itemDb = new Dictionary<WZLanguage, List<ItemNameInfo>>();
+            itemDb.Add(WZLanguage.English, ItemNameInfo.GetNames(
+                factory.GetWZFile(WZ.String),
+                null
+            ).ToList());
+            WZFile krStringWz = factory.GetWZFile(WZ.String, WZLanguage.Korean);
+            if (krStringWz != null)
+            {
+                itemDb.Add(WZLanguage.Korean, ItemNameInfo.GetNames(
+                    krStringWz,
+                    null
+                ).Where(c => equipLookup.ContainsKey(c.Id)).ToList());
+            }
+            WZFile jpStringWz = factory.GetWZFile(WZ.String, WZLanguage.Japanese);
+            if (jpStringWz != null)
+            {
+                itemDb.Add(WZLanguage.Japanese, ItemNameInfo.GetNames(
+                    jpStringWz,
+                    null
+                ).Where(c => equipLookup.ContainsKey(c.Id)).ToList());
+            }
             _logger?.LogInformation($"Cached {itemLookup.Count} items, took {watch.ElapsedMilliseconds}ms");
             watch.Stop();
         }
@@ -70,7 +83,7 @@ namespace maplestory.io.Services.MapleStory
             Stopwatch watch = Stopwatch.StartNew();
             _logger.LogWarning("Starting background caching of item meta info");
             int totalRemaining = itemLookup.Count(c => equipLookup.ContainsKey(c.Key));
-            itemDb.AsParallel()
+            itemDb[WZLanguage.English].AsParallel()
                 .Where(c => itemLookup.ContainsKey(c.Id) && equipLookup.ContainsKey(c.Id))
                 .Select(c =>
                 {
@@ -78,13 +91,6 @@ namespace maplestory.io.Services.MapleStory
                     {
                         _logger.LogInformation($"Processing {c.Id}");
                          Equip item = (Equip)itemLookup[c.Id]();
-                        if (item != null)
-                        {
-                            c.Info = item.MetaInfo;
-                            c.RequiredJobs = JobNameLookup.Where(b => (b.Key & item.MetaInfo.Equip.reqJob) == b.Key).Select(b => b.Value).ToArray();
-                            c.RequiredLevel = item.MetaInfo?.Equip?.reqLevel ?? 0;
-                            c.IsCash = item.MetaInfo?.Cash?.cash ?? false;
-                        }
                         Interlocked.Decrement(ref totalRemaining);
                         _logger.LogInformation($"Processed {c.Id}, Total remaining: {totalRemaining}");
                         return item;
@@ -102,7 +108,7 @@ namespace maplestory.io.Services.MapleStory
 
         public IEnumerable<string> GetItemCategories() => ItemType.overall.Keys;
 
-        public IEnumerable<ItemNameInfo> GetItems() => itemDb;
-        public MapleItem search(int id) => itemLookup[id]();
+        public IEnumerable<ItemNameInfo> GetItems(WZLanguage language = WZLanguage.English) => itemDb[language];
+        public MapleItem search(int id) => itemLookup.ContainsKey(id) ? itemLookup[id]() : null;
     }
 }
