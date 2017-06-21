@@ -182,7 +182,7 @@ namespace WZData.MapleStory.Characters
         {
             Tuple<Equip, string, IFrame>[] eqpFrames = EquipFrames.ToArray();
             Dictionary<string, Equip> boundLayers = GetBoundLayers(eqpFrames, zmapping, smapping);
-            List<Tuple<Equip, IFrame, string, string[]>> requiredLayers = new List<Tuple<Equip, IFrame, string, string[]>>();
+            List<Tuple<Equip, IFrame, string[]>> requiredLayers = new List<Tuple<Equip, IFrame, string[]>>();
 
             foreach (Tuple<string, IEnumerable<Tuple<Equip, string, IFrame>>> eqp in zmapping.Ordering
                 .Where(c => (EntireBodyFrame.HasFace ?? true) || c != "face")
@@ -218,7 +218,7 @@ namespace WZData.MapleStory.Characters
                             if (!boundLayers.ContainsKey(slot))
                                 boundLayers.Add(slot, currentEquip);
 
-                        requiredLayers.Add(new Tuple<Equip, IFrame, string, string[]>(currentEquip, currentFrame, framePosition, attemptSlots));
+                        requiredLayers.Add(new Tuple<Equip, IFrame, string[]>(currentEquip, currentFrame, attemptSlots));
                     });
                 }
             }
@@ -226,7 +226,7 @@ namespace WZData.MapleStory.Characters
             return BodyParts.Values
                 .Where(c => ShowEars || c.Name != "ear")
                 .Select(c => (IFrame)c)
-                .Concat(requiredLayers.Where(c => c.Item4.All(slot => boundLayers[slot] == c.Item1)).DistinctBy(c => c.Item3).Select(c => c.Item2))
+                .Concat(requiredLayers.Where(c => c.Item3.All(slot => boundLayers[slot] == c.Item1)).Select(c => c.Item2).DistinctBy(c => c.Position))
                 .Concat(eqpFrames.Where(c => int.TryParse(c.Item2, out int blah)).Select(c => c.Item3));
         }
 

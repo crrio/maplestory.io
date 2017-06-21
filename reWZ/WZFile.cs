@@ -51,7 +51,6 @@ namespace reWZ
         internal uint _fstart;
         internal readonly object _lock = new object();
         private WZDirectory _maindir;
-        public DateTime LastUse;
 
         /// <summary>
         ///   Creates and loads a WZ file from a path. The Stream created will be disposed when the WZ file is disposed.

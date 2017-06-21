@@ -1,13 +1,12 @@
-using ImageSharp;
 using maplestory.io.Services.MapleStory;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
-using System;
-using System.Linq;
 using WZData;
-using WZData.MapleStory;
-using WZData.MapleStory.Images;
 using WZData.MapleStory.Items;
+using System.Linq;
+using WZData.MapleStory.Images;
+using ImageSharp;
+using System;
 
 namespace maplestory.io.Controllers
 {
@@ -35,12 +34,12 @@ namespace maplestory.io.Controllers
             };
         }
 
-        [Route("list/{language}")]
+        [Route("list")]
         [Route("")]
         [HttpGet]
         [ProducesResponseType(typeof(ItemNameInfo[]), 200)]
-        public IActionResult List(string language = "English") 
-            => Json(itemFactory.GetItems((WZLanguage)Enum.Parse(typeof(WZLanguage), language, true)), serializerSettings);
+        public IActionResult List() 
+            => Json(itemFactory.GetItems(), serializerSettings);
 
         [Route("full")]
         [HttpGet]
@@ -64,7 +63,6 @@ namespace maplestory.io.Controllers
         public IActionResult itemSearch(int itemId)
         {
             MapleItem eq = itemFactory.search(itemId);
-            if (eq == null) return NotFound();
             return Json(eq);
         }
 
@@ -74,7 +72,7 @@ namespace maplestory.io.Controllers
         public IActionResult itemIcon(int itemId)
         {
             MapleItem eq = itemFactory.search(itemId);
-            if (eq == null) return NotFound();
+            if (eq == null) return NotFound("Couldn't find the item");
 
             if (eq.MetaInfo.Icon?.Icon != null)
                 return File(eq.MetaInfo.Icon.Icon.ImageToByte(), "image/png");
@@ -95,7 +93,6 @@ namespace maplestory.io.Controllers
         public IActionResult itemIconRaw(int itemId)
         {
             MapleItem eq = itemFactory.search(itemId);
-            if (eq == null) return NotFound();
             return File(eq.MetaInfo.Icon.IconRaw.ImageToByte(), "image/png");
         }
     }

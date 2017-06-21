@@ -4,14 +4,13 @@ using System.Linq;
 using System.Threading.Tasks;
 using reWZ;
 using WZData;
-using WZData.MapleStory;
 
 namespace maplestory.io.Services.MapleStory
 {
     public interface IWZFactory
     {
-        WZFile GetWZFile(WZ file, WZLanguage language = WZLanguage.English);
-        Func<Func<WZFile, MapleItem>, MapleItem> AsyncGetWZFile(WZ file, WZLanguage language = WZLanguage.English);
+        WZFile GetWZFile(WZ file);
+        Func<Func<WZFile, MapleItem>, MapleItem> AsyncGetWZFile(WZ file);
     }
 
     public enum WZ {

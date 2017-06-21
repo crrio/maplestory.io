@@ -24,7 +24,7 @@ namespace WZData.MapleStory.Items
 
         public Equip(int id, string group) : base(id) { FrameBooks = new Dictionary<string, EquipFrameBook>(); EquipGroup = group; }
 
-        public static Equip Parse(WZDirectory characterWz, WZObject stringItem, string group, int id, WZObject itemEffectsImg)
+        public static Equip Parse(WZDirectory characterWz, WZObject stringItem, string group, int id, WZDirectory stringWz, WZObject itemEffectsImg)
         {
             Equip item = new Equip(id, group);
             try
@@ -77,7 +77,7 @@ namespace WZData.MapleStory.Items
             foreach (WZObject idGrouping in stringWz.ResolvePath(StringPath))
                 foreach (WZObject item in idGrouping)
                     if (int.TryParse(item.Name, out id) && id == itemId)
-                        return Equip.Parse(characterWz, item, idGrouping.Name, id, effectWz["ItemEff.img"]);
+                        return Equip.Parse(characterWz, item, idGrouping.Name, id, stringWz, effectWz["ItemEff.img"]);
             return null;
         }
 
@@ -88,12 +88,12 @@ namespace WZData.MapleStory.Items
                 if (!idGrouping.Name.Equals("Taming", StringComparison.CurrentCultureIgnoreCase) && !idGrouping.Name.Equals("skillskin", StringComparison.CurrentCultureIgnoreCase))
                     foreach (WZObject item in idGrouping)
                         if (int.TryParse(item.Name, out id) && characterWzCheck.MainDirectory[idGrouping.Name].HasChild($"{id.ToString("D8")}.img"))
-                            yield return new Tuple<int, Func<MapleItem>>(id, CreateLookup(characterWz, effectWzCallback, item, idGrouping.Name, id).Memoize());
+                            yield return new Tuple<int, Func<MapleItem>>(id, CreateLookup(characterWz, effectWzCallback, item, idGrouping.Name, id, stringWz).Memoize());
         }
 
-        private static Func<MapleItem> CreateLookup(Func<Func<WZFile, MapleItem>, MapleItem> characterWzCallback, Func<Func<WZFile, MapleItem>, MapleItem> effectWzCallback, WZObject item, string idGroupingName, int id)
+        private static Func<MapleItem> CreateLookup(Func<Func<WZFile, MapleItem>, MapleItem> characterWzCallback, Func<Func<WZFile, MapleItem>, MapleItem> effectWzCallback, WZObject item, string idGroupingName, int id, WZFile stringWz)
             => ()
-            => characterWzCallback((characterWz) => effectWzCallback(effectWz => Equip.Parse(characterWz.MainDirectory, item, idGroupingName, id, effectWz.MainDirectory["ItemEff.img"])));
+            => characterWzCallback((characterWz) => effectWzCallback(effectWz => Equip.Parse(characterWz.MainDirectory, item, idGroupingName, id, stringWz.MainDirectory, effectWz.MainDirectory["ItemEff.img"])));
 
         public override string ToString()
             => $"{EquipGroup} - {id}";
