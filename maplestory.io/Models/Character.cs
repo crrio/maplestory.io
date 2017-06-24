@@ -59,9 +59,9 @@ namespace maplestory.io.Models
             string pattern;
 
             if (rankingMode != "fame")
-                pattern = "<tr>[ ]*<td>([0-9]*)</td>[ ]*<td> <img class=\"avatar\"[ ]* src=\"([^\"]*)\"></td>[ ]*<td>(<img src=\"http://nxcache.nexon.net/maplestory/img/bg/bg-immigrant.png\"/><br />)*([^<]*)</td>[ ]*<td><a class=\"([^\"]*)\" href=\"([^\"]*)\" title=\"([^\"]*)\">&nbsp;</a></td>[ ]*<td><img class=\"job\" src=\"([^\"]*)\" alt=\"([^\"]*)\" title=\"[^\"]*\"></td>[ ]*<td class=\"level-move\">[ ]*([0-9]*)<br />[ ]*\\(([0-9]*)\\)[ ]*<br />[ ]*<div class=\"rank-([^\"]*)\">([^<]*)</div>";
+                pattern = "<td>[ \r\n\t]*([0-9]*)[ \r\n\t]*</td>[ \r\n\t]*<td> <img class=\"avatar\"[ ]* src=\"([^\"]*)\"></td>[ ]*<td>(<img src=\"http://nxcache.nexon.net/maplestory/img/bg/bg-immigrant.png\"/><br />)*([^<]*)</td>[ ]*<td><a class=\"([^\"]*)\" href=\"([^\"]*)\" title=\"([^\"]*)\">&nbsp;</a></td>[ ]*<td><img class=\"job\" src=\"([^\"]*)\" alt=\"([^\"]*)\" title=\"[^\"]*\"></td>[ ]*<td class=\"level-move\">[ ]*([0-9]*)<br />[ ]*\\(([0-9]*)\\)[ ]*<br />[ ]*<div class=\"rank-([^\"]*)\">([^<]*)</div>";
             else
-                pattern = "<tr>[ ]*<td>([0-9]*)</td>[ ]*<td> <img class=\"avatar\"[ ]* src=\"([^\"]*)\"></td>[ ]*<td>(<img src=\"http://nxcache.nexon.net/maplestory/img/bg/bg-immigrant.png\"/><br />)*([^<]*)</td>[ ]*<td><a class=\"([^\"]*)\" href=\"([^\"]*)\" title=\"([^\"]*)\">&nbsp;</a></td>[ ]*<td><img class=\"job\" src=\"([^\"]*)\" alt=\"([^\"]*)\" title=\"[^\"]*\"></td>[ ]*<td class=\"level-move\">[ ]*([0-9]*)";
+                pattern = "<td>[ \r\n\t]*([0-9]*)[ \r\n\t]*</td>[ \r\n\t]*<td> <img class=\"avatar\"[ ]* src=\"([^\"]*)\"></td>[ ]*<td>(<img src=\"http://nxcache.nexon.net/maplestory/img/bg/bg-immigrant.png\"/><br />)*([^<]*)</td>[ ]*<td><a class=\"([^\"]*)\" href=\"([^\"]*)\" title=\"([^\"]*)\">&nbsp;</a></td>[ ]*<td><img class=\"job\" src=\"([^\"]*)\" alt=\"([^\"]*)\" title=\"[^\"]*\"></td>[ ]*<td class=\"level-move\">[ ]*([0-9]*)";
 
             Regex search = new Regex(pattern, RegexOptions.Multiline | RegexOptions.IgnoreCase);
 
