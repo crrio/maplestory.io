@@ -98,11 +98,11 @@ namespace maplestory.io.Controllers
 
         [Route("{itemId}/name")]
         [HttpGet]
-        [Produces("text/plain")]
-        public string itemName(int itemId)
+        [Produces("text/json")]
+        public IActionResult itemName(int itemId)
         {
             MapleItem eq = itemFactory.search(itemId);
-            return eq.Description.Name;
+            return Json(eq.Description);
         }
     }
 }
