@@ -128,7 +128,7 @@ namespace WZData
             },
             {"Character",
                 new Tuple<string,int,int>[]{
-                    new Tuple<string, int, int>("Face", 20000, 25000),
+                    new Tuple<string, int, int>("Face", 20000, 29999),
                     new Tuple<string, int, int>("Hair", 30000, 49999)
                 }
             },
