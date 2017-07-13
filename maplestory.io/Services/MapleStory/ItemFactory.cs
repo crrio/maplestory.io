@@ -13,6 +13,7 @@ using System.Linq;
 using reWZ.WZProperties;
 using System.Threading;
 using Microsoft.AspNetCore.Hosting;
+using WZData.MapleStory.Images;
 
 namespace maplestory.io.Services.MapleStory
 {
@@ -34,10 +35,12 @@ namespace maplestory.io.Services.MapleStory
             { 16, "Pirate" }
         };
 
-        public static void Load(IWZFactory factory, ILogger<ItemFactory> logger)
+        public static void Load(IWZFactory factory, ILogger<ItemFactory> logger, ILogger<Equip> equipLogger, ILogger<EquipFrameBook> equipFrameBookLogger)
         {
             itemDb = new List<ItemNameInfo>();
             _logger = logger;
+            Equip.ErrorCallback = s => equipLogger.LogError(s);
+            EquipFrameBook.ErrorCallback = s => equipFrameBookLogger.LogError(s);
 
             Stopwatch watch = Stopwatch.StartNew();
             _logger?.LogInformation("Caching item lookup table");

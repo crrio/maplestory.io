@@ -73,15 +73,16 @@ namespace maplestory.io
         public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory, IRethinkDbConnectionFactory connectionFactory)
         {
             loggerFactory.AddConsole(Configuration.GetSection("Logging"));
-            loggerFactory.AddDebug();
 
             if (env.IsDevelopment())
             {
+                loggerFactory.AddDebug(LogLevel.Debug);
                 app.UseDeveloperExceptionPage();
                 app.UseBrowserLink();
             }
             else
             {
+                loggerFactory.AddDebug();
                 app.UseExceptionHandler("/Home/Error");
             }
 

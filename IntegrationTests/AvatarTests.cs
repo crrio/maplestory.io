@@ -21,7 +21,7 @@ namespace IntegrationTests
             //wzFactory = new WZFactory(WZPath);
             //itemFactory = new ItemFactory(wzFactory, null, null);
             zmapFactory = new ZMapFactory(wzFactory);
-            characterFactory = new CharacterFactory(wzFactory, itemFactory, zmapFactory);
+            characterFactory = new CharacterFactory(wzFactory, itemFactory, zmapFactory, null);
         }
 
         public static string WZPath { get => File.ReadAllText("wzpath.txt"); }

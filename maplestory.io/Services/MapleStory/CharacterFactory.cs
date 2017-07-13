@@ -10,6 +10,8 @@ using WZData.MapleStory.Items;
 using System.IO.Compression;
 using System.IO;
 using WZData.MapleStory.Images;
+using System.Diagnostics;
+using Microsoft.Extensions.Logging;
 
 namespace maplestory.io.Services.MapleStory
 {
@@ -19,9 +21,11 @@ namespace maplestory.io.Services.MapleStory
         private readonly IItemFactory itemFactory;
         private readonly ZMap zmap;
         private readonly SMap smap;
+        private readonly ILogger<CharacterFactory> _logger;
 
-        public CharacterFactory(IWZFactory factory, IItemFactory itemFactory, IZMapFactory zMapFactory)
+        public CharacterFactory(IWZFactory factory, IItemFactory itemFactory, IZMapFactory zMapFactory, ILogger<CharacterFactory> logger)
         {
+            _logger = logger;
             skins = CharacterSkin.Parse(factory.GetWZFile(WZ.Character).MainDirectory).ToDictionary(c => c.Id);
             zmap = zMapFactory.GetZMap();
             smap = zMapFactory.GetSMap();
@@ -43,9 +47,24 @@ namespace maplestory.io.Services.MapleStory
 
         public Image<Rgba32> GetCharacter(int id, string animation = null, int frame = 0, bool showEars = false, int padding = 2, string renderMode = "default", params Tuple<int, string, int?>[] itemEntries)
         {
-            IEnumerable<Tuple<MapleItem, string, int?>> items = itemEntries.Select((c) => new Tuple<MapleItem, string, int?>(itemFactory.search(c.Item1), c.Item2, c.Item3));
+            Stopwatch watch;
+            IEnumerable<EquipEntry> items = itemEntries.Select((c) => {
+                Stopwatch loadWatch = Stopwatch.StartNew();
+                var res = new EquipEntry(){
+                    Equip = (Equip)itemFactory.search(c.Item1),
+                    Action = c.Item2,
+                    Frame = c.Item3
+                };//(itemFactory.search(c.Item1), c.Item2, c.Item3);
+                loadWatch.Stop();
+                _logger.LogDebug($"Took {loadWatch.ElapsedMilliseconds}ms to load item {c.Item1}");
+                return res;
+            });
 
+            watch = Stopwatch.StartNew();
             CharacterSkin skin = GetSkin(id);
+            watch.Stop();
+            _logger.LogDebug($"Took {watch.ElapsedMilliseconds}ms to load skin {id}");
+            watch.Restart();
             CharacterAvatar avatar = new CharacterAvatar(skin);
             avatar.Items = items;
 
@@ -59,8 +78,13 @@ namespace maplestory.io.Services.MapleStory
             avatar.Frame = frame;
             avatar.ShowEars = showEars;
             avatar.Padding = padding;
-
-            return avatar.Render(zmap, smap, renderMode);
+            watch.Stop();
+            _logger.LogDebug($"Took {watch.ElapsedMilliseconds}ms to initialize CharacterAvatar");
+            watch.Restart();
+            var result = avatar.Render(zmap, smap, renderMode);
+            watch.Stop();
+            _logger.LogDebug($"Took {watch.ElapsedMilliseconds}ms to render CharacterAvatar");
+            return result;
         }
 
         public string[] GetActions(params int[] itemEntries)

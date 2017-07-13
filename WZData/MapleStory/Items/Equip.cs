@@ -12,6 +12,7 @@ namespace WZData.MapleStory.Items
 {
     public class Equip : MapleItem
     {
+        public static Action<string> ErrorCallback = (s) => { };
         public const string WZFile = "Item.wz";
         public const string FolderPath = "Etc";
         public const bool IMGId = false;
@@ -50,13 +51,15 @@ namespace WZData.MapleStory.Items
 
                 return item;
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                ErrorCallback($"{ex.Message}{Environment.NewLine}{ex.StackTrace}");
                 return null;
             }
         }
 
-        public Dictionary<string, EquipFrameBook> GetFrameBooks(int weaponType) => weaponType == -100 || FrameBooksPerWeaponType == null || FrameBooksPerWeaponType.Count == 0 ? FrameBooks : FrameBooksPerWeaponType[weaponType];
+        public Dictionary<string, EquipFrameBook> GetFrameBooks(int weaponType) =>
+            weaponType == -100 || FrameBooksPerWeaponType == null || FrameBooksPerWeaponType.Count == 0 ? FrameBooks : FrameBooksPerWeaponType[weaponType];
 
         public static Dictionary<string, EquipFrameBook> ProcessFrameBooks(WZObject characterWz, WZObject characterItem, WZObject container)
         {

@@ -28,7 +28,7 @@ namespace WZData
                 animationFrame.Position = zContainer.Type == WZObjectType.String ? zContainer.ValueOrDefault<string>("") : zContainer.ValueOrDefault<int>(0).ToString();
             } else if (self.HasChild("z"))
                 animationFrame.Position = self["z"].Type == WZObjectType.String ? self["z"].ValueOrDefault<string>("") : self["z"].ValueOrDefault<int>(0).ToString();
-            animationFrame.MapOffset = self.HasChild("map") ? self["map"].Select(c => new Tuple<string, Vector2>(c.Name, ((WZVector2Property)c).Value)).ToDictionary(b => b.Item1, b => b.Item2) : null;
+            animationFrame.MapOffset = self.HasChild("map") ? self["map"].Where(c => c.Type == WZObjectType.Vector2).Select(c => new Tuple<string, Vector2>(c.Name, ((WZVector2Property)c).Value)).ToDictionary(b => b.Item1, b => b.Item2) : null;
 
             return animationFrame;
         }

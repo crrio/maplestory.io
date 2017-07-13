@@ -3,6 +3,8 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Logging;
 using System;
 using System.IO;
+using WZData.MapleStory.Items;
+using WZData.MapleStory.Images;
 
 namespace maplestory.io
 {
@@ -15,8 +17,8 @@ namespace maplestory.io
             ILoggerFactory logging = (new LoggerFactory()).AddConsole(LogLevel.Trace);
             WZFactory.Load(logging.CreateLogger<WZFactory>(), wzPath);
             WZFactory wzFactory = new WZFactory();
-            ItemFactory.Load(wzFactory, logging.CreateLogger<ItemFactory>());
-            ItemFactory.cacheItems();
+            ItemFactory.Load(wzFactory, logging.CreateLogger<ItemFactory>(), logging.CreateLogger<Equip>(), logging.CreateLogger<EquipFrameBook>());
+            //ItemFactory.cacheItems();
 
             ILogger prog = logging.CreateLogger<Program>();
             prog.LogInformation("Starting aspnet kestrel");

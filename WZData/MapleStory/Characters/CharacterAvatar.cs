@@ -16,7 +16,7 @@ namespace WZData.MapleStory.Characters
         public string AnimationName;
         public int Frame;
         public int Padding;
-        public IEnumerable<Tuple<MapleItem, string, int?>> Items;
+        public IEnumerable<EquipEntry> Items;
         public readonly CharacterSkin BaseSkin;
         public Dictionary<string, Vector2> anchorPositions;
 
@@ -26,49 +26,33 @@ namespace WZData.MapleStory.Characters
         public Body EntireBodyFrame { get => SkinAnimation.Frames[Frame % SkinAnimation.Frames.Length]; }
         public Dictionary<string, BodyPart> BodyParts { get => EntireBodyFrame.Parts; }
 
-        public IEnumerable<Tuple<Equip, string, int?>> EquipFramesSelected
-        {
-            get => Items.Where(c => c.Item1 is Equip)
-                .Select(c => new Tuple<Equip, string, int?>((Equip)c.Item1, c.Item2, c.Item3))
-                .Where(c => c.Item1.FrameBooks.Count > 0);
-        }
-        public IEnumerable<Equip> Equips { get => EquipFramesSelected.Select(c => c.Item1); }
+        public IEnumerable<Equip> Equips { get => Items.Select(c => c.Equip); }
         public int WeaponCategory {
             get => (int)Math.Floor(
-                ((EquipFramesSelected
-                    .Where(c => c.Item1.EquipGroup.Equals("weapon", StringComparison.CurrentCultureIgnoreCase) && !c.Item1.MetaInfo.Cash.cash)
-                    .FirstOrDefault()?.Item1.id ?? 0
+                ((Items
+                    .Where(c => c.Equip.EquipGroup.Equals("weapon", StringComparison.CurrentCultureIgnoreCase) && !c.Equip.MetaInfo.Cash.cash)
+                    .FirstOrDefault()?.Equip.id ?? 0
                 ) - 1000000) / 10000d
             );
         }
 
-        public IEnumerable<Tuple<Equip, string, IFrame>> EquipFrames
+        public IEnumerable<EquipFrameEntry> EquipFrames
         {
-            get => EquipFramesSelected
-                .GroupBy(c => c.Item1.TypeInfo.SubCategory)
-                .Select(c => c.FirstOrDefault(b => b.Item1.MetaInfo.Cash?.cash ?? false) ?? c.First())
+            get => Items
+                .GroupBy(c => c.Equip.TypeInfo.SubCategory)
+                .Select(c => c.FirstOrDefault(b => b.Equip.MetaInfo.Cash?.cash ?? false) ?? c.First())
                 // Some equips aren't always shown, like weapons when sitting
-                .Where(c => c.Item1.GetFrameBooks(WeaponCategory).ContainsKey(c.Item2 ?? AnimationName) || c.Item1.GetFrameBooks(WeaponCategory).ContainsKey("default"))
-                .Select(c => new Tuple<Equip, EquipFrameBook, int?>(c.Item1, c.Item1.GetFrameBooks(WeaponCategory).ContainsKey(c.Item2 ?? AnimationName) && c.Item1.GetFrameBooks(WeaponCategory)[c.Item2 ?? AnimationName].frames.Count() > 0 ? c.Item1.GetFrameBooks(WeaponCategory)[c.Item2 ?? AnimationName] : c.Item1.GetFrameBooks(WeaponCategory)["default"], c.Item3))
-                .Where(c => c.Item2.frames.Count() > (c.Item3 ?? 0))
-                .Select(c => new Tuple<Equip, EquipFrame>(c.Item1, c.Item2.frames.Count() <= (c.Item3 ?? Frame) ? c.Item2.frames.ElementAt((c.Item3 ?? Frame) % c.Item2.frames.Count()) : c.Item2.frames.ElementAt((c.Item3 ?? Frame))))
-                .SelectMany(c => c.Item2.Effects.Select(b => new Tuple<Equip, string, IFrame>(c.Item1, b.Key, b.Value)));
+                .SelectMany(c => c.GetFrameEntry(WeaponCategory, AnimationName));
         }
 
         public IEnumerable<IFrame> EffectFrames
         {
-            get => EquipFramesSelected
-                .Where(c => c.Item1.ItemEffects?.entries?.Count > 0)
-                .Where(c => c.Item1.ItemEffects.entries.ContainsKey(c.Item2 ?? AnimationName) || c.Item1.ItemEffects.entries.ContainsKey("default"))
-                .Select(c => new Tuple<Equip, FrameBook, int?>(c.Item1, c.Item1.ItemEffects.entries.ContainsKey(c.Item2 ?? AnimationName) && c.Item1.ItemEffects.entries[c.Item2 ?? AnimationName].Count() > 0 ? c.Item1.ItemEffects.entries[c.Item2 ?? AnimationName].FirstOrDefault() : c.Item1.ItemEffects.entries["default"].FirstOrDefault(), c.Item3))
-                .Where(c => c.Item2 != null)
-                .Select(c => new Tuple<Equip, IFrame>(c.Item1, c.Item2.frames.Count() <= (c.Item3 ?? Frame) ? c.Item2.frames.ElementAt((c.Item3 ?? Frame) % c.Item2.frames.Count()) : c.Item2.frames.ElementAt((c.Item3 ?? Frame))))
-                .Where(c => c != null && int.TryParse(c.Item2.Position, out int blah))
-                .GroupBy(c => c.Item2.Position)
-                .Select(c => c.FirstOrDefault())
-                .GroupBy(c => c.Item1.EquipGroup)
-                .Select(c => c.FirstOrDefault(b => b.Item1.MetaInfo.Cash?.cash ?? false) ?? c.First())
-                .Select(c => c.Item2);
+            get => Items
+                .Where(c => c.Equip.ItemEffects != null && c.Equip.ItemEffects.entries != null)
+                .SelectMany(c => c.GetEffectFrameEntry(AnimationName))
+                .GroupBy(c => c.Equip.EquipGroup)
+                .Select(c => c.FirstOrDefault(b => b.Equip.MetaInfo.Cash?.cash ?? false) ?? c.First())
+                .Select(c => c.SelectedFrame);
         }
 
         public CharacterAvatar(CharacterSkin baseSkin)
@@ -137,21 +121,21 @@ namespace WZData.MapleStory.Characters
             return elements;
         }
 
-        Dictionary<string, Equip> GetBoundLayers(Tuple<Equip, string, IFrame>[] eqpFrames, ZMap zmapping, SMap smapping)
+        Dictionary<string, Equip> GetBoundLayers(EquipFrameEntry[] eqpFrames, ZMap zmapping, SMap smapping)
         {
             Dictionary<string, Equip> boundLayers = new Dictionary<string, Equip>();
-            foreach (Tuple<string, IEnumerable<Tuple<Equip, string, IFrame>>> eqp in zmapping.Ordering
+            foreach (Tuple<string, IEnumerable<EquipFrameEntry>> eqp in zmapping.Ordering
                 .Where(c => (EntireBodyFrame.HasFace ?? true) || c != "face")
-                .Select(c => new Tuple<string, IEnumerable<Tuple<Equip, string, IFrame>>>(c, eqpFrames.Where(b => b.Item1.MetaInfo.Equip.islots.Contains(c))))
+                .Select(c => new Tuple<string, IEnumerable<EquipFrameEntry>>(c, eqpFrames.Where(b => b.Equip.MetaInfo.Equip.islots.Contains(c))))
                 .Where(c => c.Item2 != null))
             {
                 string currentZ = eqp.Item1;
 
-                foreach (Tuple<Equip, string, IFrame> underlyingFrame in eqp.Item2)
+                foreach (EquipFrameEntry underlyingFrame in eqp.Item2)
                 {
-                    Equip currentEquip = underlyingFrame.Item1;
-                    string framePosition = underlyingFrame.Item2;
-                    IFrame currentFrame = underlyingFrame.Item3;
+                    Equip currentEquip = underlyingFrame.Equip;
+                    string framePosition = underlyingFrame.SelectedFrame.Position ?? "";
+                    IFrame currentFrame = underlyingFrame.SelectedFrame;
 
                     foreach (string explicitSlot in currentEquip.MetaInfo.Equip.vslots)
                     {
@@ -180,21 +164,21 @@ namespace WZData.MapleStory.Characters
 
         IEnumerable<IFrame> GetBodyPieces(ZMap zmapping, SMap smapping)
         {
-            Tuple<Equip, string, IFrame>[] eqpFrames = EquipFrames.ToArray();
+            EquipFrameEntry[] eqpFrames = EquipFrames.ToArray();
             Dictionary<string, Equip> boundLayers = GetBoundLayers(eqpFrames, zmapping, smapping);
             List<Tuple<Equip, IFrame, string[]>> requiredLayers = new List<Tuple<Equip, IFrame, string[]>>();
 
-            foreach (Tuple<string, IEnumerable<Tuple<Equip, string, IFrame>>> eqp in zmapping.Ordering
+            foreach (Tuple<string, IEnumerable<EquipFrameEntry>> eqp in zmapping.Ordering
                 .Where(c => (EntireBodyFrame.HasFace ?? true) || c != "face")
-                .Select(c => new Tuple<string, IEnumerable<Tuple<Equip, string, IFrame>>>(c, eqpFrames.Where(b => b.Item3.Position == c)))
+                .Select(c => new Tuple<string, IEnumerable<EquipFrameEntry>>(c, eqpFrames.Where(b => b.SelectedFrame.Position == c)))
                 .Where(c => c.Item2 != null))
             {
                 string currentZ = eqp.Item1;
-                foreach (Tuple<Equip, string, IFrame> underlyingFrame in eqp.Item2)
+                foreach (EquipFrameEntry underlyingFrame in eqp.Item2)
                 {
-                    Equip currentEquip = underlyingFrame.Item1;
-                    string framePosition = underlyingFrame.Item2;
-                    IFrame currentFrame = underlyingFrame.Item3;
+                    Equip currentEquip = underlyingFrame.Equip;
+                    string framePosition = underlyingFrame.SelectedFrame.Position;
+                    IFrame currentFrame = underlyingFrame.SelectedFrame;
 
                     bool shouldUseEquipVSlot = framePosition.Equals(currentEquip.EquipGroup, StringComparison.CurrentCultureIgnoreCase) || currentZ.Equals(currentEquip.EquipGroup, StringComparison.CurrentCultureIgnoreCase) || framePosition.StartsWith("default", StringComparison.CurrentCultureIgnoreCase);
 
@@ -227,7 +211,7 @@ namespace WZData.MapleStory.Characters
                 .Where(c => ShowEars || c.Name != "ear")
                 .Select(c => (IFrame)c)
                 .Concat(requiredLayers.Where(c => c.Item3.All(slot => boundLayers[slot] == c.Item1)).Select(c => c.Item2).DistinctBy(c => c.Position))
-                .Concat(eqpFrames.Where(c => int.TryParse(c.Item2, out int blah)).Select(c => c.Item3));
+                .Concat(eqpFrames.Where(c => int.TryParse(c.Position, out int blah)).Select(c => c.SelectedFrame));
         }
 
         public Image<Rgba32> Render(ZMap zmapping, SMap smapping, string renderMode)
@@ -286,9 +270,9 @@ namespace WZData.MapleStory.Characters
 
                 Image<Rgba32> compact = new Image<Rgba32>(96, 96);
                 compact.DrawImage(
-                    destination.Crop(cropArea), 
-                    1, 
-                    new Size(cropArea.Width, cropArea.Height), 
+                    destination.Crop(cropArea),
+                    1,
+                    new Size(cropArea.Width, cropArea.Height),
                     new Point((int)cropOffsetFromOrigin.X, (int)cropOffsetFromOrigin.Y)
                 );
 

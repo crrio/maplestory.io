@@ -7,6 +7,7 @@ namespace WZData.MapleStory.Images
 {
     public class EquipFrameBook
     {
+        public static Action<string> ErrorCallback = (s) => { };
         public IEnumerable<EquipFrame> frames;
         internal static EquipFrameBook Parse(WZObject skills, WZObject skill, WZObject frameContainer)
         {
@@ -32,7 +33,12 @@ namespace WZData.MapleStory.Images
                 })
                 .Select(frame =>
                 {
-                    return EquipFrame.Parse(skills, skill, frame);
+                    try {
+                        return EquipFrame.Parse(skills, skill, frame);
+                    } catch (Exception ex) {
+                        ErrorCallback($"{ex.Message}{Environment.NewLine}{ex.StackTrace}");
+                        return null;
+                    }
                 }).ToArray();
             }
             else
