@@ -78,7 +78,7 @@ namespace maplestory.io.Services.MapleStory
 
         public string[] GetActions(params int[] itemEntries)
         {
-            List<string> itemEntriesStr = itemEntries.Where(c => c >= 30000).Select(c => c.ToString("D8")).ToList();
+            List<string> itemEntriesStr = itemEntries.Concat(new int[]{ 1060002, 1040002 }).Where(c => c >= 30000).Select(c => c.ToString("D8")).ToList();
             IEnumerable<WZProperty> itemNodes = wz.Resolve("Character").Children.Values
                 .Where(c => c.Type != PropertyType.Image)
                 .SelectMany(c => c.Children.Values)
