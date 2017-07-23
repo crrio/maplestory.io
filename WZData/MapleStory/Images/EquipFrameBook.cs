@@ -10,7 +10,7 @@ namespace WZData.MapleStory.Images
         public static Action<string> ErrorCallback = (s) => { };
         public IEnumerable<EquipFrame> frames;
 
-        internal static EquipFrameBook Parse(WZProperty container)
+        public static EquipFrameBook Parse(WZProperty container)
         {
             EquipFrameBook effect = new EquipFrameBook();
 
@@ -41,7 +41,7 @@ namespace WZData.MapleStory.Images
                         ErrorCallback($"{ex.Message}{Environment.NewLine}{ex.StackTrace}");
                         return null;
                     }
-                }).ToArray();
+                });
             }
             else
             {

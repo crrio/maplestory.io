@@ -76,19 +76,8 @@ namespace maplestory.io.Controllers
         [Produces("image/png")]
         public IActionResult itemIcon(int itemId)
         {
-            MapleItem eq = itemFactory.GetWithWZ(region, version).search(itemId);
-            if (eq == null) return NotFound("Couldn't find the item");
-
-            if (eq.MetaInfo.Icon?.Icon != null)
-                return File(eq.MetaInfo.Icon.Icon.ImageToByte(), "image/png");
-            else if (eq is Equip)
-            {
-                Equip eqp = (Equip)eq;
-                EquipFrameBook book = eqp.FrameBooks.Select(c => c.Value).FirstOrDefault();
-                Image<Rgba32> effectImage = book?.frames?.FirstOrDefault()?.Effects?.Select(c => c.Value)?.First()?.Image;
-                if (effectImage != null)
-                    return File(effectImage.ImageToByte(), "image/png");
-            }
+            if (itemFactory.GetWithWZ(region, version).DoesItemExist(itemId))
+                return File(itemFactory.GetWithWZ(region, version).GetIcon(itemId).ImageToByte(), "image/png");
             return NotFound("Item does not have an icon or a default effect");
         }
 
@@ -97,8 +86,9 @@ namespace maplestory.io.Controllers
         [Produces("image/png")]
         public IActionResult itemIconRaw(int itemId)
         {
-            MapleItem eq = itemFactory.GetWithWZ(region, version).search(itemId);
-            return File(eq.MetaInfo.Icon.IconRaw.ImageToByte(), "image/png");
+            if (itemFactory.GetWithWZ(region, version).DoesItemExist(itemId))
+                return File(itemFactory.GetWithWZ(region, version).GetIconRaw(itemId).ImageToByte(), "image/png");
+            return NotFound("Item does not have an icon or a default effect");
         }
 
         [Route("{itemId}/name")]
@@ -106,7 +96,7 @@ namespace maplestory.io.Controllers
         [Produces("text/json")]
         public IActionResult itemName(int itemId)
         {
-            MapleItem eq = itemFactory.GetWithWZ(region, version).search(itemId);
+            MapleItem eq = itemFactory.GetWithWZ(region, version).GetWithWZ(region, version).search(itemId);
             return Json(eq.Description);
         }
     }

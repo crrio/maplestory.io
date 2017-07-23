@@ -13,6 +13,7 @@ using System.Threading;
 using Microsoft.AspNetCore.Hosting;
 using WZData.MapleStory.Images;
 using PKG1;
+using ImageSharp;
 
 namespace maplestory.io.Services.MapleStory
 {
@@ -36,7 +37,6 @@ namespace maplestory.io.Services.MapleStory
 
         public static void CacheEquipMeta(IWZFactory factory, ILogger logging) {
             Region[] regions = (Region[])Enum.GetValues(typeof(Region));
-            //Parallel.ForEach(regions, (region) => {
             foreach (Region region in regions) {
                 PackageCollection wz = factory.GetWZ(region, "latest");
 
@@ -61,7 +61,6 @@ namespace maplestory.io.Services.MapleStory
 
                 logging.LogInformation($"Found {RequiredJobs[region].Count} items for {region}, latest");
             }
-//            });
         }
 
         public ItemFactory(IWZFactory factory) : base(factory) { }
@@ -82,7 +81,7 @@ namespace maplestory.io.Services.MapleStory
 
             return allItems.Select(c => {
                 ItemNameInfo name = ItemNameInfo.Parse(c);
-                if (RequiredJobs[region].ContainsKey(name.Id)) {
+                if (RequiredJobs.ContainsKey(region) && RequiredJobs[region].ContainsKey(name.Id)) {
                     name.RequiredJobs = RequiredJobs[region][name.Id].Item1;
                     name.RequiredLevel = RequiredJobs[region][name.Id].Item2;
                     name.IsCash = RequiredJobs[region][name.Id].Item3;
@@ -119,5 +118,53 @@ namespace maplestory.io.Services.MapleStory
 
         public override IItemFactory GetWithWZ(Region region, string version)
             => new ItemFactory(_factory, region, version);
+
+        WZProperty GetItemNode(int id) {
+            WZProperty stringWz = wz.Resolve("String");
+
+            string idString = id.ToString("D8");
+            WZProperty item = wz.Resolve("Character").Children.Values.SelectMany(c => c.Children.Values).Where(c => c.Type == PropertyType.Image).FirstOrDefault(c => c.Name == idString);
+            if (item != null) return item;
+
+            item = wz.Resolve($"Item/Etc/{idString.Substring(0, 4)}/{idString}");
+            if (item != null) return item;
+
+            item = wz.Resolve($"Item/Install/{idString.Substring(0, 4)}/{idString}");
+            if (item != null) return item;
+
+            item = wz.Resolve($"Item/Cash/{idString.Substring(0, 4)}/{idString}");
+            if (item != null) return item;
+
+            item = wz.Resolve($"Item/Consume/{idString.Substring(0, 4)}/{idString}");
+            if (item != null) return item;
+
+            item = wz.Resolve($"Item/Special/{idString.Substring(0, 4)}/{idString}");
+            if (item != null) return item;
+
+            item = wz.Resolve($"Item/Pet/{idString}");
+            if (item != null) return item;
+
+            return null;
+        }
+
+        public Image<Rgba32> GetIcon(int itemId)
+        {
+            WZProperty itemNode = GetItemNode(itemId);
+            Image<Rgba32> icon = itemNode.ResolveForOrNull<Image<Rgba32>>("info/icon");
+            if (icon == null) {
+                WZProperty action = itemNode.Children.Values.First(c => c.Name != "info");
+                return EquipFrameBook.Parse(action).frames?.FirstOrDefault()?.Effects?.Values.FirstOrDefault()?.Image;
+            }
+            return icon;
+        }
+
+        public Image<Rgba32> GetIconRaw(int itemId)
+        {
+            WZProperty itemNode = GetItemNode(itemId);
+            return itemNode.ResolveForOrNull<Image<Rgba32>>("info/iconRaw");
+        }
+
+        public bool DoesItemExist(int itemId)
+            => GetItemNode(itemId) != null;
     }
 }
