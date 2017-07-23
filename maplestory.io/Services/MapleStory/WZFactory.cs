@@ -2,66 +2,41 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using reWZ;
 using System.IO;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using WZData;
+using PKG1;
 
 namespace maplestory.io.Services.MapleStory
 {
-    public class WZFactory : IWZFactory, IDisposable
+    public class WZFactory : IWZFactory
     {
-        private static Dictionary<WZ, Tuple<string, List<WZFile>>> _files;
+        public static Dictionary<Region, Dictionary<string, PackageCollection>> regions;
         private static ILogger _logger;
 
-        public static void Load(ILogger<WZFactory> logger, string wzPath)
+        public static void Load(ILogger<WZFactory> logger)
         {
             _logger = logger;
-            _files = new Dictionary<WZ, Tuple<string, List<WZFile>>>();
-
-            _logger?.LogInformation("Caching WZ Files");
-            string[] fileNames = Directory.GetFiles(wzPath, "*.wz");
-            IEnumerable<Tuple<WZ, string, IEnumerable<WZFile>>> WZFiles = fileNames
-                .Where(c => Path.GetFileNameWithoutExtension(c) != "Data")
-                .Select(c => new Tuple<WZ, string, IEnumerable<WZFile>>((WZ)Enum.Parse(typeof(WZ), Path.GetFileNameWithoutExtension(c), true), c, Enumerable.Range(0, 10).Select(b => new WZFile(c, WZVariant.GMS, false))));
-            foreach (Tuple<WZ, string, IEnumerable<WZFile>> file in WZFiles) _files.Add(file.Item1, new Tuple<string, List<WZFile>>(file.Item2, file.Item3.ToList()));
-            _logger?.LogInformation($"Found {_files.Count} WZFiles");
-        }
-
-        public WZFile GetWZFile(WZ file)
-            => _files[file].Item2.First();
-
-        public Func<Func<WZFile, MapleItem>, MapleItem> AsyncGetWZFile(WZ file)
-        {
-            return (a) =>
-            {
-                WZFile wz = _files[file].Item2.FirstOrDefault(c => !c.InUse);
-                if (wz == null)
-                {
-                    _logger?.LogInformation($"Provisioning new {file}");
-                    wz = new WZFile(_files[file].Item1, WZVariant.GMS, false);
-                    wz.InUse = true;
-                    _files[file].Item2.Add(wz);
-                } else
-                    wz.InUse = true;
-
-                try
-                {
-                    MapleItem result = a(wz);
-                    return result;
-                } finally
-                {
-                    wz.InUse = false;
-                }
-                return null;
+            regions = new Dictionary<Region, Dictionary<string, PackageCollection>>() {
+                { Region.GMS, new Dictionary<string, PackageCollection>() },
+                { Region.KMS, new Dictionary<string, PackageCollection>() },
+                { Region.JMS, new Dictionary<string, PackageCollection>() }
             };
         }
+        public static void AddWz(string basePath, Region region, string version) {
+            if (!regions.ContainsKey(region))
+                regions.Add(region, new Dictionary<string, PackageCollection>());
+            Dictionary<string, PackageCollection> versions = regions[region];
+            versions.Add(version, new PackageCollection(basePath));
+        }
+        public PackageCollection GetWZ(Region region, string version) {
+            Dictionary<string, PackageCollection> regionVersions = regions[region];
 
-        public void Dispose()
-        {
-            foreach (KeyValuePair<WZ, Tuple<string, List<WZFile>>> kvp in _files)
-                kvp.Value.Item2.ForEach((wz) => wz.Dispose());
+            if (regionVersions.ContainsKey(version))
+                return regionVersions[version];
+
+            return null;
         }
     }
 }

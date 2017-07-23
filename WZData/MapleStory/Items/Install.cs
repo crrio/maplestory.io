@@ -1,10 +1,9 @@
-﻿using reWZ;
-using reWZ.WZProperties;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using PKG1;
 
 namespace WZData.MapleStory.Items
 {
@@ -17,33 +16,20 @@ namespace WZData.MapleStory.Items
 
         public Install(int id) : base(id) { }
 
-        public static Install Parse(WZDirectory itemWz, WZObject itemStringEntry, int id, WZDirectory stringWz)
+        public static Install Parse(WZProperty stringWz)
         {
+            int id;
+
+            if (!int.TryParse(stringWz.Name, out id)) return null;
+
             Install item = new Install(id);
 
-            WZObject itemWzEntry = null;
-            try
-            {
-                itemWzEntry = itemWz.ResolvePath($"Install/{id.ToString("D8").Substring(0, 4)}.img/{id.ToString("D8")}");
-            }
-            catch (Exception) { return null; }
+            WZProperty itemWz = stringWz.ResolveOutlink($"Item/Install/{id.ToString("D8").Substring(0, 4)}.img/{id.ToString("D8")}");
 
-            if (itemWzEntry.HasChild("info")) item.MetaInfo = ItemInfo.Parse(itemWz, itemWzEntry["info"]);
-            item.Description = ItemDescription.Parse(itemStringEntry, StringPath);
+            if (itemWz.Children.ContainsKey("info")) item.MetaInfo = ItemInfo.Parse(itemWz);
+            item.Description = ItemDescription.Parse(stringWz, id);
 
             return item;
         }
-
-        public static IEnumerable<Tuple<int, Func<MapleItem>>> GetLookup(Func<Func<WZFile, MapleItem>, MapleItem> itemWzCallback, WZDirectory stringWz)
-        {
-            int id = -1;
-            foreach (WZObject item in stringWz.ResolvePath(StringPath))
-                if (int.TryParse(item.Name, out id))
-                    yield return new Tuple<int, Func<MapleItem>>(id, CreateLookup(itemWzCallback, item, id, stringWz).Memoize());
-        }
-
-        private static Func<MapleItem> CreateLookup(Func<Func<WZFile, MapleItem>, MapleItem> itemWzCallback, WZObject item, int id, WZDirectory stringWz)
-            => ()
-            => itemWzCallback(itemWz => Install.Parse(itemWz.MainDirectory, item, id, stringWz));
     }
 }

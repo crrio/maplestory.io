@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using reWZ.WZProperties;
+using PKG1;
 
 namespace WZData
 {
@@ -11,25 +11,22 @@ namespace WZData
         public int id, OptionType, RequiredLevel;
         public string Message;
 
-        public static Tuple<ItemPotential, IEnumerable<ItemPotentialLevel>> Parse(WZObject pot)
+        public static Tuple<ItemPotential, IEnumerable<ItemPotentialLevel>> Parse(WZProperty potentialEntry)
         {
             ItemPotential potential = new ItemPotential();
-            if (!int.TryParse(pot.Name, out potential.id))
+            if (!int.TryParse(potentialEntry.Name, out potential.id))
                 return null;
 
-            WZObject info = pot.ResolvePath("info");
+            WZProperty info = potentialEntry.Resolve("info");
 
-            if (info.HasChild("string"))
-                potential.Message = info["string"].ValueOrDie<string>();
+            if (info.Children.ContainsKey("string"))
+                potential.Message = info.ResolveForOrNull<string>("string");
             else return null;
 
-            if (info.HasChild("optionType"))
-                potential.OptionType = info["optionType"].ValueOrDefault<int>(0);
+            potential.OptionType = info.ResolveFor<int>("optionType") ?? 0;
+            potential.RequiredLevel = info.ResolveFor<int>("reqLevel") ?? 0;
 
-            if (info.HasChild("reqLevel"))
-                potential.RequiredLevel = info["reqLevel"].ValueOrDefault<int>(0);
-
-            return new Tuple<ItemPotential, IEnumerable<ItemPotentialLevel>>(potential, ItemPotentialLevel.Parse(potential.id, pot.ResolvePath("level")));
+            return new Tuple<ItemPotential, IEnumerable<ItemPotentialLevel>>(potential, ItemPotentialLevel.Parse(potential.id, potentialEntry.Resolve("level")));
         }
     }
 }

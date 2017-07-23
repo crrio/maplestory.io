@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using reWZ.WZProperties;
+using PKG1;
 
 namespace WZData
 {
@@ -11,12 +11,12 @@ namespace WZData
         public int PotentialId, Level;
         public List<Tuple<string, string>> Modifiers;
 
-        public static IEnumerable<ItemPotentialLevel> Parse(int potentialId, WZObject levels)
+        public static IEnumerable<ItemPotentialLevel> Parse(int potentialId, WZProperty levels)
         {
             if (levels == null)
                 yield break;
 
-            foreach(WZObject level in levels)
+            foreach(WZProperty level in levels.Children.Values)
             {
                 int potLevel = 0;
 
@@ -27,8 +27,8 @@ namespace WZData
                 {
                     Level = potLevel,
                     Modifiers = level
-                        .ToList()
-                        .Select(c => new Tuple<string, string>(c.Name, c.ValueOrDefault<string>(null) ?? c.ValueOrDefault<int>(0).ToString()))
+                        .Children
+                        .Select(c => new Tuple<string, string>(c.Key, Convert.ToString(((IWZPropertyVal) c.Value).GetValue())))
                         .ToList(),
                     PotentialId = potentialId
                 };

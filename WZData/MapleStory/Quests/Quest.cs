@@ -1,9 +1,9 @@
-﻿using reWZ.WZProperties;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using PKG1;
 
 namespace WZData.MapleStory.Quests
 {
@@ -46,61 +46,74 @@ namespace WZData.MapleStory.Quests
         public QuestRequirements RequirementToStart;
         public QuestRequirements RequirementToComplete;
 
-        public static Quest Parse(WZObject data)
+        public static Quest Parse(WZProperty data)
         {
             Quest result = new Quest();
 
             result.Id = int.Parse(data.Name);
-            result.AutoPreComplete = data.HasChild("autoPreComplete") ? (bool?)(data["autoPreComplete"].ValueOrDefault<int>(0) == 1) : null;
-            result.AutoStart = data.HasChild("autoStart") ? (bool?)(data["autoStart"].ValueOrDefault<int>(0) == 1) : null;
-            result.AutoCancel = data.HasChild("autoCancel") ? (bool?)(data["autoCancel"].ValueOrDefault<int>(0) == 1) : null;
-            result.AutoComplete = data.HasChild("autoComplete") ? (bool?)(data["autoComplete"].ValueOrDefault<int>(0) == 1) : null;
-            result.AutoAccept = data.HasChild("autoAccept") ? (bool?)(data["autoAccept"].ValueOrDefault<int>(0) == 1) : null;
-            result.Name = data.HasChild("name") ? data["name"].ValueOrDefault<string>(null) : null;
-            result.Area = data.HasChild("area") ? (int?)data["area"].ValueOrDefault<int>(0) : null; // 
-            result.DemandSummary = data.HasChild("demandSummary") ? data["demandSummary"].ValueOrDefault<string>(null) : null;
-            result.RewardSummary = data.HasChild("rewardSummary") ? data["rewardSummary"].ValueOrDefault<string>(null) : null;
-            result.PlaceSummary = data.HasChild("placeSummary") ? data["placeSummary"].ValueOrDefault<string>(null) : null;
-            result.Summary = data.HasChild("summary") ? data["summary"].ValueOrDefault<string>(null) : null;
-            result.DisableAtCompleteTab = data.HasChild("disableAtCompleteTab") ? (bool?)(data["disableAtCompleteTab"].ValueOrDefault<int>(0) == 1) : null;
-            result.DisableAtNPC = data.HasChild("disableAtNPC") ? (bool?)(data["disableAtNPC"].ValueOrDefault<int>(0) == 1) : null;
-            result.DisableAtPerformTab = data.HasChild("disableAtPerformTab") ? (bool?)(data["disableAtPerformTab"].ValueOrDefault<int>(0) == 1) : null;
-            result.DisableAtStartTab = data.HasChild("disableAtStartTab") ? (bool?)(data["disableAtStartTab"].ValueOrDefault<int>(0) == 1) : null;
-            result.Blocked = data.HasChild("blocked") ? (bool?)(data["blocked"].ValueOrDefault<int>(0) == 1) : null;
-            result.ResignBlocked = data.HasChild("resignBlocked") ? (bool?)(data["resignBlocked"].ValueOrDefault<int>(0) == 1) : null;
-            result.Type = data.HasChild("type") ? data["type"].ValueOrDefault<string>(null) : null;
-            result.MedalCategory = data.HasChild("medalCategory") ? (int?)data["medalCategory"].ValueOrDefault<int>(0) : null; // 
-            result.MedalId = data.HasChild("viewMedalItem") ? (int?)data["viewMedalItem"].ValueOrDefault<int>(0) : null; // 
-            result.StartNavigation = data.HasChild("startNavi") ? (bool?)(data["startNavi"].ValueOrDefault<int>(0) == 1) : null;
-            result.TargetMapId = data.HasChild("targetMapId") ? (int?)data["targetMapId"].ValueOrDefault<int>(0) : null; // 
-            result.TimeLimit = data.HasChild("timeLimit") ? (int?)data["timeLimit"].ValueOrDefault<int>(0) : null; // 
-            result.TimerUI = data.HasChild("timerUI") ? data["timerUI"].ValueOrDefault<string>(null) : null;
-            result.HasSelectedMob = data.HasChild("selectedMob") ? (bool?)(data["selectedMob"].ValueOrDefault<int>(0) == 1) : null;
-            result.StraightStart = data.HasChild("straightStart") ? (bool?)(data["straightStart"].ValueOrDefault<int>(0) == 1) : null;
-            result.ValidMaps = data.HasChild("validField") ? data["validField"].Select(c => c.ValueOrDefault<int>(-1)) : null;
-            result.ShowEffect = data.HasChild("showEffect") ? (bool?)(data["showEffect"].ValueOrDefault<int>(0) == 1) : null;
-            result.Messages = data.Where(c => int.TryParse(c.Name, out int bogus)).Select(c => c.ValueOrDefault<string>(null)).Where(c => c != null);
-            result.DeleteItems = data.HasChild("deleteItem") ? data["deleteItem"].Select(c => c.ValueOrDefault<int>(-1)) : null;
+            result.AutoPreComplete = data.ResolveFor<bool>("autoPreComplete");
+            result.AutoStart = data.ResolveFor<bool>("autoStart");
+            result.AutoCancel = data.ResolveFor<bool>("autoCancel");
+            result.AutoComplete = data.ResolveFor<bool>("autoComplete");
+            result.AutoAccept = data.ResolveFor<bool>("autoAccept");
+            result.Name = data.ResolveForOrNull<string>("name");
+            result.Area = data.ResolveFor<int>("area");
+            result.DemandSummary = data.ResolveForOrNull<string>("demandSummary");
+            result.RewardSummary = data.ResolveForOrNull<string>("rewardSummary");
+            result.PlaceSummary = data.ResolveForOrNull<string>("placeSummary");
+            result.Summary = data.ResolveForOrNull<string>("summary");
+            result.DisableAtCompleteTab = data.ResolveFor<bool>("disableAtCompleteTab");
+            result.DisableAtNPC = data.ResolveFor<bool>("disableAtNPC");
+            result.DisableAtPerformTab = data.ResolveFor<bool>("disableAtPerformTab");
+            result.DisableAtStartTab = data.ResolveFor<bool>("disableAtStartTab");
+            result.Blocked = data.ResolveFor<bool>("blocked");
+            result.ResignBlocked = data.ResolveFor<bool>("resignBlocked");
+            result.Type = data.ResolveForOrNull<string>("type");
+            result.MedalCategory = data.ResolveFor<int>("medalCategory");
+            result.MedalId = data.ResolveFor<int>("viewMedalItem");
+            result.StartNavigation = data.ResolveFor<bool>("startNavi");
+            result.TargetMapId = data.ResolveFor<int>("targetMapId");
+            result.TimeLimit = data.ResolveFor<int>("timeLimit");
+            result.TimerUI = data.ResolveForOrNull<string>("timerUI");
+            result.HasSelectedMob = data.ResolveFor<bool>("selectedMob");
+            result.StraightStart = data.ResolveFor<bool>("straightStart");
+            result.ValidMaps = data.Resolve("validField").Children.Values.Select(c => ((WZPropertyVal<int>)c).Value);
+            result.ShowEffect = data.ResolveFor<bool>("showEffect");
+            result.Messages = data.Children.Where(c => int.TryParse(c.Key, out int bogus)).Select(c => ((IWZPropertyVal)c.Value).GetValue().ToString()).Where(c => !string.IsNullOrEmpty(c));
+            result.DeleteItems = data.Resolve("deleteItem").Children.Values.Select(c => ((WZPropertyVal<int>)c).Value);
 
             return result;
         }
 
-        public static IEnumerable<Quest> GetQuests(WZObject questWz)
+        public static Quest GetQuest(WZProperty questWz, int questId) {
+            QuestRewards[] rewards = QuestRewards.Parse(questWz.Resolve($"Act/{questId}"));
+            QuestRequirements[] requirements = QuestRequirements.Parse(questWz.Resolve($"Check/{questId}"));
+            Quest quest = Quest.Parse(questWz.Resolve($"QuestInfo/{questId}"));
+
+            quest.RequirementToComplete = requirements?.Where(b => b.State == QuestState.Complete).FirstOrDefault();
+            quest.RequirementToStart = requirements?.Where(b => b.State == QuestState.Start).FirstOrDefault();
+            quest.RewardOnStart = rewards?.Where(b => b.State == QuestState.Start).FirstOrDefault();
+            quest.RewardOnComplete= rewards?.Where(b => b.State == QuestState.Complete).FirstOrDefault();
+
+            return quest;
+        }
+
+        public static IEnumerable<Quest> GetQuests(WZProperty questWz)
         {
-            Dictionary<int, QuestRewards[]> rewards = questWz["Act.img"]
+            Dictionary<int, QuestRewards[]> rewards = questWz.Resolve("Act").Children.Values
                 .AsParallel()
                 .Select(QuestRewards.Parse)
                 .Select(c => c.Where(b => b != null).ToArray())
                 .Where(c => c.Length > 0)
                 .ToDictionary(c => c.First().Id, c => c);
-            Dictionary<int, QuestRequirements[]> requirements = questWz["Check.img"]
+            Dictionary<int, QuestRequirements[]> requirements = questWz.Resolve("Check").Children.Values
                 .AsParallel()
                 .Select(QuestRequirements.Parse)
                 .Select(c => c.Where(b => b != null).ToArray())
                 .Where(c => c.Length > 0)
                 .ToDictionary(c => c.First().Id, c => c);
 
-            return questWz["QuestInfo.img"]
+            return questWz.Resolve("QuestInfo").Children.Values
                 .AsParallel()
                 .Select(Quest.Parse)
                 .Select(c =>

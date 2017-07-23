@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using reWZ.WZProperties;
+using PKG1;
 
 namespace WZData
 {
@@ -15,10 +15,10 @@ namespace WZData
             Id = 0;
             Name = "Beginner";
         }
-        public Job(WZObject jobEntry)
+        public Job(WZProperty jobEntry)
         {
             Id = int.Parse(jobEntry.Name);
-            Name = jobEntry.ResolvePath("info").ValueOrDefault<string>(null);
+            Name = jobEntry.ResolveForOrNull<string>("info");
         }
     }
 }

@@ -1,7 +1,7 @@
-﻿using reWZ.WZProperties;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using PKG1;
 
 namespace WZData.MapleStory.Maps
 {
@@ -21,15 +21,15 @@ namespace WZData.MapleStory.Maps
         public int ToMap, x, y;
         public string LinkToMap => ToMap == 999999999 ? null : $"/map/{ToMap}";
 
-        public static Portal Parse(WZObject portalData)
+        public static Portal Parse(WZProperty portalData)
             => new Portal()
             {
-                PortalName = portalData.HasChild("pn") ? portalData["pn"].ValueOrDefault<string>(null) : null,
-                ToMap = portalData.HasChild("tm") ? portalData["tm"].ValueOrDefault<int>(-1) : -1,
-                ToName = portalData.HasChild("tn") ? portalData["tn"].ValueOrDefault<string>(null) : null,
-                Type = portalData.HasChild("pt") ? (PortalType)portalData["pt"].ValueOrDefault<int>(0) : PortalType.Spawn,
-                x = portalData.HasChild("x") ? portalData["x"].ValueOrDefault<int>(-99999999) : -99999999,
-                y = portalData.HasChild("y") ? portalData["y"].ValueOrDefault<int>(-99999999) : -99999999
+                PortalName = portalData.ResolveForOrNull<string>("pn"),
+                ToMap = portalData.ResolveFor<int>("tm") ?? int.MinValue,
+                ToName = portalData.ResolveForOrNull<string>("tn"),
+                Type = (PortalType)(portalData.ResolveFor<int>("pt") ?? 0),
+                x = portalData.ResolveFor<int>("x") ?? int.MinValue,
+                y = portalData.ResolveFor<int>("y") ?? int.MinValue
             };
     }
 }

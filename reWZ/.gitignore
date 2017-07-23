@@ -1,9 +1,0 @@
-bin/
-obj/
-*.sln
-*.user
-*.suo
-/_ReSharper.reWZ
-/DotZLib.xml
-*.pfx
-/*.zip

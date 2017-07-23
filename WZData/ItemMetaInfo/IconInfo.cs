@@ -1,20 +1,20 @@
 ﻿using ImageSharp;
-using reWZ;
-using reWZ.WZProperties;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using PKG1;
 
 namespace WZData.ItemMetaInfo
 {
     public class IconInfo
     {
+        readonly static string[] mustContainOne = new []{ "icon", "iconRaw" };
         public Image<Rgba32> IconRaw;
         public Image<Rgba32> Icon;
 
-        public static IconInfo Parse(WZDirectory source, WZObject info)
+        public static IconInfo Parse(WZProperty info)
         {
             IconInfo results = new IconInfo();
 
@@ -42,80 +42,13 @@ namespace WZData.ItemMetaInfo
                 }
             }
 
-            if (!(info.HasChild("icon") || info.HasChild("iconRaw")))
+            if (!info.Children.Keys.Any(c => mustContainOne.Contains(c)))
                 return null;
 
-            results.Icon = Resolve(source, info, "icon");
-            results.IconRaw = Resolve(source, info, "iconRaw");
+            results.Icon = info.ResolveForOrNull<Image<Rgba32>>("icon");
+            results.IconRaw = info.ResolveForOrNull<Image<Rgba32>>("iconRaw");
 
             return results;
-        }
-
-        static Image<Rgba32> Resolve(WZDirectory source, WZObject info, string propertyName)
-        {
-            Image<Rgba32> Icon = null;
-
-            if (!info.HasChild(propertyName))
-                return Icon;
-
-            if (info[propertyName].HasChild("source"))
-            {
-                string path = info[propertyName]["source"].ValueOrDefault<string>("");
-                path = path.Substring(path.IndexOf("/"));
-                Icon = source.ResolvePath(path).ImageOrDefault();
-            }
-            else if (info[propertyName].HasChild("_inlink"))
-            {
-                string path = info[propertyName]["_inlink"].ValueOrDefault<string>("");
-                if (path.StartsWith("info"))
-                    Icon = info.ResolvePath(path.Substring(path.IndexOf("/"))).ImageOrDefault();
-                else
-                    try
-                    {
-                        Icon = source.ResolvePath(Path.Combine(info.Path, "../../", path)).ImageOrDefault();
-                    } catch (Exception)
-                    {
-                        Icon = source.ResolvePath(Path.Combine(info.Path, "../", path)).ImageOrDefault();
-                    }
-            }
-            else if (info[propertyName].HasChild("_outlink"))
-            {
-                string path = info[propertyName]["_outlink"].ValueOrDefault<string>("");
-                path = path.Substring(path.IndexOf("/"));
-                Icon = source.ResolvePath(path).ImageOrDefault();
-            }
-            else
-            {
-                Icon = info[propertyName].ImageOrDefault();
-                if (Icon == null)
-                {
-                    string iconPath = info[propertyName].ValueOrDefault<string>(null);
-                    if (iconPath != null)
-                    {
-                        try
-                        {
-                            Icon = info.ResolvePath(iconPath).ImageOrDefault();
-                        } catch (Exception ex)
-                        {
-                            // Possible trying to jump to another wz image, look for 4 digit number and add .img extension
-                            string[] parts = iconPath.Split(new char[] { '/' }, StringSplitOptions.RemoveEmptyEntries);
-                            string imgPath = parts.Where(p => p.Length == 4).Where(p =>
-                            {
-                                int test = 0;
-                                return int.TryParse(p, out test);
-                            }).FirstOrDefault();
-
-                            // No possible path from here
-                            if (imgPath == null) return null;
-
-                            iconPath = iconPath.Replace($"/{imgPath}/", $"/{imgPath}.img/");
-                            Icon = info.ResolvePath(iconPath).ImageOrDefault();
-                        }
-                    }
-                }
-            }
-
-            return Icon;
         }
     }
 }

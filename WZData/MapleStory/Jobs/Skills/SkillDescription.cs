@@ -1,8 +1,8 @@
-﻿using reWZ.WZProperties;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using PKG1;
 
 namespace WZData
 {
@@ -19,7 +19,7 @@ namespace WZData
             this.bookName = bookName;
         }
 
-        public static SkillDescription Parse(WZObject child)
+        public static SkillDescription Parse(WZProperty child)
         {
             int itemId = -1;
             if (!int.TryParse(child.Name, out itemId))
@@ -27,18 +27,14 @@ namespace WZData
 
             string bookName = "", name = "", shortDesc = "", desc = "";
 
-            if (child.HasChild("bookName"))
-                bookName = child.ResolvePath("bookName").ValueOrDefault<string>("");
+            if (child.Children.ContainsKey("bookName"))
+                bookName = child.ResolveForOrNull<string>("bookName");
             else
             {
-                if (child.HasChild("name"))
-                    name = child.ResolvePath("name").ValueOrDefault<string>("");
-                if (child.HasChild("desc"))
-                    desc = child.ResolvePath("desc").ValueOrDefault<string>("");
-                if (child.HasChild("h"))
-                    shortDesc = child.ResolvePath("h").ValueOrDefault<string>("");
+                name = child.ResolveForOrNull<string>("name");
+                desc = child.ResolveForOrNull<string>("desc");
+                shortDesc = child.ResolveForOrNull<string>("h");
             }
-
 
             return new SkillDescription(itemId, name, desc, shortDesc, bookName);
         }

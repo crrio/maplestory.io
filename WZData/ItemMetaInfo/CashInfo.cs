@@ -1,8 +1,8 @@
-﻿using reWZ.WZProperties;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using PKG1;
 
 namespace WZData.ItemMetaInfo
 {
@@ -10,13 +10,11 @@ namespace WZData.ItemMetaInfo
     {
         public bool cash;
 
-        public static CashInfo Parse(WZObject info)
+        public static CashInfo Parse(WZProperty info)
         {
-            if (info.HasChild("cash"))
-                return new CashInfo()
-                {
-                    cash = (byte)info["cash"].ValueOrDefault<int>(0) == 1
-                };
+            bool? isCash = info.ResolveFor<bool>("cash");
+            if (isCash.HasValue)
+                return new CashInfo() { cash = isCash ?? false };
             else
                 return null;
         }

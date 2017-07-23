@@ -7,18 +7,19 @@ using System.Linq;
 using WZData.MapleStory.Images;
 using ImageSharp;
 using System;
+using PKG1;
 
 namespace maplestory.io.Controllers
 {
     [Produces("application/json")]
-    [Route("api/item")]
+    [Route("api/{region}/{version}/item")]
     public class ItemController : Controller
     {
         private readonly IItemFactory itemFactory;
         private readonly JsonSerializerSettings serializerSettings;
 
         public ItemController(IItemFactory factory)
-        { 
+        {
             itemFactory = factory;
 
             IgnorableSerializerContractResolver resolver = new IgnorableSerializerContractResolver();
@@ -34,35 +35,39 @@ namespace maplestory.io.Controllers
             };
         }
 
+        [FromRoute]
+        public Region region { get; set; }
+        [FromRoute]
+        public string version { get; set; }
         [Route("list")]
         [Route("")]
         [HttpGet]
         [ProducesResponseType(typeof(ItemNameInfo[]), 200)]
-        public IActionResult List() 
-            => Json(itemFactory.GetItems(), serializerSettings);
+        public IActionResult List()
+            => Json(itemFactory.GetWithWZ(region, version).GetItems(), serializerSettings);
 
         [Route("full")]
         [HttpGet]
         [ProducesResponseType(typeof(ItemNameInfo[]), 200)]
-        public IActionResult FullList() => Json(itemFactory.GetItems());
+        public IActionResult FullList() => Json(itemFactory.GetWithWZ(region, version).GetItems());
 
         [Route("category")]
         [HttpGet]
         [ProducesResponseType(typeof(string[]), 200)]
-        public IActionResult GetCategories() => Json(itemFactory.GetItemCategories());
+        public IActionResult GetCategories() => Json(itemFactory.GetWithWZ(region, version).GetItemCategories());
 
         [Route("category/{overallCategory}")]
         [HttpGet]
         [ProducesResponseType(typeof(ItemNameInfo), 200)]
         public IActionResult ListByCategory(string overallCategory)
-            => Json(itemFactory.GetItems().Where(c => c.TypeInfo.OverallCategory.Equals(overallCategory, StringComparison.CurrentCultureIgnoreCase)), serializerSettings);
+            => Json(itemFactory.GetWithWZ(region, version).GetItems().Where(c => c.TypeInfo.OverallCategory.Equals(overallCategory, StringComparison.CurrentCultureIgnoreCase)), serializerSettings);
 
         [Route("{itemId}")]
         [HttpGet]
         [ProducesResponseType(typeof(MapleItem), 200)]
         public IActionResult itemSearch(int itemId)
         {
-            MapleItem eq = itemFactory.search(itemId);
+            MapleItem eq = itemFactory.GetWithWZ(region, version).search(itemId);
             return Json(eq);
         }
 
@@ -71,7 +76,7 @@ namespace maplestory.io.Controllers
         [Produces("image/png")]
         public IActionResult itemIcon(int itemId)
         {
-            MapleItem eq = itemFactory.search(itemId);
+            MapleItem eq = itemFactory.GetWithWZ(region, version).search(itemId);
             if (eq == null) return NotFound("Couldn't find the item");
 
             if (eq.MetaInfo.Icon?.Icon != null)
@@ -92,7 +97,7 @@ namespace maplestory.io.Controllers
         [Produces("image/png")]
         public IActionResult itemIconRaw(int itemId)
         {
-            MapleItem eq = itemFactory.search(itemId);
+            MapleItem eq = itemFactory.GetWithWZ(region, version).search(itemId);
             return File(eq.MetaInfo.Icon.IconRaw.ImageToByte(), "image/png");
         }
 
@@ -101,7 +106,7 @@ namespace maplestory.io.Controllers
         [Produces("text/json")]
         public IActionResult itemName(int itemId)
         {
-            MapleItem eq = itemFactory.search(itemId);
+            MapleItem eq = itemFactory.GetWithWZ(region, version).search(itemId);
             return Json(eq.Description);
         }
     }

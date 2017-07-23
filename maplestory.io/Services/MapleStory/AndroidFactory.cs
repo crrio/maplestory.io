@@ -2,22 +2,22 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using PKG1;
 using WZData.MapleStory;
 
 namespace maplestory.io.Services.MapleStory
 {
-    public class AndroidFactory : IAndroidFactory
+    public class AndroidFactory : NeedWZ<IAndroidFactory>, IAndroidFactory
     {
-        private readonly Dictionary<int, Func<Android>> androidLookup;
-        private readonly int[] androidIds;
-
-        public AndroidFactory(IWZFactory wzFactory)
-        {
-            this.androidLookup = Android.GetLookup(wzFactory.GetWZFile(WZ.Etc)).ToDictionary(c => c.Item1, c => c.Item2);
-            this.androidIds = androidLookup.Keys.ToArray();
+        public AndroidFactory(IWZFactory wzFactory, Region region, string version) : base(wzFactory, region, version) { }
+        public Android GetAndroid(int androidId) {
+            return Android.Parse(wz.Resolve($"Etc/Android/{androidId.ToString("D4")}"), androidId);
+        }
+        public IEnumerable<int> GetAndroidIDs() {
+            return wz.Resolve("Etc/Android").Children.Keys.Select(c => int.Parse(c));
         }
 
-        public Android GetAndroid(int androidId) => androidLookup[androidId]();
-        public int[] GetAndroidIDs() => androidIds;
+        public override IAndroidFactory GetWithWZ(Region region, string version)
+            => new AndroidFactory(_factory, region, version);
     }
 }

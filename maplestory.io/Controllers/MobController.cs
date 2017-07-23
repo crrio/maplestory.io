@@ -6,31 +6,34 @@ using Microsoft.AspNetCore.Mvc;
 using maplestory.io.Services.MapleStory;
 using WZData.MapleStory.Mobs;
 using WZData;
+using PKG1;
 
 namespace maplestory.io.Controllers
 {
     [Produces("application/json")]
-    [Route("api/mob")]
+    [Route("api/{region}/{version}/mob")]
     public class MobController : Controller
     {
+        [FromRoute]
+        public Region region { get; set; }
+        [FromRoute]
+        public string version { get; set; }
         private IMobFactory _factory;
 
         public MobController(IMobFactory factory)
-        {
-            _factory = factory;
-        }
+            => _factory = factory;
 
         [Route("")]
         [HttpGet]
         [ProducesResponseType(typeof(MobInfo[]), 200)]
-        public IActionResult List() => Json(_factory.GetMobs());
+        public IActionResult List() => Json(_factory.GetWithWZ(region, version).GetMobs());
 
         [Route("{mobId}")]
         [HttpGet]
         [ProducesResponseType(typeof(Mob), 200)]
         public IActionResult GetMob(int mobId)
         {
-            return Json(_factory.GetMob(mobId));
+            return Json(_factory.GetWithWZ(region, version).GetMob(mobId));
         }
 
         [Route("{mobId}/icon")]
@@ -39,7 +42,7 @@ namespace maplestory.io.Controllers
         [Produces("image/png")]
         public IActionResult GetFrame(int mobId)
         {
-            Mob mobData = _factory.GetMob(mobId);
+            Mob mobData = _factory.GetWithWZ(region, version).GetMob(mobId);
 
             string animation = mobData.Framebooks.ContainsKey("stand") ? "stand" : mobData.Framebooks.ContainsKey("fly") ? "fly" : null;
 

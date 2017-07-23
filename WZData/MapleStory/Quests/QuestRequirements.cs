@@ -1,8 +1,8 @@
-﻿using reWZ.WZProperties;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using PKG1;
 
 namespace WZData.MapleStory.Quests
 {
@@ -27,37 +27,37 @@ namespace WZData.MapleStory.Quests
         public int? MinimumMonsterBookCards; // mbmin
         public QuestState State;
 
-        public static QuestRequirements[] Parse(WZObject data)
+        public static QuestRequirements[] Parse(WZProperty data)
         {
             int id = int.Parse(data.Name);
-            QuestRequirements onStart = data.HasChild("0") && data["0"].ChildCount > 0 ? QuestRequirements.Parse(id, data["0"], QuestState.Start) : null;
-            QuestRequirements onComplete = data.HasChild("1") && data["1"].ChildCount > 0 ? QuestRequirements.Parse(id, data["1"], QuestState.Complete) : null;
+            QuestRequirements onStart = data.Children.ContainsKey("0") && data.Resolve("0").Children.Count > 0 ? QuestRequirements.Parse(id, data.Resolve("0"), QuestState.Start) : null;
+            QuestRequirements onComplete = data.Children.ContainsKey("1") && data.Resolve("1").Children.Count > 0 ? QuestRequirements.Parse(id, data.Resolve("1"), QuestState.Complete) : null;
 
             return new QuestRequirements[] { onStart, onComplete };
         }
 
-        public static QuestRequirements Parse(int id, WZObject data, QuestState state)
+        public static QuestRequirements Parse(int id, WZProperty data, QuestState state)
         {
             QuestRequirements result = new QuestRequirements();
 
             result.Id = id;
             result.State = state;
-            result.Jobs = data.HasChild("job") ? data["job"].Select(c => c.ValueOrDefault<int>(0)) : null; // job
-            result.RequiredFieldsEntered = data.HasChild("fieldEnter") ? data["fieldEnter"].Select(c => c.ValueOrDefault<int>(0)) : null; // fieldEnter
-            result.StartTime = data.HasChild("start") ? (DateTime?)ResolveDateTimeString(data["start"].ValueOrDefault<string>("")) : null;
-            result.EndTime = data.HasChild("end") ? (DateTime?)ResolveDateTimeString(data["end"].ValueOrDefault<string>("")) : null;
-            result.LevelMinimum = data.HasChild("lvmin") ? (byte?) data["lvmin"].ValueOrDefault<int>(0) : null;
-            result.LevelMaximum = data.HasChild("lvmax") ? (byte?) data["lvmax"].ValueOrDefault<int>(0) : null;
-            result.Mobs = data.HasChild("mob") ? data["mob"].Select(c => Requirement.Parse(c)) : null;
-            result.Items = data.HasChild("item") ? data["item"].Select(c => Requirement.Parse(c)) : null;
-            result.Quests = data.HasChild("quest") ? data["quest"].Select(c => Requirement.Parse(c)) : null;
-            result.NPCId = data.HasChild("npc") ? (int?) data["npc"].ValueOrDefault<int>(0) : null;
-            result.OnDayOfWeek = data.HasChild("dayOfWeek") ? (DayOfWeek?)ResolveDayOfWeek(data["dayOfWeek"].ValueOrDefault("")) : null; // dayOfWeek
-            result.Pet = data.HasChild("pet") ? data["pet"].Select(c => Requirement.Parse(c)) : null;
-            result.PetTamenessMin = data.HasChild("pettamenessmin") ? (int?) data["pettamenessmin"].ValueOrDefault<int>(0) : null;
-            result.DayByDay = data.HasChild("dayByDay") && data["dayByDay"].ValueOrDefault<int>(0) == 1;
-            result.NormalAutoStart = data.HasChild("normalAutoStart") && data["normalAutoStart"].ValueOrDefault<int>(0) == 1;
-            result.MinimumMonsterBookCards = data.HasChild("mbmin") ? (int?) data["mbmin"].ValueOrDefault<int>(0) : null;
+            result.Jobs = data.Resolve("job")?.Children.Select(c => Convert.ToInt32(((IWZPropertyVal)c.Value).GetValue())); // job
+            result.RequiredFieldsEntered = data.Resolve("fieldEnter")?.Children.Select(c => Convert.ToInt32(((IWZPropertyVal)c.Value).GetValue())); // fieldEnter
+            result.StartTime = data.Children.ContainsKey("start") ? (DateTime?)ResolveDateTimeString(data.ResolveForOrNull<string>("start")) : null;
+            result.EndTime = data.Children.ContainsKey("end") ? (DateTime?)ResolveDateTimeString(data.ResolveForOrNull<string>("end")) : null;
+            result.LevelMinimum = data.ResolveFor<byte>("lvmin");
+            result.LevelMaximum = data.ResolveFor<byte>("lvmax");
+            result.Mobs = data.Resolve("mob")?.Children.Values.Select(c => Requirement.Parse(c));
+            result.Items = data.Resolve("item")?.Children.Values.Select(c => Requirement.Parse(c));
+            result.Quests = data.Resolve("quest")?.Children.Values.Select(c => Requirement.Parse(c));
+            result.NPCId = data.ResolveFor<int>("npc");
+            result.OnDayOfWeek = data.Children.ContainsKey("dayOfWeek") ? (DayOfWeek?)ResolveDayOfWeek(data.ResolveForOrNull<string>("dayOfWeek")) : null; // dayOfWeek
+            result.Pet = data.Resolve("pet")?.Children.Values.Select(c => Requirement.Parse(c));
+            result.PetTamenessMin = data.ResolveFor<int>("pettamenessmin");
+            result.DayByDay = data.ResolveFor<bool>("dayByDay");
+            result.NormalAutoStart = data.ResolveFor<bool>("normalAutoStart");
+            result.MinimumMonsterBookCards = data.ResolveFor<int>("mbmin");
 
             return result;
         }
@@ -91,13 +91,13 @@ namespace WZData.MapleStory.Quests
         public int? Id; // id
         public int? State; // state
 
-        public static Requirement Parse(WZObject c)
+        public static Requirement Parse(WZProperty c)
         {
             Requirement result = new Requirement();
 
-            result.Count = c.HasChild("count") ? (int?)c["count"].ValueOrDefault<int>(0) : null;
-            result.Id = c.HasChild("id") ? (int?)c["id"].ValueOrDefault<int>(0) : null;
-            result.State = c.HasChild("state") ? (int?)c["state"].ValueOrDefault<int>(0) : null;
+            result.Count = c.ResolveFor<int>("count");
+            result.Id = c.ResolveFor<int>("id");
+            result.State = c.ResolveFor<int>("state");
 
             return result;
         }

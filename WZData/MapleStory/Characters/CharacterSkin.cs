@@ -1,5 +1,4 @@
-﻿using reWZ.WZProperties;
-using System;
+﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -8,6 +7,7 @@ using MoreLinq;
 using System.Text;
 using System.Linq;
 using System.Numerics;
+using PKG1;
 
 namespace WZData.MapleStory.Characters
 {
@@ -18,19 +18,18 @@ namespace WZData.MapleStory.Characters
         string bodyISlot, headISlot;
         string bodyVSlot, headVSlot;
 
-        public CharacterSkin(int Id, WZObject bodyContainer, WZObject headContainer)
+        public CharacterSkin(int Id, WZProperty bodyContainer, WZProperty headContainer)
         {
             this.Id = Id;
 
-            headISlot = headContainer.ResolvePath("info/islot").ValueOrDefault("Hd");
-            headVSlot = headContainer.ResolvePath("info/vslot").ValueOrDefault("Hd");
-            bodyISlot = bodyContainer.ResolvePath("info/islot").ValueOrDefault("Bd");
-            bodyVSlot = bodyContainer.ResolvePath("info/vslot").ValueOrDefault("Bd");
+            headISlot = headContainer.ResolveForOrNull<string>("info/islot") ?? "Hd";
+            headVSlot = headContainer.ResolveForOrNull<string>("info/vslot") ?? "Hd";
+            bodyISlot = bodyContainer.ResolveForOrNull<string>("info/islot") ?? "Bd";
+            bodyVSlot = bodyContainer.ResolveForOrNull<string>("info/vslot") ?? "Bd";
 
-            Animations = Enumerable.Concat(headContainer, bodyContainer)
-                .AsParallel()
+            Animations = Enumerable.Concat(headContainer.Children.Values, bodyContainer.Children.Values)
                 // Filter out any non-frame containing animations
-                .Where(c => !c.Any(b => !int.TryParse(b.Name, out int test)))
+                .Where(c => !c.Children.Any(b => !int.TryParse(b.Key, out int test)))
                 // Map the animations to partial BodyAnimations
                 .Select(animation => BodyAnimation.Parse(animation))
                 .GroupBy(c => c.AnimationName)
@@ -52,12 +51,11 @@ namespace WZData.MapleStory.Characters
                 .ToDictionary(c => c.AnimationName);
         }
 
-        public static CharacterSkin[] Parse(WZObject characterWz)
-            => characterWz
+        public static IEnumerable<CharacterSkin> Parse(WZProperty characterWz)
+            => characterWz.Children.Values
                 .Where(c => int.TryParse(c.Name.Replace(".img", ""), out int blah) && blah < 10000)
                 .Select(c => int.Parse(c.Name.Replace(".img", "")))
-                .Select(c => new CharacterSkin(c, characterWz[$"{c.ToString("D8")}.img"], characterWz[$"{(c + 10000).ToString("D8")}.img"]))
-                .ToArray();
+                .Select(c => new CharacterSkin(c, characterWz.Resolve($"{c.ToString("D8")}"), characterWz.Resolve($"{(c + 10000).ToString("D8")}")));
     }
 
     public class BodyAnimation
@@ -67,14 +65,14 @@ namespace WZData.MapleStory.Characters
 
         static ConcurrentDictionary<string, BodyAnimation> cache = new ConcurrentDictionary<string, BodyAnimation>();
 
-        public static BodyAnimation Parse(WZObject animation)
+        public static BodyAnimation Parse(WZProperty animation)
         {
             if (cache.ContainsKey(animation.Path)) return cache[animation.Path];
 
             BodyAnimation result = new BodyAnimation();
 
             result.AnimationName = animation.Name;
-            result.Frames = animation.Select(Body.Parse).ToArray();
+            result.Frames = animation.Children.Values.Select(Body.Parse).ToArray();
 
             while (!cache.TryAdd(animation.Path, result) && !cache.ContainsKey(animation.Path)) ;
 
@@ -91,29 +89,30 @@ namespace WZData.MapleStory.Characters
 
         static ConcurrentDictionary<string, Dictionary<string, BodyPart>> cache = new ConcurrentDictionary<string, Dictionary<string, BodyPart>>();
 
-        internal static Body Parse(WZObject frame, int frameNumber)
+        internal static Body Parse(WZProperty frame, int frameNumber)
         {
             Body result = new Body();
 
             result.FrameNumber = frameNumber;
-            result.HasFace = frame.HasChild("face") ? (bool?)((frame["face"] is WZUInt16Property ? (((WZUInt16Property)frame["face"])?.Value ?? 0): frame["face"].ValueOrDefault<int>(0)) == 1) : null;
-            result.Delay = frame.HasChild("delay") ? (int?)frame["delay"].ValueOrDefault<int>(0) : null;
+            result.HasFace = frame.ResolveFor<bool>("face");
+            result.Delay = frame.ResolveFor<int>("delay");
             result.Parts = ResolveParts(frame);
 
             return result;
         }
 
-        private static Dictionary<string, BodyPart> ResolveParts(WZObject frame)
+        static readonly string[] blacklistPartElements = new []{ "delay", "face", "hideName", "move" };
+        private static Dictionary<string, BodyPart> ResolveParts(WZProperty frame)
         {
-            if (frame.HasChild("action"))
+            if (frame.Children.ContainsKey("action"))
             {
-                string action = frame["action"].ValueOrDefault<string>("");
-                int frameNumber = frame.HasChild("frame") ? frame["frame"].ValueOrDefault<int>(0) : 0;
-                return ResolveParts(frame.ResolvePath($"../../{action}/{frameNumber}"));
+                string action = frame.ResolveForOrNull<string>("action");
+                int frameNumber = frame.ResolveFor<int>("frame") ?? 0;
+                return ResolveParts(frame.Resolve($"../../{action}/{frameNumber}"));
             }
 
-            Dictionary<string, BodyPart> parts = frame.Where(c => c.Name != "delay" && c.Name != "face" && c.Name != "hideName" && c.Name != "move")
-                .Select(BodyPart.Parse)
+            Dictionary<string, BodyPart> parts = frame.Children.Where(c => !blacklistPartElements.Contains(c.Key))
+                .Select(c => BodyPart.Parse(c.Value))
                 .Where(a => a != null)
                 .ToDictionary(a => a.Name);
             while (!cache.TryAdd(frame.Path, parts) && !cache.ContainsKey(frame.Path)) ;
@@ -125,44 +124,29 @@ namespace WZData.MapleStory.Characters
     {
         public string Name;
         public Image<Rgba32> Image { get; set; }
-        public Vector2? Origin { get; set; }
+        public Point? Center { get; set; }
         public string Position { get; set; }
-        public Dictionary<string, Vector2> MapOffset { get; set; }
-
-        static ConcurrentDictionary<string, BodyPart> cache = new ConcurrentDictionary<string, BodyPart>();
-
-        internal static BodyPart Parse(WZObject part)
+        public Dictionary<string, Point> MapOffset { get; set; }
+        internal static BodyPart Parse(WZProperty part)
         {
-            if (part is WZCanvasProperty)
+            if (part.Type == PropertyType.Canvas)
             {
-                if (cache.ContainsKey(part.Path)) return cache[part.Path];
-
                 BodyPart result = new BodyPart();
 
                 result.Name = part.Name;
-                result.Image = ResolveImage(part);
-                result.Origin = part.HasChild("origin") ? ((WZVector2Property)part["origin"]).Value : new Vector2(0, 0);
-                result.Position = part.HasChild("z") ? part["z"].ValueOrDefault<string>("") : null;
-                result.MapOffset = part.HasChild("map") ? part["map"].Where(c => c is WZVector2Property).Select(c => new Tuple<string, Vector2>(c.Name, ((WZVector2Property)c).Value)).ToDictionary(b => b.Item1, b => b.Item2) : null;
-
-                while (!cache.TryAdd(part.Path, result) && !cache.ContainsKey(part.Path)) ;
+                result.Image = part.ResolveForOrNull<Image<Rgba32>>();
+                result.Center = part.ResolveFor<Point>("origin");
+                result.Position = part.ResolveForOrNull<string>("z") ?? part.ResolveForOrNull<string>("../z");
+                result.MapOffset = part.Resolve("map")?.Children
+                    .Where(c => c.Value.Type == PropertyType.Vector2)
+                    .ToDictionary(b => b.Key, b => b.Value.ResolveFor<Point>() ?? Point.Empty);
 
                 return result;
             }
-            else if (part is WZUOLProperty)
-                try
-                {
-                    return Parse(((WZUOLProperty)part).Resolve());
-                }catch(Exception ex) { return null; }
+            else if (part.Type == PropertyType.UOL){
+                return Parse(part.Resolve());
+            }
             return null;
-        }
-
-        public static Image<Rgba32> ResolveImage(WZObject container)
-        {
-            while (container.HasChild("_inlink"))
-                container = container.ResolvePath($"../../../{container["_inlink"].ValueOrDefault<string>("")}");
-
-            return ((WZCanvasProperty)container).ImageOrDefault();
         }
     }
 }

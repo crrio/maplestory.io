@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using maplestory.io.Services.MapleStory;
 using WZData;
 using WZData.MapleStory;
+using PKG1;
 
 namespace maplestory.io.Controllers.Etc
 {
@@ -14,6 +15,10 @@ namespace maplestory.io.Controllers.Etc
     [Route("api/android")]
     public class AndroidController : Controller
     {
+        [FromRoute]
+        public Region region { get; set; }
+        [FromRoute]
+        public string version { get; set; }
         private readonly IAndroidFactory _factory;
 
         public AndroidController(IAndroidFactory factory) => _factory = factory;
@@ -21,11 +26,11 @@ namespace maplestory.io.Controllers.Etc
         [Route("")]
         [HttpGet]
         [ProducesResponseType(typeof(int[]), 200)]
-        public IActionResult GetListing() => Json(_factory.GetAndroidIDs());
+        public IActionResult GetListing() => Json(_factory.GetWithWZ(region, version).GetAndroidIDs());
 
         [Route("{androidId}")]
         [HttpGet]
         [ProducesResponseType(typeof(Android), 200)]
-        public IActionResult GetAndroid(int androidId) => Json(_factory.GetAndroid(androidId));
+        public IActionResult GetAndroid(int androidId) => Json(_factory.GetWithWZ(region, version).GetAndroid(androidId));
     }
 }

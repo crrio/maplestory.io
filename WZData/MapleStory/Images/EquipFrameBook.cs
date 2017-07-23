@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Linq;
-using reWZ.WZProperties;
 using System.Collections.Generic;
+using PKG1;
 
 namespace WZData.MapleStory.Images
 {
@@ -9,32 +9,34 @@ namespace WZData.MapleStory.Images
     {
         public static Action<string> ErrorCallback = (s) => { };
         public IEnumerable<EquipFrame> frames;
-        internal static EquipFrameBook Parse(WZObject skills, WZObject skill, WZObject frameContainer)
+
+        internal static EquipFrameBook Parse(WZProperty container)
         {
             EquipFrameBook effect = new EquipFrameBook();
 
-            if (frameContainer.Type == WZObjectType.UOL) frameContainer = ((WZUOLProperty)frameContainer).ResolveFully();
+            // If we are a UOL, resolve, otherwise it'll return itself
+            container = container.Resolve();
 
-            bool isSingle = frameContainer.Any(c => c.Type == WZObjectType.Canvas);
+            bool isSingle = container.Children.Any(c => c.Value.Type == PropertyType.Canvas);
 
             if (!isSingle)
             {
-                effect.frames = frameContainer
+                effect.frames = container.Children
                 .Where(c =>
                 {
                     int frameNumber = -1;
-                    return int.TryParse(c.Name, out frameNumber);
+                    return int.TryParse(c.Key, out frameNumber);
                 })
                 .OrderBy(c =>
                 {
                     int frameNumber = -1;
-                    if (int.TryParse(c.Name, out frameNumber)) return frameNumber;
+                    if (int.TryParse(c.Key, out frameNumber)) return frameNumber;
                     return 1;
                 })
                 .Select(frame =>
                 {
                     try {
-                        return EquipFrame.Parse(skills, skill, frame);
+                        return EquipFrame.Parse(frame.Value);
                     } catch (Exception ex) {
                         ErrorCallback($"{ex.Message}{Environment.NewLine}{ex.StackTrace}");
                         return null;
@@ -43,7 +45,7 @@ namespace WZData.MapleStory.Images
             }
             else
             {
-                effect.frames = new EquipFrame[] { EquipFrame.Parse(skills, skill, frameContainer) };
+                effect.frames = new EquipFrame[] { EquipFrame.Parse(container) };
             }
 
             return effect;

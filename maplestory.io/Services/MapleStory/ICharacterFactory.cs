@@ -4,17 +4,18 @@ using ImageSharp;
 using System.Linq;
 using System.Threading.Tasks;
 using WZData.MapleStory.Characters;
+using PKG1;
 
 namespace maplestory.io.Services.MapleStory
 {
-    public interface ICharacterFactory
+    public interface ICharacterFactory : INeedWZ<ICharacterFactory>
     {
         int[] GetSkinIds();
         CharacterSkin GetSkin(int id);
-        Image<Rgba32> GetBase(int id, string animation = null, int frame = 0, bool showEars = false, int padding = 2, string renderMode = "default");
-        Image<Rgba32> GetBaseWithHair(int id, string animation = null, int frame = 0, bool showEars = false, int padding = 2, int faceId = 20305, int hairId = 37831, string renderMode = "default");
-        Image<Rgba32> GetCharacter(int id, string animation = null, int frame = 0, bool showEars = false, int padding = 2, string renderMode = "default", params Tuple<int, string>[] items);
+        Image<Rgba32> GetBase(int id, string animation = null, int frame = 0, bool showEars = false, int padding = 2, RenderMode renderMode = RenderMode.Full);
+        Image<Rgba32> GetBaseWithHair(int id, string animation = null, int frame = 0, bool showEars = false, int padding = 2, int faceId = 20305, int hairId = 37831, RenderMode renderMode = RenderMode.Full);
+        Image<Rgba32> GetCharacter(int id, string animation = null, int frame = 0, bool showEars = false, int padding = 2, RenderMode renderMode = RenderMode.Full, params Tuple<int, string>[] items);
         string[] GetActions(params int[] itemEntries);
-        byte[] GetSpriteSheet(int id, bool showEars = false, int padding = 2, string renderMode = "default", params int[] itemEntries);
+        byte[] GetSpriteSheet(int id, bool showEars = false, int padding = 2, RenderMode renderMode = RenderMode.Full, params int[] itemEntries);
     }
 }

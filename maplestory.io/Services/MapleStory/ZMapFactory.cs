@@ -1,20 +1,19 @@
 ﻿using System;
+using PKG1;
 using WZData.MapleStory;
 
 namespace maplestory.io.Services.MapleStory
 {
-    public class ZMapFactory : IZMapFactory
+    public class ZMapFactory : NeedWZ<IZMapFactory>, IZMapFactory
     {
-        private readonly ZMap zmap;
-        private readonly SMap smap;
+        public ZMapFactory(IWZFactory factory) : base(factory) { }
+        public ZMapFactory(IWZFactory factory, Region region, string version) : base(factory, region, version) { }
 
-        public ZMapFactory(IWZFactory factory)
-        {
-            this.zmap = ZMap.Parse(factory.GetWZFile(WZ.Base).MainDirectory);
-            this.smap = SMap.Parse(factory.GetWZFile(WZ.Base).MainDirectory);
-        }
-
-        public SMap GetSMap() => this.smap;
-        public ZMap GetZMap() => this.zmap;
+        public SMap GetSMap()
+            => SMap.Parse(wz.Resolve("Base"));
+        public ZMap GetZMap()
+            => ZMap.Parse(wz.Resolve("Base"));
+        public override IZMapFactory GetWithWZ(Region region, string version)
+            => new ZMapFactory(_factory, region, version);
     }
 }

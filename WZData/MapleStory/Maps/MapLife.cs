@@ -1,7 +1,7 @@
-﻿using reWZ.WZProperties;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using PKG1;
 
 namespace WZData.MapleStory.Maps
 {
@@ -24,30 +24,32 @@ namespace WZData.MapleStory.Maps
             }
         }
 
-        public static MapLife Parse(WZObject data)
+        public static MapLife Parse(WZProperty data)
         {
             MapLife result = new MapLife();
 
-            result.X = data.HasChild("x") ? data["x"].ValueOrDefault<int>(0) : -1; // x
-            result.Y = data.HasChild("y") ? data["y"].ValueOrDefault<int>(0) : -1; // y
-            result.WalkAreaX1 = data.HasChild("rx0") ? data["rx0"].ValueOrDefault<int>(0) : -1; // rx0
-            result.WalkAreaX2 = data.HasChild("rx1") ? data["rx1"].ValueOrDefault<int>(0) : -1; // rx1
-            if (data.HasChild("id"))
+            result.X = data.ResolveFor<int>("x") ?? int.MinValue; // x
+            result.Y = data.ResolveFor<int>("y") ?? int.MinValue; // y
+            result.WalkAreaX1 = data.ResolveFor<int>("rx0") ?? int.MinValue; // rx0
+            result.WalkAreaX2 = data.ResolveFor<int>("rx1") ?? int.MinValue; // rx1
+
+            WZProperty id = data.Resolve("id");
+            if (id != null)
             {
-                WZObject idObject = data["id"];
-                switch (idObject.Type)
+                switch (id.Type)
                 {
-                    case WZObjectType.Int32:
-                        result.Id = idObject.ValueOrDefault<int>(0);
+                    case PropertyType.Int32:
+                        result.Id = ((WZPropertyVal<int>)id).Value;
                         break;
-                    case WZObjectType.String:
-                        result.Id = int.Parse(idObject.ValueOrDefault<string>(""));
+                    case PropertyType.String:
+                        result.Id = int.Parse(((WZPropertyVal<string>)id).Value);
                         break;
                 }
             }
-            result.Foothold = data.HasChild("fh") ? data["fh"].ValueOrDefault<int>(0) : -1; // fh
-            result.Hidden = data.HasChild("hide") && data["hide"].ValueOrDefault<int>(0) == 1; // hide
-            result.Type = data["type"].ValueOrDefault<string>("").ToLower() == "n" ? LifeType.NPC : LifeType.Monster; // type
+
+            result.Foothold = data.ResolveFor<int>("fh") ?? -1; // fh
+            result.Hidden = data.ResolveFor<bool>("hide") ?? false; // hide
+            result.Type = data.ResolveForOrNull<string>("type").ToLower() == "n" ? LifeType.NPC : LifeType.Monster; // type
 
             return result;
         }

@@ -103,7 +103,7 @@ namespace WZData
                     new Tuple<string, int, int>("Mass", 1352930, 1352940), // Guess // Jet
                     new Tuple<string, int, int>("Fox Marble", 1353100, 1353110),
                     new Tuple<string, int, int>("Core Controller", 1353000, 1353010) // Guess
-                    
+
                 }
             },
             {"Two-Handed Weapon",

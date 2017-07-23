@@ -1,41 +1,26 @@
-﻿using reWZ;
-using reWZ.WZProperties;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using PKG1;
 
 namespace WZData.MapleStory.Items
 {
     public class Special : MapleItem
     {
-        public const string WZFile = "Item.wz";
-        public const string FolderPath = "Special";
-        public const bool IMGId = false;
-        public const string StringPath = null;
-
-        public Special(int id) : base(id)
+        public Special(int id) : base(id) { }
+        public static Special Parse(WZProperty stringWz)
         {
+            int id;
 
-        }
-
-        public static Special Parse(WZDirectory itemWz, WZObject specialItem, int id)
-        {
+            if (!int.TryParse(stringWz.Name, out id)) return null;
             Special item = new Special(id);
+            WZProperty specialWz = stringWz.ResolveOutlink($"Item/Special/{id.ToString("D8").Substring(0, 4)}.img/{id.ToString("D8")}");
 
-            item.MetaInfo = ItemInfo.Parse(itemWz, specialItem);
-            item.Description = ItemDescription.Parse(itemWz, FolderPath);
+            item.MetaInfo = ItemInfo.Parse(specialWz);
+            item.Description = ItemDescription.Parse(stringWz, id);
 
             return item;
-        }
-
-        public static IEnumerable<Special> Parse(WZDirectory itemWz)
-        {
-            int id = -1;
-            foreach (WZObject idGrouping in itemWz.ResolvePath(FolderPath))
-                foreach (WZObject item in idGrouping)
-                    if (int.TryParse(item.Name, out id))
-                        yield return Special.Parse(itemWz, item, id);
         }
     }
 }

@@ -1,9 +1,9 @@
 ﻿using ImageSharp;
-using reWZ;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using PKG1;
 
 namespace WZData.MapleStory.Maps
 {
@@ -12,7 +12,10 @@ namespace WZData.MapleStory.Maps
         public string Name;
         public Image<Rgba32> Mark;
 
-        public static IEnumerable<MapMark> Parse(WZFile mapWz)
-            => mapWz.ResolvePath("MapHelper.img/mark").Select(mark => new MapMark() { Mark = mark.ImageOrDefault(), Name = mark.Name });
+        public static IEnumerable<MapMark> Parse(PackageCollection mapWz)
+            => mapWz.Resolve("Map/MapHelper.img/mark").Children.Values.Select(mark => new MapMark() { Mark = mark.ResolveForOrNull<Image<Rgba32>>(), Name = mark.Name });
+
+        public static MapMark Parse(WZProperty mark)
+            => new MapMark() { Mark = mark.ResolveForOrNull<Image<Rgba32>>(), Name = mark.Name };
     }
 }

@@ -1,8 +1,8 @@
-﻿using reWZ.WZProperties;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using PKG1;
 
 namespace WZData.ItemMetaInfo
 {
@@ -10,13 +10,10 @@ namespace WZData.ItemMetaInfo
     {
         public int mob;
 
-        public static CardInfo Parse(WZObject info)
+        public static CardInfo Parse(WZProperty info)
         {
-            if (info.HasChild("mob"))
-                return new CardInfo()
-                {
-                    mob = info["mob"].ValueOrDefault<int>(0)
-                };
+            if (info.Children.ContainsKey("mob"))
+                return new CardInfo() { mob = info.ResolveFor<int>("mob") ?? 0 };
             else return null;
         }
     }

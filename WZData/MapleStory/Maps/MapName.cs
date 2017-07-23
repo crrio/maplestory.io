@@ -1,9 +1,8 @@
-﻿using reWZ;
-using reWZ.WZProperties;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Linq;
+using PKG1;
 
 namespace WZData.MapleStory.Maps
 {
@@ -11,18 +10,18 @@ namespace WZData.MapleStory.Maps
     {
         public string Name, StreetName;
         public int Id;
-        
-        public static MapName Parse(WZObject mapEntry)
+
+        public static MapName Parse(WZProperty mapEntry)
         {
             return new MapName()
             {
                 Id = int.Parse(mapEntry.Name),
-                Name = mapEntry.HasChild("mapName") ? mapEntry["mapName"].ValueOrDefault<string>(null) : null,
-                StreetName = mapEntry.HasChild("streetName") ? mapEntry["streetName"].ValueOrDefault<string>(null) : null
+                Name = mapEntry.ResolveForOrNull<string>("mapName"),
+                StreetName = mapEntry.ResolveForOrNull<string>("streetName")
             };
         }
 
-        public static IEnumerable<MapName> GetMapNames(WZFile stringWz)
-            => stringWz.ResolvePath("Map.img").SelectMany(c => c).Select(c => MapName.Parse(c));
+        public static IEnumerable<MapName> GetMapNames(WZProperty stringWz)
+            => stringWz.Resolve("Map").Children.Values.SelectMany(c => c.Children.Values).Select(c => MapName.Parse(c));
     }
 }

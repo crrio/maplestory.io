@@ -1,5 +1,4 @@
 ﻿using MoreLinq;
-using reWZ.WZProperties;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -7,43 +6,36 @@ using System.Linq;
 using System.Threading.Tasks;
 using WZData.MapleStory.Maps;
 using WZData.MapleStory.Quests;
+using PKG1;
 
 namespace maplestory.io.Services.MapleStory
 {
-    public class MapFactory : IMapFactory
+    public class MapFactory : NeedWZ<IMapFactory>, IMapFactory
     {
-        private readonly Dictionary<int, MapName> mapNames;
-        private readonly Dictionary<int, Func<Map>> mapLookup;
-        private readonly Dictionary<string, MapMark> markLookup;
+        public MapFactory(IWZFactory factory) : base(factory) { }
+        public MapFactory(IWZFactory factory, Region region, string version) : base(factory, region, version) { }
 
-        public MapFactory(IWZFactory factory)
-        {
-            WZObject mapWz = factory.GetWZFile(WZ.Map).MainDirectory;
-
-            IEnumerable<MapName> tempMapNames = MapName.GetMapNames(factory.GetWZFile(WZ.String))
-                .DistinctBy(c => c.Id)
-                .OrderBy(c => c.Id);
-
-            markLookup = MapMark.Parse(factory.GetWZFile(WZ.Map))
-                .ToDictionary(mark => mark.Name);
-
-            mapNames = new Dictionary<int, MapName>();
-            mapLookup = new Dictionary<int, Func<Map>>();
-            foreach (MapName mapName in tempMapNames)
-            {
-                if (!mapWz["Map"][$"Map{mapName.Id.ToString("D9")[0]}"].HasChild($"{mapName.Id.ToString("D9")}.img"))
-                    continue;
-
-                mapNames.Add(mapName.Id, mapName);
-                mapLookup.Add(mapName.Id, CreateLookup(factory, mapName));
-            }
+        public Map GetMap(int id) {
+            MapName name = GetMapName(id);
+            Map map = Map.Parse(name, wz);
+            return map;
         }
-
-        Func<Map> CreateLookup(IWZFactory factory, MapName mapName) => () => Map.Parse(factory.GetWZFile(WZ.Map), mapName);
-
-        public Map GetMap(int id) => mapLookup[id]();
-        public MapMark GetMapMark(string markName) => markLookup[markName];
-        public IEnumerable<MapName> GetMapNames() => mapNames.Values;
-        public MapName GetMapName(int id) => mapNames[id];
+        public MapMark GetMapMark(string markName) => MapMark.Parse(_factory.GetWZ(region, version).Resolve($"Map/MapHelper.img/mark/{markName}"));
+        public IEnumerable<MapName> GetMapNames() {
+            return wz.Resolve("String/Map").Children.Values
+                .SelectMany(c => c.Children)
+                .Select(c => MapName.Parse(c.Value));
+        }
+        public MapName GetMapName(int id) {
+            WZProperty mapName = wz.Resolve("String/Map").Children.Values
+                .SelectMany(c => c.Children)
+                .Where(c => c.Key == id.ToString())
+                .Select(c => c.Value)
+                .First();
+            MapName name = MapName.Parse(mapName);
+            return name;
+        }
+        public override IMapFactory GetWithWZ(Region region, string version)
+            => new MapFactory(_factory, region, version);
     }
 }

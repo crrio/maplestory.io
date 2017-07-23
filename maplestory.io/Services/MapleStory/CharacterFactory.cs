@@ -12,76 +12,65 @@ using System.IO;
 using WZData.MapleStory.Images;
 using System.Diagnostics;
 using Microsoft.Extensions.Logging;
+using PKG1;
 
 namespace maplestory.io.Services.MapleStory
 {
-    public class CharacterFactory : ICharacterFactory
+    public class CharacterFactory : NeedWZ<ICharacterFactory>, ICharacterFactory
     {
-        private readonly Dictionary<int, CharacterSkin> skins;
         private readonly IItemFactory itemFactory;
         private readonly ZMap zmap;
         private readonly SMap smap;
         private readonly ILogger<CharacterFactory> _logger;
+        private readonly IZMapFactory _zmapFactory;
 
+        public CharacterFactory(IWZFactory factory, IItemFactory itemFactory, IZMapFactory zMapFactory, ILogger<CharacterFactory> logger, Region region, string version)
+            : base (factory, region, version) {
+            _logger = logger;
+            _zmapFactory = zMapFactory;
+            zmap = _zmapFactory.GetZMap();
+            smap = _zmapFactory.GetSMap();
+            this.itemFactory = itemFactory;
+        }
         public CharacterFactory(IWZFactory factory, IItemFactory itemFactory, IZMapFactory zMapFactory, ILogger<CharacterFactory> logger)
+            : base(factory)
         {
             _logger = logger;
-            skins = CharacterSkin.Parse(factory.GetWZFile(WZ.Character).MainDirectory).ToDictionary(c => c.Id);
-            zmap = zMapFactory.GetZMap();
-            smap = zMapFactory.GetSMap();
+            _zmapFactory = zMapFactory;
             this.itemFactory = itemFactory;
         }
 
-        public CharacterSkin GetSkin(int id) => skins[id];
+        public CharacterSkin GetSkin(int id)
+            => CharacterSkin.Parse(wz.Resolve("Character")).First(c => c.Id == id);
 
-        public int[] GetSkinIds() => skins.Keys.ToArray();
+        public int[] GetSkinIds()
+            => CharacterSkin.Parse(wz.Resolve("Character")).Select(c => c.Id).ToArray();
 
-        public Image<Rgba32> GetBase(int id, string animation = null, int frame = 0, bool showEars = false, int padding = 2, string renderMode = "default")
+        public Image<Rgba32> GetBase(int id, string animation = null, int frame = 0, bool showEars = false, int padding = 2, RenderMode renderMode = RenderMode.Full)
             => GetCharacter(id, animation, frame, showEars, padding, renderMode, new Tuple<int, string>[0]);
 
-        public Image<Rgba32> GetBaseWithHair(int id, string animation = null, int frame = 0, bool showEars = false, int padding = 2, int faceId = 20305, int hairId = 37831, string renderMode = "default")
+        public Image<Rgba32> GetBaseWithHair(int id, string animation = null, int frame = 0, bool showEars = false, int padding = 2, int faceId = 20305, int hairId = 37831, RenderMode renderMode = RenderMode.Full)
             => GetCharacter(id, animation, frame, showEars, padding, renderMode, new Tuple<int, string>(faceId, null), new Tuple<int, string>(hairId, null));
 
-        public Image<Rgba32> GetCharacter(int id, string animation = null, int frame = 0, bool showEars = false, int padding = 2, string renderMode = "default", params Tuple<int, string>[] itemEntries)
+        public Image<Rgba32> GetCharacter(int id, string animation = null, int frame = 0, bool showEars = false, int padding = 2, RenderMode renderMode = RenderMode.Full, params Tuple<int, string>[] itemEntries)
             => GetCharacter(id, animation, frame, showEars, padding, renderMode, itemEntries.Select(c => new Tuple<int, string, int?>(c.Item1, c.Item2, null)).ToArray());
 
-        public Image<Rgba32> GetCharacter(int id, string animation = null, int frame = 0, bool showEars = false, int padding = 2, string renderMode = "default", params Tuple<int, string, int?>[] itemEntries)
+        public Image<Rgba32> GetCharacter(int id, string animation = null, int frame = 0, bool showEars = false, int padding = 2, RenderMode renderMode = RenderMode.Full, params Tuple<int, string, int?>[] itemEntries)
         {
-            Stopwatch watch;
-            IEnumerable<EquipEntry> items = itemEntries.Select((c) => {
-                Stopwatch loadWatch = Stopwatch.StartNew();
-                var res = new EquipEntry(){
-                    Equip = (Equip)itemFactory.search(c.Item1),
-                    Action = c.Item2,
-                    Frame = c.Item3
-                };//(itemFactory.search(c.Item1), c.Item2, c.Item3);
-                loadWatch.Stop();
-                _logger.LogDebug($"Took {loadWatch.ElapsedMilliseconds}ms to load item {c.Item1}");
-                return res;
-            });
+            Stopwatch watch = Stopwatch.StartNew();
+            CharacterAvatar avatar = new CharacterAvatar(wz);
+            avatar.Equips = itemEntries.Select(c => new EquipSelection(){ ItemId = c.Item1, AnimationName = c.Item2 }).ToArray();
 
-            watch = Stopwatch.StartNew();
-            CharacterSkin skin = GetSkin(id);
-            watch.Stop();
-            _logger.LogDebug($"Took {watch.ElapsedMilliseconds}ms to load skin {id}");
-            watch.Restart();
-            CharacterAvatar avatar = new CharacterAvatar(skin);
-            avatar.Items = items;
-
-            if (animation == null)
-            {
-                Equip weapon = avatar.Equips.Where(c => c.EquipGroup == "Weapon").FirstOrDefault();
-                animation = weapon?.FrameBooks.Select(c => c.Key).Where(c => c.Contains("stand")).FirstOrDefault() ?? "stand1";
-            }
-
+            avatar.SkinId = id;
             avatar.AnimationName = animation;
-            avatar.Frame = frame;
-            avatar.ShowEars = showEars;
+            if (string.IsNullOrEmpty(avatar.AnimationName)) avatar.AnimationName = "stand1";
+            avatar.FrameNumber = frame;
+            avatar.ElfEars = showEars;
             avatar.Padding = padding;
-            watch.Stop();
+
             _logger.LogDebug($"Took {watch.ElapsedMilliseconds}ms to initialize CharacterAvatar");
             watch.Restart();
-            var result = avatar.Render(zmap, smap, renderMode);
+            var result = avatar.Render();
             watch.Stop();
             _logger.LogDebug($"Took {watch.ElapsedMilliseconds}ms to render CharacterAvatar");
             return result;
@@ -89,13 +78,17 @@ namespace maplestory.io.Services.MapleStory
 
         public string[] GetActions(params int[] itemEntries)
         {
-            Equip[] eqps = itemEntries.Select(itemFactory.search)
-                .Where(c => c is Equip)
-                .Select(c => (Equip)c)
-                .Concat(new[] { (Equip)itemFactory.search(1040004) })
-                .ToArray();
+            List<string> itemEntriesStr = itemEntries.Where(c => c >= 30000).Select(c => c.ToString("D8")).ToList();
+            IEnumerable<WZProperty> itemNodes = wz.Resolve("Character").Children.Values
+                .Where(c => c.Type != PropertyType.Image)
+                .SelectMany(c => c.Children.Values)
+                .Where(c => itemEntriesStr.Contains(c.Name));
 
-            return GetActions(eqps);
+            string[] firstItemAnimations = itemNodes.First().Children.Keys.ToArray();
+            return itemNodes.Skip(1)
+                .SelectMany(c => c.Children.Keys.Where(firstItemAnimations.Contains))
+                .Distinct()
+                .ToArray();
         }
 
         public string[] GetActions(params Equip[] eqps)
@@ -106,19 +99,13 @@ namespace maplestory.io.Services.MapleStory
             return skin.Animations.Where(c => c.Value.AnimationName.Equals(c.Key, StringComparison.CurrentCultureIgnoreCase)).Select(c => c.Key).Where(c => eqps.All(e => e.FrameBooks.ContainsKey(c))).ToArray();
         }
 
-        public byte[] GetSpriteSheet(int id, bool showEars = false, int padding = 2, string renderMode = "default", params int[] itemEntries)
+        public byte[] GetSpriteSheet(int id, bool showEars = false, int padding = 2, RenderMode renderMode = RenderMode.Full, params int[] itemEntries)
         {
-            Equip[] eqps = itemEntries
-                .Select(itemFactory.search)
-                .Where(c => c is Equip)
-                .Select(c => (Equip)c)
-                .ToArray();
-
-            Equip face = eqps.Where(c => c.id >= 20000 && c.id <= 25000).FirstOrDefault();
+            Equip face = itemEntries.Where(c => c >= 20000 && c <= 25000).Select(c => (Equip)itemFactory.search(c)).FirstOrDefault();
 
             CharacterSkin skin = GetSkin(id);
 
-            string[] actions = GetActions(eqps);
+            string[] actions = GetActions(itemEntries);
 
             using (MemoryStream mem = new MemoryStream())
             {
@@ -153,5 +140,8 @@ namespace maplestory.io.Services.MapleStory
                 return mem.ToArray();
             }
         }
+
+        public override ICharacterFactory GetWithWZ(Region region, string version)
+            => new CharacterFactory(_factory, itemFactory.GetWithWZ(region, version), _zmapFactory.GetWithWZ(region, version), _logger, region, version);
     }
 }

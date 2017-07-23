@@ -2,23 +2,22 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using PKG1;
 using WZData.MapleStory.Mobs;
 
 namespace maplestory.io.Services.MapleStory
 {
-    public class MobFactory : IMobFactory
+    public class MobFactory : NeedWZ<IMobFactory>, IMobFactory
     {
-        private Dictionary<int, Func<Mob>> mobLookup;
-        private MobInfo[] allMobMeta;
+        public MobFactory(IWZFactory factory) : base(factory) { }
+        public MobFactory(IWZFactory factory, Region region, string version) : base(factory, region, version) { }
 
-        public MobFactory(IWZFactory factory)
-        {
-            Tuple<int, MobInfo, Func<Mob>>[] mobs = Mob.GetLookup(factory.GetWZFile(WZ.Mob).MainDirectory, factory.GetWZFile(WZ.String).MainDirectory)
-                .Concat(Mob.GetLookup(factory.GetWZFile(WZ.Mob2).MainDirectory, factory.GetWZFile(WZ.String).MainDirectory)).ToArray();
-            mobLookup = mobs.ToDictionary(k => k.Item1, v => v.Item3);
-            allMobMeta = mobs.Select(c => c.Item2).ToArray();
-        }
-        public Mob GetMob(int id) => mobLookup[id]();
-        public IEnumerable<MobInfo> GetMobs() => allMobMeta;
+        public Mob GetMob(int id)
+            => Mob.Parse(wz.Resolve($"String/Mob/{id}"));
+        public IEnumerable<MobInfo> GetMobs()
+            => wz.Resolve("String/Mob").Children.Values.Select(MobInfo.Parse);
+
+        public override IMobFactory GetWithWZ(Region region, string version)
+            => new MobFactory(_factory, region, version);
     }
 }

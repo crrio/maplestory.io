@@ -7,7 +7,7 @@
             "request": "launch",
             "preLaunchTask": "build",
             "program": "${workspaceRoot}/maplestory.io/bin/Debug/netcoreapp1.1/maplestory.io.dll",
-            "args": [],
+            "args": ["configuration Release -r ubuntu.16.10-x64"],
             "cwd": "${workspaceRoot}/maplestory.io",
             "stopAtEntry": false,
             "console": "integratedTerminal"

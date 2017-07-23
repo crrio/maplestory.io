@@ -1,10 +1,9 @@
-﻿using reWZ;
-using reWZ.WZProperties;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using WZData.ItemMetaInfo;
+using PKG1;
 
 namespace WZData
 {
@@ -23,19 +22,18 @@ namespace WZData
         public ChairInfo Chair;
         public IconInfo Icon;
 
-        public static ItemInfo Parse(WZDirectory source, WZObject info)
+        public  static ItemInfo Parse(WZProperty characterItem)
         {
+            WZProperty info = characterItem.Resolve("info");
             ItemInfo results = new ItemInfo();
-            if (info.HasChild("only"))
-                results.only = info["only"].ValueOrDefault<bool>(false);
-
+            results.only = (info.ResolveFor<int>("only") ?? 0) == 1;
             results.Equip = EquipInfo.Parse(info);
             results.Cash = CashInfo.Parse(info);
             results.Shop = ShopInfo.Parse(info);
             results.Card = CardInfo.Parse(info);
             results.Slot = SlotInfo.Parse(info);
             results.Chair = ChairInfo.Parse(info);
-            results.Icon = IconInfo.Parse(source, info);
+            results.Icon = IconInfo.Parse(info);
 
             return results;
         }

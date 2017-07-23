@@ -2,13 +2,19 @@ using maplestory.io.Services.MapleStory;
 using Microsoft.AspNetCore.Mvc;
 using ImageSharp;
 using WZData.MapleStory.Maps;
+using PKG1;
 
 namespace maplestory.io.Controllers
 {
     [Produces("application/json")]
-    [Route("api/map")]
+    [Route("api/{region}/{version}/map")]
     public class MapController : Controller
     {
+        [FromRoute]
+        public Region region { get; set; }
+        [FromRoute]
+        public string version { get; set; }
+
         private IMapFactory _factory;
         private IMusicFactory _musicFactory;
 
@@ -21,14 +27,14 @@ namespace maplestory.io.Controllers
         [HttpGet]
         [ProducesResponseType(typeof(MapName[]), 200)]
         public IActionResult List()
-            => Json(_factory.GetMapNames());
+            => Json(_factory.GetWithWZ(region, version).GetMapNames());
 
         [Route("{mapId}")]
         [HttpGet]
         [ProducesResponseType(typeof(Map), 200)]
         public IActionResult GetMap(int mapId)
         {
-            return Json(_factory.GetMap(mapId));
+            return Json(_factory.GetWithWZ(region, version).GetMap(mapId));
         }
 
         [Route("{mapId}/name")]
@@ -36,7 +42,7 @@ namespace maplestory.io.Controllers
         [ProducesResponseType(typeof(MapName), 200)]
         public IActionResult GetMapName(int mapId)
         {
-            return Json(_factory.GetMapName(mapId));
+            return Json(_factory.GetWithWZ(region, version).GetMapName(mapId));
         }
 
         [Route("icon/{markName}")]
@@ -44,7 +50,7 @@ namespace maplestory.io.Controllers
         [Produces("image/png")]
         public IActionResult GetMarkByName(string markName)
         {
-            return File(_factory.GetMapMark(markName).Mark.ImageToByte(), "image/png");
+            return File(_factory.GetWithWZ(region, version).GetMapMark(markName).Mark.ImageToByte(), "image/png");
         }
 
         [Route("{mapId}/icon")]
@@ -52,7 +58,7 @@ namespace maplestory.io.Controllers
         [Produces("image/png")]
         public IActionResult GetMapMark(int mapId)
         {
-            Map map = _factory.GetMap(mapId);
+            Map map = _factory.GetWithWZ(region, version).GetMap(mapId);
             return GetMarkByName(map.MapMark);
         }
 
@@ -61,7 +67,7 @@ namespace maplestory.io.Controllers
         [Produces("audio/mpeg")]
         public IActionResult GetBGM(int mapId)
         {
-            Map map = _factory.GetMap(mapId);
+            Map map = _factory.GetWithWZ(region, version).GetMap(mapId);
             return File(_musicFactory.GetSong(map.BackgroundMusic), "audio/mpeg");
         }
     }

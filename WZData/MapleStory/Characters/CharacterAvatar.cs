@@ -1,269 +1,80 @@
-﻿using MoreLinq;
+using PKG1;
 using System;
-using System.Collections.Generic;
-using System.Diagnostics;
 using ImageSharp;
 using System.Linq;
-using WZData.MapleStory.Images;
-using WZData.MapleStory.Items;
-using System.Numerics;
+using System.Collections;
+using System.Collections.Generic;
+using MoreLinq;
 
-namespace WZData.MapleStory.Characters
-{
-    public class CharacterAvatar
-    {
-        public bool ShowEars;
+namespace WZData.MapleStory.Characters {
+    public class CharacterAvatar {
+        public int SkinId;
+        public EquipSelection[] Equips;
+        public RenderMode Mode;
+        public int FrameNumber;
         public string AnimationName;
-        public int Frame;
+        private readonly PackageCollection wz;
         public int Padding;
-        public IEnumerable<EquipEntry> Items;
-        public readonly CharacterSkin BaseSkin;
-        public Dictionary<string, Vector2> anchorPositions;
+        public bool ElfEars;
 
-        public bool HasFace { get => EntireBodyFrame.HasFace ?? false; }
-
-        public BodyAnimation SkinAnimation { get => BaseSkin.Animations[AnimationName]; }
-        public Body EntireBodyFrame { get => SkinAnimation.Frames[Frame % SkinAnimation.Frames.Length]; }
-        public Dictionary<string, BodyPart> BodyParts { get => EntireBodyFrame.Parts; }
-
-        public IEnumerable<Equip> Equips { get => Items.Select(c => c.Equip); }
-        public int WeaponCategory {
-            get => (int)Math.Floor(
-                ((Items
-                    .Where(c => c.Equip.EquipGroup.Equals("weapon", StringComparison.CurrentCultureIgnoreCase) && !c.Equip.MetaInfo.Cash.cash)
-                    .FirstOrDefault()?.Equip.id ?? 0
-                ) - 1000000) / 10000d
-            );
+        public CharacterAvatar(PackageCollection wz) {
+            this.wz = wz;
         }
 
-        public IEnumerable<EquipFrameEntry> EquipFrames
-        {
-            get => Items
-                .GroupBy(c => c.Equip.TypeInfo.SubCategory)
-                .Select(c => c.FirstOrDefault(b => b.Equip.MetaInfo.Cash?.cash ?? false) ?? c.First())
-                // Some equips aren't always shown, like weapons when sitting
-                .SelectMany(c => c.GetFrameEntry(WeaponCategory, AnimationName));
-        }
+        public Image<Rgba32> Render() {
+            RankedFrame[] partsData = GetAnimationParts().OrderBy(c => c.ranking).ToArray();
+            Frame[] partsFrames = partsData.Select(c => c.frame).ToArray();
 
-        public IEnumerable<IFrame> EffectFrames
-        {
-            get => Items
-                .Where(c => c.Equip.ItemEffects != null && c.Equip.ItemEffects.entries != null)
-                .SelectMany(c => c.GetEffectFrameEntry(AnimationName))
-                .GroupBy(c => c.Equip.EquipGroup)
-                .Select(c => c.FirstOrDefault(b => b.Equip.MetaInfo.Cash?.cash ?? false) ?? c.First())
-                .Select(c => c.SelectedFrame);
-        }
+            Dictionary<string, Point> anchorPositions = new Dictionary<string, Point>() { { "navel", new Point(0, 0) } };
 
-        public CharacterAvatar(CharacterSkin baseSkin)
-        {
-            this.BaseSkin = baseSkin;
-        }
+            List<KeyValuePair<string, Point>[]> offsets = partsFrames.Select(c => c.MapOffset.ToArray()).ToList();
+            while (offsets.Count > 0) {
+                KeyValuePair<string, Point>[] offsetPairing = offsets.FirstOrDefault(c => c.Any(b => anchorPositions.ContainsKey(b.Key)));
+                KeyValuePair<string, Point> anchorPointEntry = offsetPairing.Where(c => anchorPositions.ContainsKey(c.Key)).First();
+                Point anchorPoint = anchorPoint = anchorPositions[anchorPointEntry.Key];
+                Point vectorFromPoint = anchorPointEntry.Value;
+                Point fromAnchorPoint = new Point(anchorPoint.X - vectorFromPoint.X, anchorPoint.Y - vectorFromPoint.Y);
 
-        public List<Tuple<string, Vector2, IFrame>> GetElementPieces(ZMap zmapping, SMap smapping, List<IFrame> frames = null)
-        {
-            if (frames == null)
-                frames = GetBodyPieces(zmapping, smapping).ToList();
+                foreach (KeyValuePair<string, Point> childAnchorPoint in offsetPairing.Where(c => c.Key != anchorPointEntry.Key))
+                    if (!anchorPositions.ContainsKey(childAnchorPoint.Key))
+                        anchorPositions.Add(childAnchorPoint.Key, new Point(fromAnchorPoint.X + childAnchorPoint.Value.X, fromAnchorPoint.Y + childAnchorPoint.Value.Y));
 
-            List<Tuple<string, Vector2, IFrame>> elements = new List<Tuple<string, Vector2, IFrame>>();
-
-            while (frames.Count > 0)
-            {
-                IFrame part = frames.Where(c => c.MapOffset?.Any(b => anchorPositions.ContainsKey(b.Key)) ?? false).FirstOrDefault() ?? frames.First();
-
-                Vector2 partOrigin = part.Origin ?? Vector2.Zero;
-                Vector2 withOffset = Vector2.Zero;
-                if (part.MapOffset != null)
-                {
-                    KeyValuePair<string, Vector2>? anchorVector2EntryTest = part.MapOffset.Where(c => anchorPositions.ContainsKey(c.Key)).FirstOrDefault();
-                    KeyValuePair<string, Vector2> anchorVector2Entry;
-                    Vector2 anchorVector2 = Vector2.Zero;
-                    Vector2 vectorFromVector2 = Vector2.Zero;
-
-                    if (anchorVector2EntryTest == null || string.IsNullOrEmpty(anchorVector2EntryTest.Value.Key))
-                    {
-                        Tuple<string, Vector2, IFrame> body = elements.FirstOrDefault(c => c.Item1.Equals("head"));
-                        vectorFromVector2 = part.MapOffset.First().Value;
-                        anchorVector2 = vectorFromVector2 + partOrigin + new Vector2(-11, (Math.Abs(body.Item2.Y) - partOrigin.Y + vectorFromVector2.Y));
-                    }
-                    else
-                    {
-                        anchorVector2Entry = anchorVector2EntryTest.Value;
-                        anchorVector2 = anchorPositions[anchorVector2Entry.Key];
-                        vectorFromVector2 = anchorVector2Entry.Value;
-                    }
-
-                    Vector2 fromAnchorVector2 = new Vector2(anchorVector2.X - vectorFromVector2.X, anchorVector2.Y - vectorFromVector2.Y);
-
-                    foreach (KeyValuePair<string, Vector2> childAnchorVector2 in part.MapOffset.Where(c => c.Key != anchorVector2Entry.Key))
-                    {
-                        Vector2 resultAnchorVector2 = new Vector2(fromAnchorVector2.X + childAnchorVector2.Value.X, fromAnchorVector2.Y + childAnchorVector2.Value.Y);
-                        if (!anchorPositions.ContainsKey(childAnchorVector2.Key))
-                            anchorPositions.Add(childAnchorVector2.Key, resultAnchorVector2);
-                        else if (anchorPositions[childAnchorVector2.Key].X != resultAnchorVector2.X || anchorPositions[childAnchorVector2.Key].Y != resultAnchorVector2.Y)
-                        {
-                            //throw new InvalidOperationException("Duplicate anchor Vector2, but position doesn't match up, possible state corruption?");
-                        }
-                    }
-
-                    withOffset = new Vector2(fromAnchorVector2.X - partOrigin.X, fromAnchorVector2.Y - partOrigin.Y);
-                }
-                else
-                {
-                    Vector2 neckVector2 = (Vector2?)anchorPositions.FirstOrDefault(c => c.Key == "brow").Value ?? new Vector2(0, 0);
-                    withOffset = new Vector2(neckVector2.X - partOrigin.X, neckVector2.Y - partOrigin.Y);
-                }
-
-                elements.Add(new Tuple<string, Vector2, IFrame>(part.Position, withOffset, part));
-                frames.Remove(part);
+                offsets.Remove(offsetPairing);
             }
 
-            return elements;
-        }
+            Tuple<Frame, Point>[] positionedFrames = partsFrames.Select(c => {
+                KeyValuePair<string, Point> anchorPointEntry = c.MapOffset.Where(b => anchorPositions.ContainsKey(b.Key)).First();
+                Point anchorPoint = anchorPoint = anchorPositions[anchorPointEntry.Key];
+                Point vectorFromPoint = anchorPointEntry.Value;
+                Point fromAnchorPoint = new Point(anchorPoint.X - vectorFromPoint.X, anchorPoint.Y - vectorFromPoint.Y);
+                Point partOrigin = c.Center ?? Point.Empty;
+                Point withOffset = Point.Empty;
 
-        Dictionary<string, Equip> GetBoundLayers(EquipFrameEntry[] eqpFrames, ZMap zmapping, SMap smapping)
-        {
-            Dictionary<string, Equip> boundLayers = new Dictionary<string, Equip>();
-            foreach (Tuple<string, IEnumerable<EquipFrameEntry>> eqp in zmapping.Ordering
-                .Where(c => (EntireBodyFrame.HasFace ?? true) || c != "face")
-                .Select(c => new Tuple<string, IEnumerable<EquipFrameEntry>>(c, eqpFrames.Where(b => b.Equip.MetaInfo.Equip.islots.Contains(c))))
-                .Where(c => c.Item2 != null))
-            {
-                string currentZ = eqp.Item1;
+                return new Tuple<Frame, Point>(
+                    c,
+                    new Point(fromAnchorPoint.X - partOrigin.X, fromAnchorPoint.Y - partOrigin.Y)
+                );
+            }).ToArray();
 
-                foreach (EquipFrameEntry underlyingFrame in eqp.Item2)
-                {
-                    Equip currentEquip = underlyingFrame.Equip;
-                    string framePosition = underlyingFrame.SelectedFrame.Position ?? "";
-                    IFrame currentFrame = underlyingFrame.SelectedFrame;
-
-                    foreach (string explicitSlot in currentEquip.MetaInfo.Equip.vslots)
-                    {
-                        if (boundLayers.ContainsKey(explicitSlot))
-                            boundLayers[explicitSlot] = currentEquip;
-                        else
-                            boundLayers.Add(explicitSlot, currentEquip);
-                    }
-
-                    bool shouldUseEquipVSlot = framePosition.Equals(currentEquip.EquipGroup, StringComparison.CurrentCultureIgnoreCase) || currentZ.Equals(currentEquip.EquipGroup, StringComparison.CurrentCultureIgnoreCase) || framePosition.StartsWith("default", StringComparison.CurrentCultureIgnoreCase);
-                    if (!shouldUseEquipVSlot && (!(EntireBodyFrame.HasFace ?? true) || !framePosition.ToLower().Contains("back")))
-                    {
-                        string requiredSlots = (smapping.Ordering.FirstOrDefault(c => c.Item1 == currentFrame.Position)?.Item2 ?? "");
-                        string[] attemptSlots = (new string[requiredSlots.Length / 2]).Select((c, i) => requiredSlots.Substring(i * 2, 2)).ToArray();
-                        foreach (string slot in attemptSlots)
-                            if (!boundLayers.ContainsKey(slot))
-                                boundLayers.Add(slot, currentEquip);
-                            else
-                                boundLayers[slot] = currentEquip;
-                    }
-                }
-            }
-
-            return boundLayers;
-        }
-
-        IEnumerable<IFrame> GetBodyPieces(ZMap zmapping, SMap smapping)
-        {
-            EquipFrameEntry[] eqpFrames = EquipFrames.ToArray();
-            Dictionary<string, Equip> boundLayers = GetBoundLayers(eqpFrames, zmapping, smapping);
-            List<Tuple<Equip, IFrame, string[]>> requiredLayers = new List<Tuple<Equip, IFrame, string[]>>();
-
-            foreach (Tuple<string, IEnumerable<EquipFrameEntry>> eqp in zmapping.Ordering
-                .Where(c => (EntireBodyFrame.HasFace ?? true) || c != "face")
-                .Select(c => new Tuple<string, IEnumerable<EquipFrameEntry>>(c, eqpFrames.Where(b => b.SelectedFrame.Position == c)))
-                .Where(c => c.Item2 != null))
-            {
-                string currentZ = eqp.Item1;
-                foreach (EquipFrameEntry underlyingFrame in eqp.Item2)
-                {
-                    Equip currentEquip = underlyingFrame.Equip;
-                    string framePosition = underlyingFrame.SelectedFrame.Position;
-                    IFrame currentFrame = underlyingFrame.SelectedFrame;
-
-                    bool shouldUseEquipVSlot = framePosition.Equals(currentEquip.EquipGroup, StringComparison.CurrentCultureIgnoreCase) || currentZ.Equals(currentEquip.EquipGroup, StringComparison.CurrentCultureIgnoreCase) || framePosition.StartsWith("default", StringComparison.CurrentCultureIgnoreCase);
-
-                    string[] slotInstances = new string[]
-                    {
-                        // Equip vslot position
-                        shouldUseEquipVSlot ? currentEquip.MetaInfo.Equip.vslot : null,
-                        // Z position on frame part
-                        smapping.Ordering.FirstOrDefault(c => c.Item1 == currentZ)?.Item2,
-                        // Frame part position on item
-                        smapping.Ordering.FirstOrDefault(c => c.Item1 == framePosition)?.Item2
-                    };
-
-                    slotInstances = slotInstances.Where(c => c != null).DefaultIfEmpty(currentEquip.MetaInfo.Equip.vslot).ToArray();
-
-                    slotInstances.Where(c => c != null).ForEach(requiredSlots =>
-                    {
-                        string[] attemptSlots = (new string[requiredSlots.Length / 2]).Select((c, i) => requiredSlots.Substring(i * 2, 2)).ToArray();
-
-                        foreach (string slot in attemptSlots)
-                            if (!boundLayers.ContainsKey(slot))
-                                boundLayers.Add(slot, currentEquip);
-
-                        requiredLayers.Add(new Tuple<Equip, IFrame, string[]>(currentEquip, currentFrame, attemptSlots));
-                    });
-                }
-            }
-
-            return BodyParts.Values
-                .Where(c => ShowEars || c.Name != "ear")
-                .Select(c => (IFrame)c)
-                .Concat(requiredLayers.Where(c => c.Item3.All(slot => boundLayers[slot] == c.Item1)).Select(c => c.Item2).DistinctBy(c => c.Position))
-                .Concat(eqpFrames.Where(c => int.TryParse(c.Position, out int blah)).Select(c => c.SelectedFrame));
-        }
-
-        public Image<Rgba32> Render(ZMap zmapping, SMap smapping, string renderMode)
-        {
-            anchorPositions = new Dictionary<string, Vector2>() { { "navel", new Vector2(0, 0) } };
-            List<Tuple<string, Vector2, IFrame>> elements = GetElementPieces(zmapping, smapping);
-            List<Tuple<int, Vector2, IFrame>> effectFrames = GetElementPieces(zmapping, smapping, EffectFrames.ToList())
-                .Select(c => new Tuple<int, Vector2, IFrame>(int.Parse(c.Item1), c.Item2, c.Item3))
-                .Concat(elements.Where(c => int.TryParse(c.Item1, out int blah)).Select(c => new Tuple<int, Vector2, IFrame>(int.Parse(c.Item1), c.Item2, c.Item3)))
-                .OrderBy(c => c.Item1).ToList();
-
-            float minX = elements
-                .Select(c => c.Item2.X)
-                .Concat(effectFrames.Select(c => c.Item2.X))
-                .Min();
-            float maxX = elements
-                .Select(c => c.Item2.X + c.Item3.Image.Width)
-                .Concat(effectFrames.Select(c => c.Item2.X + c.Item3.Image.Width))
-                .Max();
-            float minY = elements
-                .Select(c => c.Item2.Y)
-                .Concat(effectFrames.Select(c => c.Item2.Y))
-                .Min();
-            float maxY = elements
-                .Select(c => c.Item2.Y + c.Item3.Image.Height)
-                .Concat(effectFrames.Select(c => c.Item2.Y + c.Item3.Image.Height))
-                .Max();
+            float minX = positionedFrames.Select(c => c.Item2.X).Min();
+            float maxX = positionedFrames.Select(c => c.Item2.X + c.Item1.Image.Width).Max();
+            float minY = positionedFrames.Select(c => c.Item2.Y).Min();
+            float maxY = positionedFrames.Select(c => c.Item2.Y + c.Item1.Image.Height).Max();
             Size center = new Size((int)((maxX - minX) / 2), (int)((maxY - minY) / 2));
-            Vector2 offset = new Vector2(minX, minY);
-
-            elements = elements.Select(c => new Tuple<string, Vector2, IFrame>(c.Item1, Vector2.Subtract(c.Item2, offset), c.Item3)).ToList();
-            effectFrames = effectFrames.Select(c => new Tuple<int, Vector2, IFrame>(c.Item1, Vector2.Subtract(c.Item2, offset), c.Item3)).ToList();
-
-            Tuple<string, Vector2, IFrame> body = elements.Where(c => c.Item1.Equals("body") || c.Item1.Equals("backBody")).First();
-            Vector2 bodyPosition = body.Item2;
+            Size offset = new Size((int)minX, (int)minY);
 
             Image<Rgba32> destination = new Image<Rgba32>((int)((maxX - minX) + (Padding * 2)), (int)((maxY - minY) + (Padding * 2)));
+            foreach (Tuple<Frame, Point> frame in positionedFrames)
+                destination.DrawImage(frame.Item1.Image, 1, new Size(frame.Item1.Image.Width, frame.Item1.Image.Height), new Point((int)(frame.Item2.X - minX), (int)(frame.Item2.Y - minY)));
 
-            foreach (Tuple<int, Vector2, IFrame> frame in effectFrames.Where(c => c.Item1 < 1))
-                destination.DrawImage(frame.Item3.Image, 1, new Size(frame.Item3.Image.Width, frame.Item3.Image.Height), new Point((int)(frame.Item2.X + Padding), (int)(frame.Item2.Y + Padding)));
-            foreach (IEnumerable<Tuple<string, Vector2, IFrame>> elementGroup in zmapping.Ordering.Select(c => elements.Where(i => i.Item1 == c)))
-                foreach (Tuple<string, Vector2, IFrame> element in elementGroup)
-                    destination.DrawImage(element.Item3.Image, 1, new Size(element.Item3.Image.Width, element.Item3.Image.Height), new Point((int)(element.Item2.X + Padding), (int)(element.Item2.Y + Padding)));
-            foreach (Tuple<int, Vector2, IFrame> frame in effectFrames.Where(c => c.Item1 > 0))
-                destination.DrawImage(frame.Item3.Image, 1, new Size(frame.Item3.Image.Width, frame.Item3.Image.Height), new Point((int)(frame.Item2.X + Padding), (int)(frame.Item2.Y + Padding)));
+            Tuple<Frame, Point> body = positionedFrames.Where(c => c.Item1.Position.Equals("body") || c.Item1.Position.Equals("backBody")).First();
 
-            if (renderMode == "compact")
+            if (Mode == RenderMode.Compact)
             {
-                Vector2 bodyShouldBe = new Vector2(36, 55);
-                Vector2 cropOrigin = Vector2.Subtract(bodyPosition, bodyShouldBe);
+                Size bodyShouldBe = new Size(36, 55);
+                Point cropOrigin = Point.Subtract(body.Item2, bodyShouldBe);
                 Rectangle cropArea = new Rectangle((int)Math.Max(cropOrigin.X, 0), (int)Math.Max(cropOrigin.Y, 0), 96, 96);
-                Vector2 cropOffsetFromOrigin = new Vector2(cropArea.X - cropOrigin.X, cropArea.Y - cropOrigin.Y);
+                Point cropOffsetFromOrigin = new Point(cropArea.X - cropOrigin.X, cropArea.Y - cropOrigin.Y);
 
                 if (cropArea.Right > destination.Width) cropArea.Width = (int)(destination.Width - cropOrigin.X);
                 if (cropArea.Bottom > destination.Height) cropArea.Height = (int)(destination.Height - cropOrigin.Y);
@@ -277,12 +88,13 @@ namespace WZData.MapleStory.Characters
                 );
 
                 return compact;
-            } else if (renderMode == "center")
+            } else if (Mode == RenderMode.Centered)
             {
-                Vector2 bodyCenter = Vector2.Add(body.Item2, new Vector2(body.Item3.Image.Width / 2f, 0));
-                Vector2 imageCenter = new Vector2(destination.Width / 2, destination.Height / 2);
+                Size bodyCenter = Size.Add(new Size(body.Item2.X, body.Item2.Y), new Size((int)(body.Item1.Image.Width / 2f), 0));
+                Point imageCenter = new Point(destination.Width / 2, destination.Height / 2);
                 // Positive values = body is left/above, negative = body is right/below
-                Vector2 distanceFromCenter = Vector2.Multiply(2, Vector2.Subtract(imageCenter, bodyCenter));
+                Point distanceFromCen = Point.Subtract(imageCenter, bodyCenter);
+                Point distanceFromCenter = new Point(distanceFromCen.X * 2, distanceFromCen.Y * 2);
                 Image<Rgba32> centered = new Image<Rgba32>(destination.Width + (int)Math.Abs(distanceFromCenter.X), destination.Height + (int)Math.Abs(distanceFromCenter.Y));
                 centered.DrawImage(destination, 1, new Size(destination.Width, destination.Height), new Point((int)Math.Max(distanceFromCenter.X, 0), (int)Math.Max(distanceFromCenter.Y, 0)));
 
@@ -291,5 +103,169 @@ namespace WZData.MapleStory.Characters
 
             return destination;
         }
+
+        public IEnumerable<RankedFrame> GetAnimationParts() {
+            string bodyId = SkinId.ToString("D8");
+            string headId = (SkinId + 10000).ToString("D8");
+            WZProperty body = wz.Resolve($"Character/{bodyId}");
+            WZProperty head = wz.Resolve($"Character/{headId}");
+
+            // Cache the node points for all equips, should be relatively quick as it's only node names and IDs
+            IEnumerable<WZProperty> item = wz.Resolve("Character/").Children.Values
+                .Where(c => c.Type != PropertyType.Image)
+                .SelectMany(c => c.Children.Values)
+                .ToArray();
+
+            // Gather all of the equips (including body parts) and get their nodes
+            IEnumerable<Tuple<WZProperty, EquipSelection>> equipped = (new []{
+                new Tuple<WZProperty, EquipSelection>(body, new EquipSelection(){ AnimationName = AnimationName }),
+                new Tuple<WZProperty, EquipSelection>(head, new EquipSelection(){ AnimationName = AnimationName })
+            })
+                .Concat(
+                    Equips
+                        .Select(c => new Tuple<WZProperty, EquipSelection>(
+                            item.FirstOrDefault(i => i.Name.Equals($"{c.ItemId.ToString("D8")}")),
+                            c
+                        ))
+                )
+                .Where(c => c != null && c.Item1 != null)
+                .ToArray();
+            int itemCount = equipped.Count();
+
+            // Get a cached version of the zmap
+            List<string> zmap = wz.Resolve("Base/zmap").Children.Keys.Reverse().ToList();
+
+            // Build a sorted list of defined exclusive locks from items
+            IEnumerable<Tuple<int, string[]>> exclusiveLockItems = equipped
+                .OrderBy(c =>  zmap.IndexOf(c.Item1.ResolveForOrNull<string>("info/islot")?.Substring(0, 2)))
+                .Select(c => new Tuple<int, string>(c.Item2.ItemId, c.Item1.ResolveForOrNull<string>("info/vslot"))) // Override item specific vslots here
+                .Select(c => new Tuple<int, string[]>(c.Item1, Enumerable.Range(0, c.Item2.Length / 2).Select((b, i) => c.Item2.Substring(i * 2, 2)).ToArray()));
+
+            // Build a dictionary between what is locked and what is locking it
+            Dictionary<string, int> exclusiveLocks = new Dictionary<string, int>();
+            foreach(Tuple<int, string[]> exclusiveLock in exclusiveLockItems)
+                foreach(string locking in exclusiveLock.Item2)
+                    if (exclusiveLocks.ContainsKey(locking))
+                        exclusiveLocks[locking] = exclusiveLock.Item1;
+                    else
+                        exclusiveLocks.Add(locking, exclusiveLock.Item1);
+
+            // Build an smap dictionary to look up between what a position will require to lock before it can be rendered
+            Dictionary<string, string> smap = wz.Resolve("Base/smap").Children
+                .Where(c => c.Value.ResolveForOrNull<string>() != null)
+                .ToDictionary(c => c.Key, c => c.Value.ResolveForOrNull<string>() ?? "");
+
+            // We need the weapon entry so we know what kind of weapon the character has equipped
+            // Certain items require the weapon type to determine what kind of animation will be displayed
+            Tuple<WZProperty, EquipSelection> weaponEntry = equipped.FirstOrDefault(c => c.Item1.Parent.Name.Equals("Weapon"));
+            // Default to weapon type `30`
+            int weaponType = weaponEntry?.Item1 != null && weaponEntry?.Item2 != null ? (int)((weaponEntry.Item2.ItemId  - 1000000) / 10000d) : 30;
+            // WeaponTypes of 70 are cash items, go back to 30.
+            if (weaponType == 70) weaponType = 30;
+
+            // Resolve to action nodes and then to frame nodes
+            return equipped.Select(c => {
+                WZProperty itemNode = c.Item1;
+                WZProperty node = itemNode; // Resolve all items and body parts to their correct nodes for the animation
+                if (node.Children.Keys.Where(name => name != "info").All(name => int.TryParse(name, out int blah)))
+                    node = node.Resolve($"{weaponType.ToString()}"); // If their selected animation doesn't exist, try ours, and then go to default as a fail-safe
+                WZProperty animationNode = node.Resolve(c.Item2.AnimationName ?? AnimationName) ?? node.Resolve("default");
+                // Resolve to animation's frame
+                int frameCount = animationNode.Children.Keys.Where(k => int.TryParse(k, out int blah)).Select(k => int.Parse(k)).DefaultIfEmpty(0).Max() + 1;
+                int frameForEntry = FrameNumber % frameCount;
+                // Resolve for frame, and then ensure the frame is resolved completely. If there is no frame, then the animationNode likely contains the parts
+                WZProperty frameNode = animationNode.Resolve(frameForEntry.ToString())?.Resolve() ?? (frameCount == 1 ? animationNode.Resolve() : null);
+                if (frameNode == null) return null;
+                // Resolve to only children parts that have appropriate locks
+                return frameNode.Children.Where(framePart => {
+                    // Ensure we're only getting the parts, not the meta attributes that are in the frames
+                    WZProperty framePartNode = framePart.Value.Resolve();
+                    if (framePartNode.Type != PropertyType.Canvas) return false;
+
+                    if(!ElfEars && framePart.Key.Equals("ear", StringComparison.CurrentCultureIgnoreCase)) return false;
+
+                    // If the z-position is equal to the equipCategory, the required locks are the vslot
+                    // This seems to resolve the caps only requiring the locks of vslot, not the full `cap` in smap
+                    string equipCategory = framePartNode.Path.Split('/')[1];
+                    string zPosition = (framePartNode.Resolve().ResolveForOrNull<string>("z") ?? framePartNode.ResolveForOrNull<string>("../z"));
+                    bool sameZAsContainer = !zPosition.Equals(equipCategory, StringComparison.CurrentCultureIgnoreCase);
+
+                    string requiredLockFull = smap.ContainsKey(framePart.Key) && !sameZAsContainer ? smap[framePart.Key] : itemNode.ResolveForOrNull<string>("info/vslot");
+                    string[] requiredLocks = Enumerable.Range(0, requiredLockFull.Length / 2).Select(k => requiredLockFull.Substring(k * 2, 2)).ToArray();
+                    // Determine if we have locks
+                    bool hasLocks = requiredLocks.All(requiredLock => !exclusiveLocks.ContainsKey(requiredLock) || exclusiveLocks[requiredLock] == c.Item2.ItemId);
+                    // If we have the lock, we need to ensure we retain the lock to prevent other items from getting the lock
+
+                    // If we don't have the lock and we're assuming we're using the parent's vslot, try using the smap.
+                    // This seems to resolve the `hair` z using the more exclusive vslot
+                    if (sameZAsContainer && !hasLocks) {
+                        requiredLockFull = smap.ContainsKey(framePart.Key) ? smap[framePart.Key] : itemNode.ResolveForOrNull<string>("info/vslot");
+                        requiredLocks = Enumerable.Range(0, requiredLockFull.Length / 2).Select(k => requiredLockFull.Substring(k * 2, 2)).ToArray();
+                        // Determine if we have locks
+                        hasLocks = requiredLocks.All(requiredLock => !exclusiveLocks.ContainsKey(requiredLock) || exclusiveLocks[requiredLock] == c.Item2.ItemId);
+                    }
+
+                    if (hasLocks)
+                        foreach(string requiredLock in requiredLocks)
+                            if (!exclusiveLocks.ContainsKey(requiredLock))
+                                exclusiveLocks.Add(requiredLock, c.Item2.ItemId);
+                    return hasLocks;
+                }).Select(o => o.Value).ToArray();
+            })
+            .Where(c => c != null)
+            .SelectMany(c => c)
+            .Concat(Equips.Select(c => { // Concat any effects for items equipped
+                WZProperty node = wz.Resolve($"Effect/ItemEff/{c.ItemId}"); // Resolve the selected animation
+                if (node == null) return null;
+                WZProperty effectNode = node.Resolve(c.AnimationName ?? AnimationName) ?? node.Resolve("default");
+                if (effectNode == null) return null;
+                int frameCount = effectNode.Children.Keys.Where(k => int.TryParse(k, out int blah)).Select(k => int.Parse(k)).Max();
+                int frameForEntry = FrameNumber % frameCount;
+                return effectNode.Resolve(frameForEntry.ToString())?.Resolve();
+            }))
+            .Where(c => c != null)
+            .Select(c => {
+                string zIndex = c.Resolve().ResolveForOrNull<string>("z") ?? c.ResolveForOrNull<string>("../z");
+                int zPosition = 0;
+                if (!int.TryParse(zIndex, out zPosition))
+                    zPosition = zmap.IndexOf(zIndex);
+                return new RankedFrame(Frame.Parse(c), zPosition);
+            })
+            // Ensure all parts are completely resolved
+            .Where(c => c != null && c.frame != null)
+            // Convert to array so we only iterate once
+            .ToArray();
+        }
+    }
+
+    public class EquipSelection {
+        public int ItemId;
+        public string AnimationName;
+    }
+
+    public class RankedFrame {
+        public readonly Frame frame;
+        public readonly int ranking;
+
+        public RankedFrame(Frame frame, int ranking) {
+            this.frame = frame;
+            this.ranking = ranking;
+        }
+    }
+
+    public class PositionedFrame {
+        public readonly Frame frame;
+        public readonly Point position;
+
+        public PositionedFrame(Frame frame, Point position) {
+            this.frame = frame;
+            this.position = position;
+        }
+    }
+
+    public enum RenderMode {
+        Full,
+        Compact,
+        Centered
     }
 }

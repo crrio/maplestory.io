@@ -1,6 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
 using MoreLinq;
-using reWZ;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -10,19 +9,18 @@ using System.Threading.Tasks;
 using WZData;
 using WZData.MapleStory.Items;
 using System.Linq;
-using reWZ.WZProperties;
 using System.Threading;
 using Microsoft.AspNetCore.Hosting;
 using WZData.MapleStory.Images;
+using PKG1;
 
 namespace maplestory.io.Services.MapleStory
 {
-    public class ItemFactory : IItemFactory
+    public class ItemFactory : NeedWZ<IItemFactory>, IItemFactory
     {
         private static Dictionary<int, Func<MapleItem>> itemLookup;
         private static List<ItemNameInfo> itemDb;
         private static ILogger<ItemFactory> _logger;
-        public static Thread backgroundCaching;
         private static Dictionary<int, Func<MapleItem>> equipLookup;
         private static ISkillFactory _skillFactory;
         public static Dictionary<int, string> JobNameLookup = new Dictionary<int, string>()
@@ -34,78 +32,92 @@ namespace maplestory.io.Services.MapleStory
             { 8, "Thief" },
             { 16, "Pirate" }
         };
+        private static Dictionary<Region, Dictionary<int, Tuple<string[], byte?, bool>>> RequiredJobs = new Dictionary<Region, Dictionary<int, Tuple<string[], byte?, bool>>>();
 
-        public static void Load(IWZFactory factory, ILogger<ItemFactory> logger, ILogger<Equip> equipLogger, ILogger<EquipFrameBook> equipFrameBookLogger)
-        {
-            itemDb = new List<ItemNameInfo>();
-            _logger = logger;
-            Equip.ErrorCallback = s => equipLogger.LogError(s);
-            EquipFrameBook.ErrorCallback = s => equipFrameBookLogger.LogError(s);
+        public static void CacheEquipMeta(IWZFactory factory, ILogger logging) {
+            Region[] regions = (Region[])Enum.GetValues(typeof(Region));
+            //Parallel.ForEach(regions, (region) => {
+            foreach (Region region in regions) {
+                PackageCollection wz = factory.GetWZ(region, "latest");
 
-            Stopwatch watch = Stopwatch.StartNew();
-            _logger?.LogInformation("Caching item lookup table");
+                logging.LogInformation($"Caching {region} - {wz}");
+                if (wz == null) return;
 
-            var tmpEquipLookup = Equip.GetLookup(factory.AsyncGetWZFile(WZ.Character), factory.AsyncGetWZFile(WZ.Effect), factory.GetWZFile(WZ.String), factory.GetWZFile(WZ.Character));
-            equipLookup = tmpEquipLookup
-                .DistinctBy((p) => p.Item1)
-                .ToDictionary(a => a.Item1, a => a.Item2);
+                RequiredJobs.Add(region, wz.Resolve("Character").Children.Values
+                    .AsParallel()
+                    .SelectMany(c => c.Children)
+                    .Where(c => int.TryParse(c.Key, out int blah))
+                    .DistinctBy(c => c.Key)
+                    .AsParallel()
+                    .ToDictionary(c => int.Parse(c.Key), c => {
+                        int reqJob = c.Value.ResolveFor<int>("info/reqJob") ?? 0;
+                        return new Tuple<string[], byte?, bool>(
+                            JobNameLookup.Where(b => (b.Key & reqJob) == b.Key && (b.Key != 0 || reqJob == 0)).Select(b => b.Value).ToArray(),
+                            c.Value.ResolveFor<byte>("info/reqLevel"),
+                            c.Value.ResolveFor<bool>("info/cash") ?? false
+                        );
+                    })
+                );
 
-            itemLookup = tmpEquipLookup
-            .Concat(Consume.GetLookup(factory.AsyncGetWZFile(WZ.Item), factory.GetWZFile(WZ.String).MainDirectory))
-            .Concat(Etc.GetLookup(factory.AsyncGetWZFile(WZ.Item), factory.GetWZFile(WZ.String).MainDirectory))
-            .Concat(Install.GetLookup(factory.AsyncGetWZFile(WZ.Item), factory.GetWZFile(WZ.String).MainDirectory))
-            .Concat(Cash.GetLookup(factory.AsyncGetWZFile(WZ.Item), factory.GetWZFile(WZ.String).MainDirectory))
-            .Concat(Pet.GetLookup(factory.GetWZFile(WZ.Item).MainDirectory, factory.GetWZFile(WZ.String).MainDirectory))
-                .DistinctBy((p) => p.Item1)
-                .ToDictionary(a => a.Item1, a => a.Item2);
-
-            watch.Stop();
-            _logger?.LogInformation($"Cached {itemLookup.Count} item lookups, took {watch.ElapsedMilliseconds}ms");
-            _logger?.LogInformation($"Caching {itemLookup.Count} high level item information");
-            watch.Restart();
-            itemDb = ItemNameInfo.GetNames(factory.GetWZFile(WZ.String)).ToList();
-            _logger?.LogInformation($"Cached {itemLookup.Count} items, took {watch.ElapsedMilliseconds}ms");
-            watch.Stop();
+                logging.LogInformation($"Found {RequiredJobs[region].Count} items for {region}, latest");
+            }
+//            });
         }
 
-        public static void cacheItems()
-        {
-            Stopwatch watch = Stopwatch.StartNew();
-            _logger.LogWarning("Starting background caching of item meta info");
-            int totalRemaining = itemLookup.Count(c => equipLookup.ContainsKey(c.Key));
-            itemDb.AsParallel()
-                .Where(c => itemLookup.ContainsKey(c.Id) && equipLookup.ContainsKey(c.Id))
-                .Select(c =>
-                {
-                    try
-                    {
-                        _logger.LogInformation($"Processing {c.Id}");
-                         Equip item = (Equip)itemLookup[c.Id]();
-                        if (item != null)
-                        {
-                            c.Info = item.MetaInfo;
-                            c.RequiredJobs = JobNameLookup.Where(b => (b.Key & item.MetaInfo.Equip.reqJob) == b.Key).Select(b => b.Value).ToArray();
-                            c.RequiredLevel = item.MetaInfo?.Equip?.reqLevel ?? 0;
-                            c.IsCash = item.MetaInfo?.Cash?.cash ?? false;
-                        }
-                        Interlocked.Decrement(ref totalRemaining);
-                        _logger.LogInformation($"Processed {c.Id}, Total remaining: {totalRemaining}");
-                        return item;
-                    }
-                    catch (Exception ex)
-                    {
-                        _logger.LogError("Error trying to cache item {0}", c.Id);
-                    }
-                    return null;
-                }).ToArray();
-            watch.Stop();
-            Startup.Ready = true;
-            _logger.LogInformation("Completed background caching of item meta info, took {0}", watch.ElapsedMilliseconds);
-        }
+        public ItemFactory(IWZFactory factory) : base(factory) { }
+        public ItemFactory(IWZFactory _factory, Region region, string version) : base(_factory, region, version) { }
 
         public IEnumerable<string> GetItemCategories() => ItemType.overall.Keys;
 
-        public IEnumerable<ItemNameInfo> GetItems() => itemDb;
-        public MapleItem search(int id) => itemLookup[id]();
+        public IEnumerable<ItemNameInfo> GetItems() {
+            WZProperty stringWz = wz.Resolve("String");
+            IEnumerable<WZProperty> eqp = stringWz.Resolve("Eqp/Eqp").Children.Values.SelectMany(c => c.Children.Values);
+            IEnumerable<WZProperty> etc = stringWz.Resolve("Etc/Etc").Children.Values;
+            IEnumerable<WZProperty> ins = stringWz.Resolve("Ins").Children.Values;
+            IEnumerable<WZProperty> cash = stringWz.Resolve("Cash").Children.Values;
+            IEnumerable<WZProperty> consume = stringWz.Resolve("Consume").Children.Values;
+            IEnumerable<WZProperty> pet = stringWz.Resolve("Pet").Children.Values;
+
+            IEnumerable<WZProperty> allItems = eqp.Concat(etc).Concat(ins).Concat(cash).Concat(consume).Concat(pet);
+
+            return allItems.Select(c => {
+                ItemNameInfo name = ItemNameInfo.Parse(c);
+                if (RequiredJobs[region].ContainsKey(name.Id)) {
+                    name.RequiredJobs = RequiredJobs[region][name.Id].Item1;
+                    name.RequiredLevel = RequiredJobs[region][name.Id].Item2;
+                    name.IsCash = RequiredJobs[region][name.Id].Item3;
+                }
+                return name;
+            });
+        }
+
+        public MapleItem search(int id) {
+            WZProperty stringWz = wz.Resolve("String");
+
+            string idString = id.ToString();
+
+            WZProperty item = stringWz.Resolve("Eqp/Eqp").Children.Values.FirstOrDefault(c => c.Children.ContainsKey(idString))?.Resolve(idString);
+            if (item != null) return Equip.Parse(item);
+
+            item = stringWz.Resolve($"Etc/Etc/{idString}");
+            if (item != null) return Etc.Parse(item);
+
+            item = stringWz.Resolve($"Ins/{idString}");
+            if (item != null) return Install.Parse(item);
+
+            item = stringWz.Resolve("Cash/{idString}");
+            if (item != null) return Cash.Parse(item);
+
+            item = stringWz.Resolve($"Consume/{idString}");
+            if (item != null) return Consume.Parse(item);
+
+            item = stringWz.Resolve($"Pet/{idString}");
+            if (item != null) return Pet.Parse(item);
+
+            return null;
+        }
+
+        public override IItemFactory GetWithWZ(Region region, string version)
+            => new ItemFactory(_factory, region, version);
     }
 }

@@ -8,31 +8,35 @@ using maplestory.io.Services.MapleStory;
 using WZData.MapleStory.NPC;
 using WZData;
 using ImageSharp;
+using PKG1;
 
 namespace maplestory.io.Controllers
 {
     [Produces("application/json")]
-    [Route("api/npc")]
+    [Route("api/{region}/{version}/npc")]
     public class NPCController : Controller
     {
+        [FromRoute]
+        public Region region { get; set; }
+        [FromRoute]
+        public string version { get; set; }
+
         private INPCFactory _factory;
 
         public NPCController(INPCFactory factory)
-        {
-            _factory = factory;
-        }
+            => _factory = factory;
 
         [Route("")]
         [HttpGet]
         [ProducesResponseType(typeof(NPC[]), 200)]
-        public IActionResult List() => Json(_factory.GetNPCs());
+        public IActionResult List() => Json(_factory.GetWithWZ(region, version).GetNPCs());
 
         [Route("{npcId}")]
         [HttpGet]
         [ProducesResponseType(typeof(NPC), 200)]
         public IActionResult GetNPC(int npcId)
         {
-            return Json(_factory.GetNPC(npcId));
+            return Json(_factory.GetWithWZ(region, version).GetNPC(npcId));
         }
 
         [Route("{npcId}/icon")]
@@ -40,7 +44,7 @@ namespace maplestory.io.Controllers
         [Produces("image/png")]
         public IActionResult GetFrame(int npcId)
         {
-            NPC npcData = _factory.GetNPC(npcId);
+            NPC npcData = _factory.GetWithWZ(region, version).GetNPC(npcId);
             if (!npcData.Framebooks.ContainsKey("stand")) return NotFound();
 
             FrameBook standing = npcData.Framebooks["stand"].First();

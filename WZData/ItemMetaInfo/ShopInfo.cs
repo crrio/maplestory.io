@@ -1,39 +1,42 @@
-﻿using reWZ.WZProperties;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using PKG1;
 
 namespace WZData.ItemMetaInfo
 {
     public class ShopInfo
     {
+        readonly static string[] mustContainOne = new []{
+            "child",
+            "notSale",
+            "monsterBook"
+        };
+
         /// <summary>
         /// Sold to NPC for
         /// </summary>
-        public int price;
+        public int? price;
         /// <summary>
         /// Can't be sold
         /// </summary>
-        public bool notSale;
+        public bool? notSale;
         /// <summary>
         /// Is a monster book card
         /// </summary>
-        public bool monsterBook;
+        public bool? monsterBook;
 
-        public static ShopInfo Parse(WZObject info)
+        public static ShopInfo Parse(WZProperty info)
         {
-            if (!(info.HasChild("price") || info.HasChild("notSale") || info.HasChild("monsterBook")))
+            if (!info.Children.Keys.Any(c => mustContainOne.Contains(c)))
                 return null;
 
             ShopInfo results = new ShopInfo();
 
-            if (info.HasChild("price"))
-                results.price = info.ValueOrDefault<int>(0);
-            if (info.HasChild("notSale"))
-                results.notSale = info.ValueOrDefault<int>(0) == 1;
-            if (info.HasChild("monsterBook"))
-                results.monsterBook = info.ValueOrDefault<int>(0) == 1;
+            results.price = info.ResolveFor<int>("price");
+            results.notSale = info.ResolveFor<bool>("notSale");
+            results.monsterBook = info.ResolveFor<bool>("monsterBook");
 
             return results;
         }

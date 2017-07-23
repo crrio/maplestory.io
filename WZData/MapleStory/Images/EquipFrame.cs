@@ -2,8 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using reWZ.WZProperties;
 using System.Reflection;
+using PKG1;
 
 namespace WZData.MapleStory.Images
 {
@@ -12,16 +12,15 @@ namespace WZData.MapleStory.Images
         public static List<string> unknownEffects = new List<string>();
         public Dictionary<string, Frame> Effects;
 
-        public static EquipFrame Parse(WZObject skills, WZObject skill, WZObject frame)
+        internal static EquipFrame Parse(WZProperty frame)
         {
             EquipFrame item = new EquipFrame();
 
-            item.Effects = frame.Where(c => c is WZCanvasProperty || c is WZUOLProperty)
-                .Select(c => new Tuple<string, WZObject>(c.Name, c is WZUOLProperty ? ((WZUOLProperty)c).ResolveFully() : c))
-                .Select(c => new Tuple<string, Frame>(c.Item1, Frame.Parse(skills, skill, c.Item2)))
-                .ToDictionary(c => c.Item1, c => c.Item2);
+            item.Effects = frame.Children.Where(c => c.Value.Type == PropertyType.Canvas || c.Value.Type == PropertyType.UOL)
+                .ToDictionary(c => c.Key, c => Frame.Parse(c.Value));
 
             return item;
+
         }
     }
 }

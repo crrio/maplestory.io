@@ -1,8 +1,8 @@
-﻿using reWZ.WZProperties;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using PKG1;
 
 namespace WZData.MapleStory
 {
@@ -17,31 +17,31 @@ namespace WZData.MapleStory
         public IEnumerable<string> Messages;
         public WorldType World;
 
-        public static Tips Parse(WZObject tipMessages, WZObject tipInfo, WorldType worldType, string[] AllMessages)
+        public static Tips Parse(WZProperty tipMessages, WZProperty tipInfo, WorldType worldType, string[] AllMessages)
         {
             Tips result = new Tips();
 
-            result.All = tipInfo.HasChild("all") ? (int?)tipInfo["all"].ValueOrDefault<int>(0) : null;
-            result.TipGroupName = tipInfo.HasChild("tip") ? tipInfo["tip"].ValueOrDefault<string>("") : "all";
-            result.LevelMin = tipInfo.HasChild("levelMin") ? (byte?)tipInfo["levelMin"].ValueOrDefault<int>(0) : null;
-            result.LevelMax = tipInfo.HasChild("levelMax") ? (byte?)tipInfo["levelMax"].ValueOrDefault<int>(0) : null;
-            result.Job = tipInfo.HasChild("job") ? (int?)tipInfo["job"].ValueOrDefault<int>(0) : null;
-            result.Interval = tipInfo.HasChild("interval") ? (int?)tipInfo["interval"].ValueOrDefault<int>(0) : null;
-            result.Messages = tipMessages.Select(c => c.ValueOrDefault<string>("")).Concat(AllMessages).Distinct();
+            result.All = tipInfo.ResolveFor<int>("all");
+            result.TipGroupName = tipInfo.ResolveForOrNull<string>("tip") ?? "all";
+            result.LevelMin = tipInfo.ResolveFor<byte>("levelMin");
+            result.LevelMax = tipInfo.ResolveFor<byte>("levelMax");
+            result.Job = tipInfo.ResolveFor<int>("job");
+            result.Interval = tipInfo.ResolveFor<int>("interval");
+            result.Messages = tipMessages.Children.Values.Select(c => ((IWZPropertyVal)c).GetValue().ToString()).Concat(AllMessages).Distinct();
             result.World = worldType;
 
             return result;
         }
 
-        public static IEnumerable<Tips> GetTips(WZObject etcWz)
+        public static IEnumerable<Tips> GetTips(WZProperty etcWz)
         {
-            return etcWz.ResolvePath("Tips.img")
-                .Select(c => new Tuple<WorldType, WZObject>((WorldType)Enum.Parse(typeof(WorldType), c.Name, true), c))
+            return etcWz.Resolve("Tips").Children.Values
+                .Select(c => new Tuple<WorldType, WZProperty>((WorldType)Enum.Parse(typeof(WorldType), c.Name, true), c))
                 .Select(c => {
-                    string[] allMessages = c.Item2["all"].Select(b => b.ValueOrDefault("")).ToArray();
-                    return c.Item2["info"].Select(b =>
+                    string[] allMessages = c.Item2.Resolve("all").Children.Values.Select(b => ((IWZPropertyVal)b).GetValue().ToString()).ToArray();
+                    return c.Item2.Resolve("info").Children.Values.Select(b =>
                     {
-                        WZObject messageContainer = c.Item2[b.HasChild("tip") ? b["tip"].ValueOrDefault<string>("") : "all"];
+                        WZProperty messageContainer = c.Item2.Resolve(b.ResolveForOrNull<string>("tip") ?? "all");
                         return Parse(messageContainer, b, c.Item1, allMessages);
                     });
                 })

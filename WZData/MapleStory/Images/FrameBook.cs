@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Linq;
-using reWZ.WZProperties;
 using System.Collections.Generic;
 using System.Diagnostics;
 using ImageSharp;
+using PKG1;
 
 namespace WZData
 {
@@ -11,37 +11,30 @@ namespace WZData
     {
         public IEnumerable<Frame> frames;
 
-        public static IEnumerable<FrameBook> Parse(WZObject file, WZObject container, WZObject self)
+        public static IEnumerable<FrameBook> Parse(WZProperty self)
         {
-            bool isSingle = self.Any(c => c is WZCanvasProperty);
+            bool isSingle = self.Children.Any(c => c.Value.Type == PropertyType.Canvas);
 
             if (!isSingle)
-            {
-                return self
-                    .Select(d => ParseSingle(file, container, d))
+                return self.Children
+                    .Select(d => ParseSingle(d.Value))
                     .Where(d => d.frames.Count() > 0);
-            }
             else
-            {
-                return new FrameBook[] { ParseSingle(file, container, self) };
-            }
+                return new FrameBook[] { ParseSingle(self) };
         }
 
-        public static FrameBook ParseSingle(WZObject file, WZObject container, WZObject self)
+        public static FrameBook ParseSingle(WZProperty self)
         {
             FrameBook effect = new FrameBook();
 
-            effect.frames = self
+            effect.frames = self.Children
                 .Where(c =>
                 {
                     int frameNumber = -1;
-                    return int.TryParse(c.Name, out frameNumber);
+                    return int.TryParse(c.Key, out frameNumber);
                 })
-                .OrderBy(c => int.Parse(c.Name))
-                .Select(frame =>
-                {
-                    return Frame.Parse(file, container, frame);
-                });
+                .OrderBy(c => int.Parse(c.Key))
+                .Select(c => Frame.Parse(c.Value));
 
             return effect;
         }

@@ -1,8 +1,8 @@
-﻿using reWZ.WZProperties;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using PKG1;
 
 namespace WZData.MapleStory
 {
@@ -10,9 +10,11 @@ namespace WZData.MapleStory
     {
         public IEnumerable<Tuple<string, string>> Ordering;
 
-        public static SMap Parse(WZObject BaseWz)
-            => new SMap() { Ordering = BaseWz["smap.img"]
-                .Where(c => c is WZStringProperty)
-                .Select(c => new Tuple<string, string>(c.Name, ((WZStringProperty) c).Value)).ToArray() };
+        public static SMap Parse(WZProperty BaseWz)
+            => new SMap() {
+                Ordering = BaseWz.Resolve("smap").Children.Values
+                    .Where(c => c.Type == PropertyType.String)
+                    .Select(c => new Tuple<string, string>(c.Name, ((IWZPropertyVal)c).GetValue().ToString())).ToArray()
+            };
     }
 }

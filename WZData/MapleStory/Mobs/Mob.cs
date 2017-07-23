@@ -1,8 +1,8 @@
-﻿using reWZ.WZProperties;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using PKG1;
 
 namespace WZData.MapleStory.Mobs
 {
@@ -16,39 +16,27 @@ namespace WZData.MapleStory.Mobs
         public string Name;
         public Dictionary<string, IEnumerable<FrameBook>> Framebooks;
 
-        public static Mob Parse(WZObject mobImage, WZDirectory mobWz, string name)
+        public static Mob Parse(WZProperty stringWz)
         {
+            int id;
+
+            if (!int.TryParse(stringWz.Name, out id)) return null;
+
             Mob result = new Mob();
 
-            result.Id = int.Parse(mobImage.Name.Replace(".img", ""));
-            result.Name = name;
-            result.Meta = mobImage.HasChild("info") ? MobMeta.Parse(mobImage["info"]) : null;
+            result.Id = id;
+
+            WZProperty mobImage = stringWz.ResolveOutlink($"Mob/{id.ToString("D7")}");
+            result.Name = stringWz.ResolveForOrNull<string>("name");
+            result.Meta = mobImage.Children.ContainsKey("info") ? MobMeta.Parse(mobImage.Resolve("info")) : null;
             /// Note: This *does* work. However, it increases the response to 1min+ and 15mb+
             /// Do *NOT* enable this unless people request it, and even then require an opt-in parameter.
-            result.Framebooks = mobImage
-                .Where(c => c.Name != "info")
-                .Where(c => c.Name == "fly" || c.Name == "stand")
-                .Select(c => new Tuple<string, IEnumerable<FrameBook>>(c.Name, FrameBook.Parse(mobWz, mobImage, c)))
-                .ToDictionary(k => k.Item1, v => v.Item2);
+            result.Framebooks = mobImage.Children
+                .Where(c => c.Key != "info")
+                .Where(c => c.Key == "fly" || c.Key == "stand")
+                .ToDictionary(k => k.Key, v => FrameBook.Parse(v.Value));
 
             return result;
         }
-
-        public static IEnumerable<Tuple<int, MobInfo, Func<Mob>>> GetLookup(WZDirectory mobWz, WZDirectory stringWz)
-        {
-            int id = -1;
-            foreach (WZObject entry in stringWz.ResolvePath(StringPath))
-            {
-                if (int.TryParse(entry.Name, out id) && entry.HasChild("name") && mobWz.HasChild($"{id.ToString("D7")}.img"))
-                {
-                    string name = entry["name"].ValueOrDefault<string>("");
-                    yield return new Tuple<int, MobInfo, Func<Mob>>(id, new MobInfo(id, name), CreateLookup(mobWz.ResolvePath($"{id.ToString("D7")}.img"), mobWz, name));
-                }
-            }
-        }
-
-        private static Func<Mob> CreateLookup(WZObject mobImage, WZDirectory mobWZ, string MobName)
-            => () 
-            => Mob.Parse(mobImage, mobWZ, MobName);
     }
 }

@@ -1,28 +1,80 @@
-﻿using reWZ.WZProperties;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using PKG1;
 
 namespace WZData.ItemMetaInfo
 {
     public class EquipInfo
     {
+        readonly static string[] mustContainOne = new string []{
+            "reqSTR",
+            "reqDEX",
+            "reqINT",
+            "reqLUK",
+            "reqPOP",
+            "reqJob",
+            "reqJob2",
+            "reqSpecJob",
+            "reqLevel",
+            "tuc",
+            "incSTR",
+            "incDEX",
+            "incINT",
+            "incLUK",
+            "incMHP",
+            "incMMP",
+            "incPAD",
+            "incMAD",
+            "incPDD",
+            "incMDD",
+            "incACC",
+            "incEVA",
+            "incCraft",
+            "incSpeed",
+            "incJump",
+            "tradeBlock",
+            "equipTradeBlock",
+            "exItem",
+            "charmEXP",
+            "willEXP",
+            "charismaEXP",
+            "craftEXP",
+            "senseEXP",
+            "tradeAvailable",
+            "superiorEqp",
+            "noPotential",
+            "unchangeable",
+            "durability",
+            "accountSharable",
+            "attack",
+            "attackSpeed",
+            "bdR",
+            "bossReward",
+            "imdR",
+            "islot",
+            "vslot",
+            "android",
+            "grade"
+        };
+
+
         /// <summary>
         /// Requires this STR before can be equipped
-        /// </summary> 
+        /// </summary>
         public int? reqSTR;
         /// <summary>
         /// Requires this DEX before can be equipped
-        /// </summary> 
+        /// </summary>
         public int? reqDEX;
         /// <summary>
         /// Requires this INT before can be equipped
-        /// </summary> 
+        /// </summary>
         public int? reqINT;
         /// <summary>
         /// Requires this LUK before can be equipped
-        /// </summary> 
+        /// </summary>
         public int? reqLUK;
         /// <summary>
         /// Requires this fame before can be equipped
@@ -186,110 +238,61 @@ namespace WZData.ItemMetaInfo
         public IEnumerable<string> vslots { get => (new string[vslot.Length / 2]).Select((c, i) => vslot.Substring(i * 2, 2)); }
         public IEnumerable<string> islots { get => (new string[islot.Length / 2]).Select((c, i) => islot.Substring(i * 2, 2)); }
 
-        public static EquipInfo Parse(WZObject info)
+        public static EquipInfo Parse(WZProperty info)
         {
-            //If it has none of the properties, return null.
-            if (!(info.HasChild("reqSTR") || info.HasChild("reqDEX") || info.HasChild("reqINT") || info.HasChild("reqLUK") || info.HasChild("reqPOP") || info.HasChild("reqJob") || info.HasChild("reqJob2") || info.HasChild("reqSpecJob") || info.HasChild("reqLevel") || info.HasChild("tuc") || info.HasChild("incSTR") || info.HasChild("incDEX") || info.HasChild("incINT") || info.HasChild("incLUK") || info.HasChild("incMHP") || info.HasChild("incMMP") || info.HasChild("incPAD") || info.HasChild("incMAD") || info.HasChild("incPDD") || info.HasChild("incMDD") || info.HasChild("incACC") || info.HasChild("incEVA") || info.HasChild("incCraft") || info.HasChild("incSpeed") || info.HasChild("incJump") || info.HasChild("tradeBlock") || info.HasChild("equipTradeBlock") || info.HasChild("exItem") || info.HasChild("charmEXP") || info.HasChild("willEXP") || info.HasChild("charismaEXP") || info.HasChild("craftEXP") || info.HasChild("senseEXP") || info.HasChild("tradeAvailable") || info.HasChild("superiorEqp") || info.HasChild("noPotential") || info.HasChild("unchangeable") || info.HasChild("durability") || info.HasChild("accountSharable") || info.HasChild("attack") || info.HasChild("attackSpeed") || info.HasChild("bdR") || info.HasChild("bossReward") || info.HasChild("imdR") || info.HasChild("islot") || info.HasChild("vslot")))
+            if (!info.Children.Keys.Any(c => mustContainOne.Contains(c)))
                 return null;
 
             EquipInfo results = new EquipInfo();
 
-            if (info.HasChild("reqSTR"))
-                results.reqSTR = info["reqSTR"].ValueOrDefault<int>(default(int));
-            if (info.HasChild("reqDEX"))
-                results.reqDEX = info["reqDEX"].ValueOrDefault<int>(default(int));
-            if (info.HasChild("reqINT"))
-                results.reqINT = info["reqINT"].ValueOrDefault<int>(default(int));
-            if (info.HasChild("reqLUK"))
-                results.reqLUK = info["reqLUK"].ValueOrDefault<int>(default(int));
-            if (info.HasChild("reqPOP"))
-                results.reqPOP = info["reqPOP"].ValueOrDefault<int>(default(int));
-            if (info.HasChild("reqJob"))
-                results.reqJob = info["reqJob"].ValueOrDefault<int>(default(int));
-            if (info.HasChild("reqJob2"))
-                results.reqJob2 = info["reqJob2"].ValueOrDefault<int>(default(int));
-            if (info.HasChild("reqSpecJob"))
-                results.reqSpecJob = info["reqSpecJob"].ValueOrDefault<int>(default(int));
-            if (info.HasChild("reqLevel"))
-                results.reqLevel = info["reqLevel"].ValueOrDefault<int>(default(int));
-            if (info.HasChild("tuc"))
-                results.tuc = info["tuc"].ValueOrDefault<int>(default(int));
-            if (info.HasChild("incSTR"))
-                results.incSTR = info["incSTR"].ValueOrDefault<int>(default(int));
-            if (info.HasChild("incDEX"))
-                results.incDEX = info["incDEX"].ValueOrDefault<int>(default(int));
-            if (info.HasChild("incINT"))
-                results.incINT = info["incINT"].ValueOrDefault<int>(default(int));
-            if (info.HasChild("incLUK"))
-                results.incLUK = info["incLUK"].ValueOrDefault<int>(default(int));
-            if (info.HasChild("incMHP"))
-                results.incMHP = info["incMHP"].ValueOrDefault<int>(default(int));
-            if (info.HasChild("incMMP"))
-                results.incMMP = info["incMMP"].ValueOrDefault<int>(default(int));
-            if (info.HasChild("incPAD"))
-                results.incPAD = info["incPAD"].ValueOrDefault<int>(default(int));
-            if (info.HasChild("incMAD"))
-                results.incMAD = info["incMAD"].ValueOrDefault<int>(default(int));
-            if (info.HasChild("incPDD"))
-                results.incPDD = info["incPDD"].ValueOrDefault<int>(default(int));
-            if (info.HasChild("incMDD"))
-                results.incMDD = info["incMDD"].ValueOrDefault<int>(default(int));
-            if (info.HasChild("incACC"))
-                results.incACC = info["incACC"].ValueOrDefault<int>(default(int));
-            if (info.HasChild("incEVA"))
-                results.incEVA = info["incEVA"].ValueOrDefault<int>(default(int));
-            if (info.HasChild("incCraft"))
-                results.incCraft = info["incCraft"].ValueOrDefault<int>(default(int));
-            if (info.HasChild("incSpeed"))
-                results.incSpeed = info["incSpeed"].ValueOrDefault<int>(default(int));
-            if (info.HasChild("incJump"))
-                results.incJump = info["incJump"].ValueOrDefault<int>(default(int));
-            if (info.HasChild("tradeBlock"))
-                results.tradeBlock = info["tradeBlock"].ValueOrDefault<int>(0) == 1;
-            if (info.HasChild("equipTradeBlock"))
-                results.equipTradeBlock = info["equipTradeBlock"].ValueOrDefault<int>(0) == 1;
-            if (info.HasChild("exItem"))
-                results.exItem = info["exItem"].ValueOrDefault<string>(default(string));
-            if (info.HasChild("charmEXP"))
-                results.charmEXP = info["charmEXP"].ValueOrDefault<int>(default(int));
-            if (info.HasChild("willEXP"))
-                results.willEXP = info["willEXP"].ValueOrDefault<int>(default(int));
-            if (info.HasChild("charismaEXP"))
-                results.charismaEXP = info["charismaEXP"].ValueOrDefault<int>(default(int));
-            if (info.HasChild("craftEXP"))
-                results.craftEXP = info["craftEXP"].ValueOrDefault<int>(default(int));
-            if (info.HasChild("senseEXP"))
-                results.senseEXP = info["senseEXP"].ValueOrDefault<int>(default(int));
-            if (info.HasChild("tradeAvailable"))
-                results.tradeAvailable = (byte)info["tradeAvailable"].ValueOrDefault<int>(default(int));
-            if (info.HasChild("superiorEqp"))
-                results.superiorEqp = info["superiorEqp"].ValueOrDefault<int>(0) == 1;
-            if (info.HasChild("noPotential"))
-                results.noPotential = info["noPotential"].ValueOrDefault<int>(0) == 1;
-            if (info.HasChild("unchangeable"))
-                results.unchangeable = info["unchangeable"].ValueOrDefault<string>(default(string));
-            if (info.HasChild("durability"))
-                results.durability = info["durability"].ValueOrDefault<string>(default(string));
-            if (info.HasChild("accountSharable"))
-                results.accountSharable = info["accountSharable"].ValueOrDefault<int>(0) == 1;
-            if (info.HasChild("attack"))
-                results.attack = info["attack"].ValueOrDefault<int>(default(int));
-            if (info.HasChild("attackSpeed"))
-                results.attackSpeed = info["attackSpeed"].ValueOrDefault<int>(default(int));
-            if (info.HasChild("bdR"))
-                results.bdR = info["bdR"].ValueOrDefault<int>(default(int));
-            if (info.HasChild("bossReward"))
-                results.bossReward = info["bossReward"].ValueOrDefault<int>(0) == 1;
-            if (info.HasChild("imdR"))
-                results.imdR = info["imdR"].ValueOrDefault<int>(default(int));
-            if (info.HasChild("islot"))
-                results.islot = info["islot"].ValueOrDefault<string>(null);
-            if (info.HasChild("vslot"))
-                results.vslot = info["vslot"].ValueOrDefault<string>(null);
-            if (info.HasChild("android"))
-                results.android = info["android"].ValueOrDefault<int>(0);
-            if (info.HasChild("grade"))
-                results.androidGrade = info["grade"].ValueOrDefault<int>(0);
+            results.reqSTR = info.ResolveFor<int>("reqSTR");
+            results.reqDEX = info.ResolveFor<int>("reqDEX");
+            results.reqINT = info.ResolveFor<int>("reqINT");
+            results.reqLUK = info.ResolveFor<int>("reqLUK");
+            results.reqPOP = info.ResolveFor<int>("reqPOP");
+            results.reqJob = info.ResolveFor<int>("reqJob");
+            results.reqJob2 = info.ResolveFor<int>("reqJob2");
+            results.reqSpecJob = info.ResolveFor<int>("reqSpecJob");
+            results.reqLevel = info.ResolveFor<int>("reqLevel");
+            results.tuc = info.ResolveFor<int>("tuc");
+            results.incSTR = info.ResolveFor<int>("incSTR");
+            results.incDEX = info.ResolveFor<int>("incDEX");
+            results.incINT = info.ResolveFor<int>("incINT");
+            results.incLUK = info.ResolveFor<int>("incLUK");
+            results.incMHP = info.ResolveFor<int>("incMHP");
+            results.incMMP = info.ResolveFor<int>("incMMP");
+            results.incPAD = info.ResolveFor<int>("incPAD");
+            results.incMAD = info.ResolveFor<int>("incMAD");
+            results.incPDD = info.ResolveFor<int>("incPDD");
+            results.incMDD = info.ResolveFor<int>("incMDD");
+            results.incACC = info.ResolveFor<int>("incACC");
+            results.incEVA = info.ResolveFor<int>("incEVA");
+            results.incCraft = info.ResolveFor<int>("incCraft");
+            results.incSpeed = info.ResolveFor<int>("incSpeed");
+            results.incJump = info.ResolveFor<int>("incJump");
+            results.tradeBlock = info.ResolveFor<bool>("tradeBlock");
+            results.equipTradeBlock = info.ResolveFor<bool>("equipTradeBlock");
+            results.exItem = info.ResolveForOrNull<string>("exItem");
+            results.charmEXP = info.ResolveFor<int>("charmEXP");
+            results.willEXP = info.ResolveFor<int>("willEXP");
+            results.charismaEXP = info.ResolveFor<int>("charismaEXP");
+            results.craftEXP = info.ResolveFor<int>("craftEXP");
+            results.senseEXP = info.ResolveFor<int>("senseEXP");
+            results.tradeAvailable = info.ResolveFor<byte>("tradeAvailable");
+            results.superiorEqp = info.ResolveFor<bool>("superiorEqp");
+            results.noPotential = info.ResolveFor<bool>("noPotential");
+            results.unchangeable = info.ResolveForOrNull<string>("unchangeable");
+            results.durability = info.ResolveForOrNull<string>("durability");
+            results.accountSharable = info.ResolveFor<bool>("accountSharable");
+            results.attack = info.ResolveFor<int>("attack");
+            results.attackSpeed = info.ResolveFor<int>("attackSpeed");
+            results.bdR = info.ResolveFor<int>("bdR");
+            results.bossReward = info.ResolveFor<bool>("bossReward");
+            results.imdR = info.ResolveFor<int>("imdR");
+            results.islot = info.ResolveForOrNull<string>("islot");
+            results.vslot = info.ResolveForOrNull<string>("vslot");
+            results.android = info.ResolveFor<int>("android");
+            results.androidGrade = info.ResolveFor<int>("grade");
 
             return results;
         }

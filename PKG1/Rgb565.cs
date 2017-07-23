@@ -1,11 +1,11 @@
-﻿using ImageSharp;
+using ImageSharp;
 using ImageSharp.PixelFormats;
 using System;
 using System.Numerics;
 using System.Runtime.CompilerServices;
 
 
-namespace reWZ
+namespace PKG1
 {
     // <copyright file="Rgb565.cs" company="James Jackson-South">
     // Copyright (c) James Jackson-South and contributors.

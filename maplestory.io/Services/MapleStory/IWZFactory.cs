@@ -2,15 +2,13 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using reWZ;
-using WZData;
+using PKG1;
 
 namespace maplestory.io.Services.MapleStory
 {
     public interface IWZFactory
     {
-        WZFile GetWZFile(WZ file);
-        Func<Func<WZFile, MapleItem>, MapleItem> AsyncGetWZFile(WZ file);
+        PackageCollection GetWZ(Region region, string version);
     }
 
     public enum WZ {
