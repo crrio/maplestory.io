@@ -27,10 +27,11 @@ namespace WZData.MapleStory.Characters {
 
             Dictionary<string, Point> anchorPositions = new Dictionary<string, Point>() { { "navel", new Point(0, 0) } };
 
-            List<KeyValuePair<string, Point>[]> offsets = partsFrames.Select(c => c.MapOffset.ToArray()).ToList();
+            List<KeyValuePair<string, Point>[]> offsets = partsFrames.Where(c => c.MapOffset != null).Select(c => c.MapOffset.ToArray()).ToList();
             while (offsets.Count > 0) {
                 KeyValuePair<string, Point>[] offsetPairing = offsets.FirstOrDefault(c => c.Any(b => anchorPositions.ContainsKey(b.Key)));
-                KeyValuePair<string, Point> anchorPointEntry = offsetPairing.Where(c => anchorPositions.ContainsKey(c.Key)).First();
+                KeyValuePair<string, Point> anchorPointEntry = offsetPairing.Where(c => anchorPositions.ContainsKey(c.Key)).FirstOrDefault();
+                // Handle alert position? How to :<
                 Point anchorPoint = anchorPoint = anchorPositions[anchorPointEntry.Key];
                 Point vectorFromPoint = anchorPointEntry.Value;
                 Point fromAnchorPoint = new Point(anchorPoint.X - vectorFromPoint.X, anchorPoint.Y - vectorFromPoint.Y);
