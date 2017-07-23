@@ -43,7 +43,7 @@ namespace WZData.MapleStory.Characters {
                 offsets.Remove(offsetPairing);
             }
 
-            Tuple<Frame, Point>[] positionedFrames = partsFrames.Select(c => {
+            Tuple<Frame, Point>[] positionedFrames = partsFrames.Where(c => c.MapOffset != null).Select(c => {
                 KeyValuePair<string, Point> anchorPointEntry = c.MapOffset.Where(b => anchorPositions.ContainsKey(b.Key)).First();
                 Point anchorPoint = anchorPoint = anchorPositions[anchorPointEntry.Key];
                 Point vectorFromPoint = anchorPointEntry.Value;
