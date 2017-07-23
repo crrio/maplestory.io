@@ -169,6 +169,9 @@ namespace WZData.MapleStory.Characters {
                 WZProperty node = itemNode; // Resolve all items and body parts to their correct nodes for the animation
                 if (node.Children.Keys.Where(name => name != "info").All(name => int.TryParse(name, out int blah)))
                     node = node.Resolve($"{weaponType.ToString()}"); // If their selected animation doesn't exist, try ours, and then go to default as a fail-safe
+
+                if (node == null) return null;
+
                 WZProperty animationNode = node.Resolve(c.Item2.AnimationName ?? AnimationName) ?? node.Resolve("default");
                 // Resolve to animation's frame
                 int frameCount = animationNode.Children.Keys.Where(k => int.TryParse(k, out int blah)).Select(k => int.Parse(k)).DefaultIfEmpty(0).Max() + 1;
@@ -180,7 +183,7 @@ namespace WZData.MapleStory.Characters {
                 return frameNode.Children.Where(framePart => {
                     // Ensure we're only getting the parts, not the meta attributes that are in the frames
                     WZProperty framePartNode = framePart.Value.Resolve();
-                    if (framePartNode.Type != PropertyType.Canvas) return false;
+                    if (framePartNode == null || framePartNode.Type != PropertyType.Canvas) return false;
 
                     if(!ElfEars && framePart.Key.Equals("ear", StringComparison.CurrentCultureIgnoreCase)) return false;
 
