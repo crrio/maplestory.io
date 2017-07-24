@@ -121,15 +121,19 @@ namespace maplestory.io.Services.MapleStory
                                 for (int frame = 0; frame < skin.Animations[animation].Frames.Length; ++frame)
                                 {
                                     ZipArchiveEntry entry = archive.CreateEntry($"{emotion}/{emotionFrame}/{animation}_{frame}.png", CompressionLevel.Optimal);
-                                    using (Stream entryData = entry.Open())
-                                    {
-                                        Tuple<int, string, int?>[] items = itemEntries
-                                            .Select(c => new Tuple<int, string, int?>(c, (c == face?.id) ? emotion : null, (c == face?.id) ? (int?)emotionFrame : null))
-                                            .ToArray();
-                                        Image<Rgba32> frameImage = GetCharacter(id, animation, frame, showEars, padding, renderMode, items);
-                                        frameImage.SaveAsPng(entryData);
+                                    try {
+                                        using (Stream entryData = entry.Open())
+                                        {
+                                            Tuple<int, string, int?>[] items = itemEntries
+                                                .Select(c => new Tuple<int, string, int?>(c, (c == face?.id) ? emotion : null, (c == face?.id) ? (int?)emotionFrame : null))
+                                                .ToArray();
+                                            Image<Rgba32> frameImage = GetCharacter(id, animation, frame, showEars, padding, renderMode, items);
+                                            frameImage.SaveAsPng(entryData);
 
-                                        entryData.Flush();
+                                            entryData.Flush();
+                                        }
+                                    } catch (Exception ex) {
+                                        entry.Delete();
                                     }
                                 }
                             }
