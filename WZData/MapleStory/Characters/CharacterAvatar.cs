@@ -174,6 +174,8 @@ namespace WZData.MapleStory.Characters {
                 if (node == null) return null;
 
                 WZProperty animationNode = node.Resolve(c.Item2.AnimationName ?? AnimationName) ?? node.Resolve("default");
+
+                if (animationNode == null) return null;
                 // Resolve to animation's frame
                 int frameCount = animationNode.Children.Keys.Where(k => int.TryParse(k, out int blah)).Select(k => int.Parse(k)).DefaultIfEmpty(0).Max() + 1;
                 int frameForEntry = FrameNumber % frameCount;
