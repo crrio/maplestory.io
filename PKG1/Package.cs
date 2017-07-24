@@ -8,13 +8,11 @@ using PKG1.Utilities;
 using System.Threading.Tasks;
 using System.Collections.Concurrent;
 using System.Threading;
-using System.IO.MemoryMappedFiles;
 
 namespace PKG1
 {
     public class Package {
         public static Action<string> Logging = (s) => { };
-        MemoryMappedFile underlyingMemoryMappedFile;
         StreamFactory streamFactory;
         public PackageCollection Collection;
         public string FileName;
@@ -32,8 +30,7 @@ namespace PKG1
             Collection = parent;
             FilePath = fileLocation;
             FileName = Path.GetFileNameWithoutExtension(FilePath);
-            underlyingMemoryMappedFile = MemoryMappedFile.CreateFromFile(FilePath, FileMode.OpenOrCreate);
-            streamFactory = new StreamFactory(() => underlyingMemoryMappedFile.CreateViewStream());
+            streamFactory = new StreamFactory(() => File.Open(FilePath, FileMode.OpenOrCreate, FileAccess.Read, FileShare.ReadWrite));
 
             using(WZReader file = GetRawReader()) {
                 if (!file.ReadString(4).Equals("PKG1", StringComparison.CurrentCultureIgnoreCase)) throw new InvalidOperationException("Can not run on non-PKG1 files.");

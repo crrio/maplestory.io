@@ -10,29 +10,29 @@ namespace PKG1 {
     public class StreamFactory {
         Func<Stream> CreateNew;
         volatile ConcurrentBag<StreamContainer> containers;
-        // Timer timedThread;
+        Timer timedThread;
         public StreamFactory(Func<Stream> createNew) {
             CreateNew = createNew;
             containers = new ConcurrentBag<StreamContainer>();
-            // timedThread = new Timer(ContainerWatcher, null, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(10));
+            timedThread = new Timer(ContainerWatcher, null, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(10));
         }
 
-        // void ContainerWatcher (object state) {
-        //     if (containers.Count > 0) {
-        //         DateTime now = DateTime.Now;
-        //         IEnumerable<StreamContainer> disposing = containers.Where(c => (now - c.lastLock).Seconds > 10 && !c.isLocked).ToArray();
+        void ContainerWatcher (object state) {
+            if (containers.Count > 0) {
+                DateTime now = DateTime.Now;
+                IEnumerable<StreamContainer> disposing = containers.Where(c => (now - c.lastLock).Seconds > 10 && !c.isLocked).ToArray();
 
-        //         if (disposing.Count() > 0) {
-        //             containers = new ConcurrentBag<StreamContainer>(
-        //                 containers.Where(c => !disposing.Contains(c))
-        //             );
-        //             Parallel.ForEach(disposing, c => {
-        //                 c.Dispose();
-        //                 c.underlying.Dispose();
-        //             });
-        //         }
-        //     }
-        // }
+                if (disposing.Count() > 0) {
+                    containers = new ConcurrentBag<StreamContainer>(
+                        containers.Where(c => !disposing.Contains(c))
+                    );
+                    Parallel.ForEach(disposing, c => {
+                        c.Dispose();
+                        c.underlying.Dispose();
+                    });
+                }
+            }
+        }
 
         public Stream GetStream() {
             StreamContainer res = containers.FirstOrDefault(c => c.Lock());
