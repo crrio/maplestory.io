@@ -135,7 +135,7 @@ namespace maplestory.io.Services.MapleStory
                                             entryData.Flush();
                                         }
                                     } catch (Exception ex) {
-                                        entry.Delete();
+                                        // entry.Delete();
                                     }
                                 }
                             }
