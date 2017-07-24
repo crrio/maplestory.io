@@ -118,6 +118,8 @@ namespace maplestory.io.Services.MapleStory
                         {
                             foreach (string animation in actions)
                             {
+                                if (!skin.Animations.ContainsKey(animation)) continue;
+
                                 for (int frame = 0; frame < skin.Animations[animation].Frames.Length; ++frame)
                                 {
                                     ZipArchiveEntry entry = archive.CreateEntry($"{emotion}/{emotionFrame}/{animation}_{frame}.png", CompressionLevel.Optimal);
