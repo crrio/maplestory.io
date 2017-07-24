@@ -68,11 +68,7 @@ namespace maplestory.io.Services.MapleStory
             avatar.ElfEars = showEars;
             avatar.Padding = padding;
 
-            _logger.LogDebug($"Took {watch.ElapsedMilliseconds}ms to initialize CharacterAvatar");
-            watch.Restart();
             var result = avatar.Render();
-            watch.Stop();
-            _logger.LogDebug($"Took {watch.ElapsedMilliseconds}ms to render CharacterAvatar");
             return result;
         }
 

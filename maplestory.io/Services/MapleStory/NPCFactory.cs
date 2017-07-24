@@ -9,9 +9,6 @@ namespace maplestory.io.Services.MapleStory
 {
     public class NPCFactory : NeedWZ<INPCFactory>, INPCFactory
     {
-        private Dictionary<int, Func<NPC>> NPCLookup;
-        private NPCInfo[] allNPCMeta;
-
         public NPCFactory(IWZFactory factory) : base(factory) { }
         public NPCFactory(IWZFactory factory, Region region, string version) : base(factory, region, version) { }
 

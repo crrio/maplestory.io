@@ -9,10 +9,6 @@ namespace maplestory.io.Services.MapleStory
 {
     public class SkillFactory : NeedWZ<ISkillFactory>, ISkillFactory
     {
-        private List<SkillDescription> skillDescriptions;
-        private List<Job> jobs;
-        private Dictionary<int, Func<SkillBook>> SkillBookLookup;
-
         public SkillFactory(IWZFactory factory) : base(factory) { }
         public SkillFactory(IWZFactory factory, Region region, string version) : base(factory, region, version) { }
 

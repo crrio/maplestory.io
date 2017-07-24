@@ -19,11 +19,6 @@ namespace maplestory.io.Services.MapleStory
 {
     public class ItemFactory : NeedWZ<IItemFactory>, IItemFactory
     {
-        private static Dictionary<int, Func<MapleItem>> itemLookup;
-        private static List<ItemNameInfo> itemDb;
-        private static ILogger<ItemFactory> _logger;
-        private static Dictionary<int, Func<MapleItem>> equipLookup;
-        private static ISkillFactory _skillFactory;
         public static Dictionary<int, string> JobNameLookup = new Dictionary<int, string>()
         {
             { 0, "Beginner" },

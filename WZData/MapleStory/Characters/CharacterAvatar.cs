@@ -193,7 +193,7 @@ namespace WZData.MapleStory.Characters {
                     // If the z-position is equal to the equipCategory, the required locks are the vslot
                     // This seems to resolve the caps only requiring the locks of vslot, not the full `cap` in smap
                     string equipCategory = framePartNode.Path.Split('/')[1];
-                    string zPosition = (framePartNode.Resolve().ResolveForOrNull<string>("z") ?? framePartNode.ResolveForOrNull<string>("../z"));
+                    string zPosition = framePartNode.Resolve().ResolveForOrNull<string>("z") ?? framePartNode.ResolveForOrNull<string>("../z") ?? framePartNode.Name;
                     bool sameZAsContainer = !zPosition.Equals(equipCategory, StringComparison.CurrentCultureIgnoreCase);
 
                     string requiredLockFull = smap.ContainsKey(framePart.Key) && !sameZAsContainer ? smap[framePart.Key] : itemNode.ResolveForOrNull<string>("info/vslot");

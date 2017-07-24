@@ -9,9 +9,6 @@ namespace maplestory.io.Services.MapleStory
 {
     public class QuestFactory : NeedWZ<IQuestFactory>, IQuestFactory
     {
-        Dictionary<int, Quest> allQuests;
-        List<QuestMeta> questMeta;
-
         public QuestFactory(IWZFactory factory) : base(factory) { }
         public QuestFactory(IWZFactory factory, Region region, string version) : base(factory, region, version) { }
 
