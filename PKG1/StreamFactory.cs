@@ -26,7 +26,10 @@ namespace PKG1 {
                     containers = new ConcurrentBag<StreamContainer>(
                         containers.Where(c => !disposing.Contains(c))
                     );
-                    Parallel.ForEach(disposing, c => c.Dispose());
+                    Parallel.ForEach(disposing, c => {
+                        c.Dispose();
+                        c.underlying.Dispose();
+                    });
                 }
             }
         }
@@ -44,7 +47,7 @@ namespace PKG1 {
         }
 
         class StreamContainer : Stream, IDisposable {
-            Stream underlying;
+            internal Stream underlying;
             int locked = 0;
             public DateTime lastLock;
             public StreamContainer(Stream s) {
