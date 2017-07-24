@@ -17,7 +17,7 @@ namespace maplestory.io.Services.MapleStory
         public CraftingEffectFactory(IWZFactory wzFactory) : base(wzFactory) { }
         public CraftingEffectFactory(IWZFactory wzFactory, Region region, string version) : base(wzFactory, region, version) { }
 
-        public string[] EffectList() => effects.Keys.Select(c => c.ToString()).ToArray();
+        public string[] EffectList() => EffectNames;
         public FrameBook GetEffect(CraftingType crafting) {
             return FrameBook.ParseSingle(wz.Resolve($"Effect/CharacterEff/MeisterEff/{crafting.ToString()}"));
         }
