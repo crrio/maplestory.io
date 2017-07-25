@@ -97,6 +97,7 @@ namespace maplestory.io.Services.MapleStory
 
         public byte[] GetSpriteSheet(int id, bool showEars = false, int padding = 2, RenderMode renderMode = RenderMode.Full, params int[] itemEntries)
         {
+            Stopwatch watch = Stopwatch.StartNew();
             Equip face = itemEntries.Where(c => c >= 20000 && c <= 25000).Select(c => (Equip)itemFactory.search(c)).FirstOrDefault();
 
             CharacterSkin skin = GetSkin(id);
@@ -118,6 +119,7 @@ namespace maplestory.io.Services.MapleStory
 
                                 for (int frame = 0; frame < skin.Animations[animation].Frames.Length; ++frame)
                                 {
+                                    if (watch.ElapsedMilliseconds > 120000) return null;
                                     ZipArchiveEntry entry = archive.CreateEntry($"{emotion}/{emotionFrame}/{animation}_{frame}.png", CompressionLevel.Optimal);
                                     try {
                                         using (Stream entryData = entry.Open())
