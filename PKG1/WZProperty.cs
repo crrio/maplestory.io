@@ -8,17 +8,13 @@ namespace PKG1 {
     public class WZPropertyWeak<K> : WZProperty, IWZPropertyVal<K>
         where K : class
     {
-        EventWaitHandle wait;
-        int Loading = 0;
-        Func<K> ValueCallback;
-        WeakReference<K> _weakValue;
+        ~WZPropertyWeak() {
+            _weakValue.Dispose();
+        }
+        WeakishReference<K> _weakValue;
         public K Value {
             get {
-                K val;
-                // If we don't get the value, invoke the lazy loader
-                if (!_weakValue.TryGetTarget(out val) || val == null)
-                    return LoadValue();
-                return val;
+                return _weakValue.GetValue();
             }
             set { throw new InvalidOperationException("WeakReference WZProperties can not have strong reference values set."); }
         }
@@ -27,34 +23,7 @@ namespace PKG1 {
 
          }
         public WZPropertyWeak(Func<K> val, string name, string path, Package container, PropertyType type, WZProperty parent, uint size, int checksum, uint offset) : base(name, path, container, type, parent, size, checksum, offset) {
-            ValueCallback = val;
-            _weakValue = new WeakReference<K>(null);
-            wait = new EventWaitHandle(false, EventResetMode.ManualReset);
-        }
-        K LoadValue() {
-            K value;
-            if (_weakValue.TryGetTarget(out value) && value != null) return value;
-
-            // If it is currently loading, try waiting and then try again
-            if (Interlocked.CompareExchange(ref Loading, 1, 0) != 0) {
-                wait.WaitOne();
-                return LoadValue();
-            }
-            // Once we get the lock, we need to let the other threads know that we'll notify them once we're finished
-            else wait.Reset();
-
-            // Double check, just in case it got updated while we were trying to obtain the lock
-            if (_weakValue.TryGetTarget(out value) && value != null) return value;
-
-            try {
-                value = ValueCallback();
-                _weakValue.SetTarget(value);
-            } finally {
-                wait.Set();
-                Loading = 0;
-            }
-
-            return value;
+            _weakValue = new WeakishReference<K>(null, val);
         }
         public object GetValue() => Value;
 
@@ -64,7 +33,7 @@ namespace PKG1 {
     {
         public K Value { get; set; }
         public WZPropertyVal(K val, WZProperty original)
-         : this(val, original.Name, original.Path, original.FileContainer, original.Type, original.Parent, original.Size, original.Checksum, original.Offset) { Children = original.Children; }
+         : this(val, original.Name, original.Path, original.FileContainer, original.Type, original.Parent, original.Size, original.Checksum, original.Offset) { _weakChildren = original._weakChildren; }
         public WZPropertyVal(K val, string name, string path, Package container, PropertyType type, WZProperty parent, uint size, int checksum, uint offset) : base(name, path, container, type, parent, size, checksum, offset) {
             Value = val;
         }
@@ -83,25 +52,31 @@ namespace PKG1 {
         public WZProperty Container;
         public PropertyType Type;
         public WZProperty Parent;
-        public event Func<Dictionary<string, WZProperty>> LoadChildren;
-        /// Set value here to add a constant reference to all children. Leave as is and add LoadChildren callback to have children be hot loaded as needed.
         public Dictionary<string, WZProperty> Children{
-            get => GetChildren();
+            get => _children ?? _weakChildren.GetValue();
             set {
                 _children = value;
-                wait.Set();
+                if(_weakChildren != null){
+                    _weakChildren.Dispose();
+                    _weakChildren = null;
+                }
             }
         }
-        int LoadingChildren = 0;
-        EventWaitHandle wait = new EventWaitHandle(false, EventResetMode.ManualReset);
         Dictionary<string, WZProperty> _children;
-        WeakReference<Dictionary<string, WZProperty>> _weakChildren;
+        public event Func<Dictionary<string, WZProperty>> LoadChildren;
+        internal WeakishReference<Dictionary<string, WZProperty>> _weakChildren;
         public uint Size;
         public int Checksum;
         public uint Offset;
+
         public uint ContainerStartLocation;
+        ~WZProperty() {
+            _weakChildren?.Dispose();
+        }
         public WZProperty(string name, string path, Package container, PropertyType type, WZProperty parent, uint size, int checksum, uint offset) {
-            this._weakChildren = new WeakReference<Dictionary<string, WZProperty>>(null);
+            this._weakChildren = new WeakishReference<Dictionary<string, WZProperty>>(null, () => {
+                return LoadChildren != null ? LoadChildren() : null;
+            });
             this.Name = name.Replace(".img", "");
             this.Path = path;
             this.FileContainer = container;
@@ -121,39 +96,6 @@ namespace PKG1 {
             this.Size = size;
             this.Checksum = checksum;
             this.Offset = offset;
-        }
-
-        public Dictionary<string, WZProperty> GetChildren() {
-            Dictionary<string, WZProperty> value = _children;
-            // If we already have a strong reference, or if the weak reference is still valid, return as is.
-            if (_children != null || (_weakChildren.TryGetTarget(out value) && value != null)) return value;
-            if (value == null && LoadChildren == null) return new Dictionary<string, WZProperty>();
-
-            // If it isn't loading, try waiting and then try again
-            if (Interlocked.CompareExchange(ref LoadingChildren, 1, 0) != 0) {
-                wait.WaitOne(250);
-                return GetChildren();
-            }
-
-            // Once we get the lock, we need to let the other threads know that we'll notify them once we're finished
-            wait.Reset();
-
-            // Double check, just in case it got updated while we were trying to obtain the lock
-            if (_weakChildren.TryGetTarget(out value) && value != null) {
-                LoadingChildren = 0;
-                return value;
-            }
-
-            try {
-                value = LoadChildren();
-                _weakChildren.SetTarget(value);
-            } catch (Exception ex) {
-                Package.Logging($"{ex.Message}{Environment.NewLine}{ex.StackTrace}");
-            }
-            wait.Set();
-            LoadingChildren = 0;
-
-            return value ?? new Dictionary<string, WZProperty>();
         }
 
         public override string ToString() => $"{Path} @ {Offset}x{Size}";
