@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using ImageSharp;
+using Newtonsoft.Json;
 using PKG1;
 
 namespace WZData.MapleStory.Maps
@@ -14,11 +16,13 @@ namespace WZData.MapleStory.Maps
         public IEnumerable<Portal> portals;
         public IEnumerable<MapLife> Npcs;
         public IEnumerable<MapLife> Mobs;
-
+        public double? MobRate;
         public bool? IsTown;
         public bool? IsSwim;
         public string MapMark;
         public MiniMap MiniMap;
+        [JsonIgnore]
+        public IEnumerable<GraphicsSet> Graphics;
 
         public static Map Parse(MapName name, PackageCollection collection)
         {
@@ -37,6 +41,7 @@ namespace WZData.MapleStory.Maps
             result.IsReturnMap = result.ReturnMap == 999999999;
             result.IsTown = mapInfo.ResolveFor<bool>("town");
             result.IsSwim = mapInfo.ResolveFor<bool>("swim");
+            result.MobRate = mapInfo.ResolveFor<double>("mobRate");
             result.MapMark = mapInfo.ResolveForOrNull<string>("mapMark");
 
             result.portals = mapEntry.Resolve("portal").Children.Values.Select(Portal.Parse);
@@ -45,9 +50,16 @@ namespace WZData.MapleStory.Maps
             IEnumerable<MapLife> life = mapEntry.Resolve("life").Children.Values.Select(MapLife.Parse);
             result.Npcs = life?.Where(c => c.Type == LifeType.NPC);
             result.Mobs = life?.Where(c => c.Type == LifeType.Monster);
+            result.Graphics = mapEntry.Children.Keys
+                .Where(c => int.TryParse(c, out int blah))
+                .Select(c => GraphicsSet.Parse(mapEntry.Children[c]));
 
             return result;
         }
 
+        public Image<Rgba32> Render()
+        {
+
+        }
     }
 }
