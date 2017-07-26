@@ -123,7 +123,12 @@ namespace WZData.MapleStory.Characters
     public class BodyPart : IFrame
     {
         public string Name;
-        public Image<Rgba32> Image { get; set; }
+        Image<Rgba32> cached;
+        Func<Image<Rgba32>> load;
+        public Image<Rgba32> Image { get{
+            if (cached == null) load();
+            return cached;
+        } set => cached = value; }
         public Point? Center { get; set; }
         public string Position { get; set; }
         public Dictionary<string, Point> MapOffset { get; set; }
@@ -134,7 +139,8 @@ namespace WZData.MapleStory.Characters
                 BodyPart result = new BodyPart();
 
                 result.Name = part.Name;
-                result.Image = part.ResolveForOrNull<Image<Rgba32>>();
+                result.load = () => result.Image = part.ResolveForOrNull<Image<Rgba32>>();
+                // result.
                 result.Center = part.ResolveFor<Point>("origin");
                 result.Position = part.ResolveForOrNull<string>("z") ?? part.ResolveForOrNull<string>("../z");
                 result.MapOffset = part.Resolve("map")?.Children

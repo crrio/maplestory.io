@@ -13,6 +13,7 @@ using WZData.MapleStory.Images;
 using System.Diagnostics;
 using Microsoft.Extensions.Logging;
 using PKG1;
+using System.Collections.Concurrent;
 
 namespace maplestory.io.Services.MapleStory
 {
@@ -104,39 +105,65 @@ namespace maplestory.io.Services.MapleStory
 
             string[] actions = GetActions(itemEntries);
 
+            List<Func<Tuple<string, Image<Rgba32>>>> allImages = new List<Func<Tuple<string, Image<Rgba32>>>>();
+
+            foreach (string emotion in face?.FrameBooks?.Keys?.ToArray() ?? new[] { "default" })
+            {
+                int emotionFrames = face?.FrameBooks[emotion]?.frames?.Count() ?? 1;
+                for (int emotionFrame = 0; emotionFrame < emotionFrames; ++emotionFrame) {
+                    foreach (string animation in actions)
+                    {
+                        if (!skin.Animations.ContainsKey(animation)) continue;
+
+                        for (int frame = 0; frame < skin.Animations[animation].Frames.Length; ++frame)
+                        {
+                            if (watch.ElapsedMilliseconds > 120000) return null;
+                            allImages.Add(() => {
+                                Tuple<int, string, int?>[] items = itemEntries
+                                    .Select(c => new Tuple<int, string, int?>(c, (c == face?.id) ? emotion : null, (c == face?.id) ? (int?)emotionFrame : null))
+                                    .ToArray();
+                                string path = $"{emotion}/{emotionFrame}/{animation}_{frame}.png";
+                                _logger.LogInformation($"Generating {path}");
+                                try {
+                                    var res = new Tuple<string, Image<Rgba32>>(
+                                        path,
+                                        GetCharacter(id, animation, frame, showEars, padding, renderMode, items)
+                                    );
+
+                                    _logger.LogInformation($"{path} generated.");
+                                return res;
+                                } catch (Exception) {
+                                    return null;
+                                }
+                            });
+                        }
+                    }
+                }
+            }
+
             using (MemoryStream mem = new MemoryStream())
             {
                 using (ZipArchive archive = new ZipArchive(mem, ZipArchiveMode.Create, true))
                 {
-                    foreach (string emotion in face?.FrameBooks?.Keys?.ToArray() ?? new[] { "default" })
-                    {
-                        int emotionFrames = face?.FrameBooks[emotion]?.frames?.Count() ?? 1;
-                        for (int emotionFrame = 0; emotionFrame < emotionFrames; ++emotionFrame)
-                        {
-                            foreach (string animation in actions)
-                            {
-                                if (!skin.Animations.ContainsKey(animation)) continue;
+                    // [] allImageData = allImages
+                    //     .AsParallel()
+                    //     .Select(c => c())
+                    //     .Where(c => c != null)
+                    //     .Select(c => new Tuple<string, byte[]>(c.Item1, c.Item2.ImageToByte()))
+                    //     .ToArray();
+                    ConcurrentBag<Tuple<string, byte[]>> bag = new ConcurrentBag<Tuple<string, byte[]>>();
+                    Parallel.ForEach(allImages, (a) => {
+                        var b = a();
+                        if (b == null) return;
+                        bag.Add(new Tuple<string, byte[]>(b.Item1, b.Item2.ImageToByte()));
+                    });
 
-                                for (int frame = 0; frame < skin.Animations[animation].Frames.Length; ++frame)
-                                {
-                                    if (watch.ElapsedMilliseconds > 120000) return null;
-                                    ZipArchiveEntry entry = archive.CreateEntry($"{emotion}/{emotionFrame}/{animation}_{frame}.png", CompressionLevel.Optimal);
-                                    try {
-                                        using (Stream entryData = entry.Open())
-                                        {
-                                            Tuple<int, string, int?>[] items = itemEntries
-                                                .Select(c => new Tuple<int, string, int?>(c, (c == face?.id) ? emotion : null, (c == face?.id) ? (int?)emotionFrame : null))
-                                                .ToArray();
-                                            Image<Rgba32> frameImage = GetCharacter(id, animation, frame, showEars, padding, renderMode, items);
-                                            frameImage.SaveAsPng(entryData);
-
-                                            entryData.Flush();
-                                        }
-                                    } catch (Exception ex) {
-                                        // entry.Delete();
-                                    }
-                                }
-                            }
+                    foreach(Tuple<string, byte[]> frameData in bag) {
+                        ZipArchiveEntry entry = archive.CreateEntry(frameData.Item1, CompressionLevel.Optimal);
+                        _logger.LogInformation($"Writing {frameData.Item1}");
+                        using (Stream entryData = entry.Open()) {
+                            entryData.Write(frameData.Item2, 0, frameData.Item2.Length);
+                            entryData.Flush();
                         }
                     }
                 }

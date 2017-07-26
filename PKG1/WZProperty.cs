@@ -131,17 +131,25 @@ namespace PKG1 {
 
             // If it isn't loading, try waiting and then try again
             if (Interlocked.CompareExchange(ref LoadingChildren, 1, 0) != 0) {
-                wait.WaitOne();
+                wait.WaitOne(250);
                 return GetChildren();
             }
+
             // Once we get the lock, we need to let the other threads know that we'll notify them once we're finished
-            else wait.Reset();
+            wait.Reset();
 
             // Double check, just in case it got updated while we were trying to obtain the lock
-            if (_weakChildren.TryGetTarget(out value) && value != null) return value;
+            if (_weakChildren.TryGetTarget(out value) && value != null) {
+                LoadingChildren = 0;
+                return value;
+            }
 
-            value = LoadChildren();
-            _weakChildren.SetTarget(value);
+            try {
+                value = LoadChildren();
+                _weakChildren.SetTarget(value);
+            } catch (Exception ex) {
+                Package.Logging($"{ex.Message}{Environment.NewLine}{ex.StackTrace}");
+            }
             wait.Set();
             LoadingChildren = 0;
 
