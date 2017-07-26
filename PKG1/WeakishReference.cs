@@ -1,17 +1,34 @@
 using System;
+using System.Collections.Concurrent;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace PKG1 {
     public class WeakishReference<K> : IDisposable
         where K : class
     {
+        static ConcurrentBag<Action> weakishChecks;
+        public static Timer Watcher;
         readonly WeakReference<K> weakReference;
         K strongReference;
         readonly EventWaitHandle wait;
         readonly Func<K> refresh;
-        Timer resetStrongReference;
+        Action resetStrongReference;
         DateTime lastAccess;
         int loading = 0;
+
+        static WeakishReference() {
+            weakishChecks = new ConcurrentBag<Action>();
+            Watcher = new Timer((st) => {
+                ConcurrentBag<Action> newChecks = new ConcurrentBag<Action>();
+                ConcurrentBag<Action> oldChecks;
+                do {
+                    oldChecks = weakishChecks;
+                } while(Interlocked.CompareExchange(ref weakishChecks, newChecks, weakishChecks) != weakishChecks);
+
+                Parallel.ForEach(oldChecks, a => a());
+            }, null, TimeSpan.FromMinutes(5), TimeSpan.FromMinutes(5));
+        }
 
         public WeakishReference(K initialValue, Func<K> refreshData)
         {
@@ -24,16 +41,17 @@ namespace PKG1 {
             if (resetStrongReference != null)
                 return;
 
-            Timer t = new Timer((state) => {
-                if ((DateTime.Now - lastAccess) > TimeSpan.FromSeconds(60)) {
+            Action t = null;
+            t = () => {
+                if ((DateTime.Now - lastAccess) > TimeSpan.FromMinutes(5)) {
                     strongReference = null;
-                    resetStrongReference?.Dispose();
                     resetStrongReference = null;
-                }
-            }, null, TimeSpan.FromSeconds(60), TimeSpan.FromSeconds(60));
+                } else if (resetStrongReference == t)
+                    weakishChecks.Add(t);
+            };
 
-            if (Interlocked.CompareExchange(ref resetStrongReference, t, null) != null && resetStrongReference != t)
-                t.Dispose();
+            if (Interlocked.CompareExchange(ref resetStrongReference, t, null) == null && resetStrongReference == t)
+                weakishChecks.Add(t);
         }
 
         public K GetValue() {
@@ -42,7 +60,7 @@ namespace PKG1 {
             if (value != null) return value;
             weakReference.TryGetTarget(out value);
             if (value == null) {
-                if (Interlocked.CompareExchange(ref loading, 1, 0) == 0) {
+                if (Interlocked.CompareExchange(ref loading, 1, 0) != 0) {
                     wait.WaitOne(500);
                     return GetValue();
                 }
@@ -79,7 +97,7 @@ namespace PKG1 {
                 if (disposing)
                 {
                     wait.Dispose();
-                    resetStrongReference?.Dispose();
+                    resetStrongReference = null;
                 }
 
                 // TODO: free unmanaged resources (unmanaged objects) and override a finalizer below.

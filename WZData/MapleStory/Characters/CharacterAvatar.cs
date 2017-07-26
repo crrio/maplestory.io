@@ -5,6 +5,9 @@ using System.Linq;
 using System.Collections;
 using System.Collections.Generic;
 using MoreLinq;
+using System.Threading.Tasks;
+using System.Collections.Concurrent;
+using System.Threading;
 
 namespace WZData.MapleStory.Characters {
     public class CharacterAvatar {
@@ -16,9 +19,31 @@ namespace WZData.MapleStory.Characters {
         private readonly PackageCollection wz;
         public int Padding;
         public bool ElfEars;
+        private int weaponType;
+        private Dictionary<string, string> smap;
+        private Dictionary<string, int> exclusiveLocks;
+        private List<string> zmap;
+        public Tuple<WZProperty, EquipSelection>[] equipped;
+        private bool preloaded;
 
         public CharacterAvatar(PackageCollection wz) {
             this.wz = wz;
+        }
+        public CharacterAvatar(CharacterAvatar old) {
+            this.SkinId = old.SkinId;
+            this.Equips = old.Equips;
+            this.Mode = old.Mode;
+            this.FrameNumber = old.FrameNumber;
+            this.AnimationName = old.AnimationName;
+            this.wz = old.wz;
+            this.Padding = old.Padding;
+            this.ElfEars = old.ElfEars;
+            this.weaponType = old.weaponType;
+            this.smap = old.smap;
+            this.exclusiveLocks = old.exclusiveLocks;
+            this.zmap = old.zmap;
+            this.equipped = old.equipped;
+            this.preloaded = old.preloaded;
         }
 
         public Image<Rgba32> Render() {
@@ -105,7 +130,9 @@ namespace WZData.MapleStory.Characters {
             return destination;
         }
 
-        public IEnumerable<RankedFrame> GetAnimationParts() {
+        public void Preload() {
+            if (this.preloaded) return;
+
             string bodyId = SkinId.ToString("D8");
             string headId = (SkinId + 10000).ToString("D8");
             WZProperty body = wz.Resolve($"Character/{bodyId}");
@@ -118,9 +145,9 @@ namespace WZData.MapleStory.Characters {
                 .ToArray();
 
             // Gather all of the equips (including body parts) and get their nodes
-            IEnumerable<Tuple<WZProperty, EquipSelection>> equipped = (new []{
-                new Tuple<WZProperty, EquipSelection>(body, new EquipSelection(){ AnimationName = AnimationName }),
-                new Tuple<WZProperty, EquipSelection>(head, new EquipSelection(){ AnimationName = AnimationName })
+            equipped = (new []{
+                new Tuple<WZProperty, EquipSelection>(body, new EquipSelection()),
+                new Tuple<WZProperty, EquipSelection>(head, new EquipSelection())
             })
                 .Concat(
                     Equips
@@ -131,10 +158,9 @@ namespace WZData.MapleStory.Characters {
                 )
                 .Where(c => c != null && c.Item1 != null)
                 .ToArray();
-            int itemCount = equipped.Count();
 
             // Get a cached version of the zmap
-            List<string> zmap = wz.Resolve("Base/zmap").Children.Keys.Reverse().ToList();
+            zmap = wz.Resolve("Base/zmap").Children.Keys.Reverse().ToList();
 
             // Build a sorted list of defined exclusive locks from items
             IEnumerable<Tuple<int, string[]>> exclusiveLockItems = equipped
@@ -143,7 +169,7 @@ namespace WZData.MapleStory.Characters {
                 .Select(c => new Tuple<int, string[]>(c.Item1, Enumerable.Range(0, c.Item2.Length / 2).Select((b, i) => c.Item2.Substring(i * 2, 2)).ToArray()));
 
             // Build a dictionary between what is locked and what is locking it
-            Dictionary<string, int> exclusiveLocks = new Dictionary<string, int>();
+            exclusiveLocks = new Dictionary<string, int>();
             foreach(Tuple<int, string[]> exclusiveLock in exclusiveLockItems)
                 foreach(string locking in exclusiveLock.Item2)
                     if (exclusiveLocks.ContainsKey(locking))
@@ -152,7 +178,7 @@ namespace WZData.MapleStory.Characters {
                         exclusiveLocks.Add(locking, exclusiveLock.Item1);
 
             // Build an smap dictionary to look up between what a position will require to lock before it can be rendered
-            Dictionary<string, string> smap = wz.Resolve("Base/smap").Children
+            smap = wz.Resolve("Base/smap").Children
                 .Where(c => c.Value.ResolveForOrNull<string>() != null)
                 .ToDictionary(c => c.Key, c => c.Value.ResolveForOrNull<string>() ?? "");
 
@@ -160,12 +186,19 @@ namespace WZData.MapleStory.Characters {
             // Certain items require the weapon type to determine what kind of animation will be displayed
             Tuple<WZProperty, EquipSelection> weaponEntry = equipped.FirstOrDefault(c => c.Item1.Parent.Name.Equals("Weapon"));
             // Default to weapon type `30`
-            int weaponType = weaponEntry?.Item1 != null && weaponEntry?.Item2 != null ? (int)((weaponEntry.Item2.ItemId  - 1000000) / 10000d) : 30;
+            weaponType = weaponEntry?.Item1 != null && weaponEntry?.Item2 != null ? (int)((weaponEntry.Item2.ItemId  - 1000000) / 10000d) : 30;
             // WeaponTypes of 70 are cash items, go back to 30.
             if (weaponType == 70) weaponType = 30;
 
+            this.preloaded = true;
+        }
+
+        public IEnumerable<RankedFrame> GetAnimationParts() {
+            Preload();
+
+            Dictionary<string, int> exclusiveLocksRender = new Dictionary<string, int>(exclusiveLocks);
             // Resolve to action nodes and then to frame nodes
-            return equipped.Select(c => {
+            IEnumerable<WZProperty> frameParts = equipped.Select(c => {
                 WZProperty itemNode = c.Item1;
                 WZProperty node = itemNode; // Resolve all items and body parts to their correct nodes for the animation
                 if (node.Children.Keys.Where(name => name != "info").All(name => int.TryParse(name, out int blah)))
@@ -178,7 +211,7 @@ namespace WZData.MapleStory.Characters {
                 if (animationNode == null) return null;
                 // Resolve to animation's frame
                 int frameCount = animationNode.Children.Keys.Where(k => int.TryParse(k, out int blah)).Select(k => int.Parse(k)).DefaultIfEmpty(0).Max() + 1;
-                int frameForEntry = FrameNumber % frameCount;
+                int frameForEntry = (c.Item2.EquipFrame ?? FrameNumber) % frameCount;
                 // Resolve for frame, and then ensure the frame is resolved completely. If there is no frame, then the animationNode likely contains the parts
                 WZProperty frameNode = animationNode.Resolve(frameForEntry.ToString())?.Resolve() ?? (frameCount == 1 ? animationNode.Resolve() : null);
                 if (frameNode == null) return null;
@@ -226,27 +259,30 @@ namespace WZData.MapleStory.Characters {
                 WZProperty effectNode = node.Resolve(c.AnimationName ?? AnimationName) ?? node.Resolve("default");
                 if (effectNode == null) return null;
                 int frameCount = effectNode.Children.Keys.Where(k => int.TryParse(k, out int blah)).Select(k => int.Parse(k)).Max();
-                int frameForEntry = FrameNumber % frameCount;
+                int frameForEntry = (c.EquipFrame ?? FrameNumber) % frameCount;
                 return effectNode.Resolve(frameForEntry.ToString())?.Resolve();
             }))
-            .Where(c => c != null)
-            .Select(c => {
+            .Where(c => c != null);
+
+            ConcurrentBag<RankedFrame> rankedFrames = new ConcurrentBag<RankedFrame>();
+
+            while(!Parallel.ForEach(frameParts, (c) => {
                 string zIndex = c.Resolve().ResolveForOrNull<string>("z") ?? c.ResolveForOrNull<string>("../z");
                 int zPosition = 0;
                 if (!int.TryParse(zIndex, out zPosition))
                     zPosition = zmap.IndexOf(zIndex);
-                return new RankedFrame(Frame.Parse(c), zPosition);
-            })
-            // Ensure all parts are completely resolved
-            .Where(c => c != null && c.frame != null)
-            // Convert to array so we only iterate once
-            .ToArray();
+                RankedFrame ranked = new RankedFrame(Frame.Parse(c), zPosition);
+                rankedFrames.Add(ranked);
+            }).IsCompleted) Thread.Sleep(1);
+
+            return rankedFrames.ToArray();
         }
     }
 
     public class EquipSelection {
         public int ItemId;
         public string AnimationName;
+        public int? EquipFrame;
     }
 
     public class RankedFrame {

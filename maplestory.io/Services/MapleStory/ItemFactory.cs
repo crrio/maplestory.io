@@ -38,21 +38,26 @@ namespace maplestory.io.Services.MapleStory
                 logging.LogInformation($"Caching {region} - {wz}");
                 if (wz == null) return;
 
-                RequiredJobs.Add(region, wz.Resolve("Character").Children.Values
-                    .AsParallel()
-                    .SelectMany(c => c.Children)
-                    .Where(c => int.TryParse(c.Key, out int blah))
-                    .DistinctBy(c => c.Key)
-                    .AsParallel()
-                    .ToDictionary(c => int.Parse(c.Key), c => {
+                ConcurrentDictionary<int, Tuple<string[], byte?, bool>> regionData = new ConcurrentDictionary<int, Tuple<string[], byte?, bool>>();
+
+                while(!Parallel.ForEach(
+                    wz.Resolve("Character").Children.Values
+                        .SelectMany(c => c.Children),
+                    c => {
+                        if (!int.TryParse(c.Key, out int itemId)) return;
                         int reqJob = c.Value.ResolveFor<int>("info/reqJob") ?? 0;
-                        return new Tuple<string[], byte?, bool>(
-                            JobNameLookup.Where(b => (b.Key & reqJob) == b.Key && (b.Key != 0 || reqJob == 0)).Select(b => b.Value).ToArray(),
-                            c.Value.ResolveFor<byte>("info/reqLevel"),
-                            c.Value.ResolveFor<bool>("info/cash") ?? false
+                        regionData.TryAdd(
+                            itemId,
+                            new Tuple<string[], byte?, bool>(
+                                JobNameLookup.Where(b => (b.Key & reqJob) == b.Key && (b.Key != 0 || reqJob == 0)).Select(b => b.Value).ToArray(),
+                                c.Value.ResolveFor<byte>("info/reqLevel"),
+                                c.Value.ResolveFor<bool>("info/cash") ?? false
+                            )
                         );
-                    })
-                );
+                    }
+                ).IsCompleted) Thread.Sleep(1);
+
+                RequiredJobs.Add(region, new Dictionary<int, Tuple<string[], byte?, bool>>(regionData));
 
                 logging.LogInformation($"Found {RequiredJobs[region].Count} items for {region}, latest");
             }

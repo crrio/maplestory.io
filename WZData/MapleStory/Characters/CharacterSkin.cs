@@ -33,6 +33,7 @@ namespace WZData.MapleStory.Characters
                 // Map the animations to partial BodyAnimations
                 .Select(animation => BodyAnimation.Parse(animation))
                 .GroupBy(c => c.AnimationName)
+                .AsParallel()
                 .Select(c => new BodyAnimation()
                 {
                     AnimationName = c.First().AnimationName,
@@ -48,9 +49,12 @@ namespace WZData.MapleStory.Characters
                         })
                         .ToArray()
                 })
+                .AsParallel()
                 .ToDictionary(c => c.AnimationName);
         }
 
+        public static CharacterSkin Parse(WZProperty characterWz, int id)
+            => new CharacterSkin(id, characterWz.Resolve($"{id.ToString("D8")}"), characterWz.Resolve($"{(id + 10000).ToString("D8")}"));
         public static IEnumerable<CharacterSkin> Parse(WZProperty characterWz)
             => characterWz.Children.Values
                 .Where(c => int.TryParse(c.Name.Replace(".img", ""), out int blah) && blah < 10000)

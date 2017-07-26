@@ -280,6 +280,8 @@ namespace PKG1 {
             if (reader.ReadByte() == 1) {
                 reader.BaseStream.Seek(2, SeekOrigin.Current);
                 result.Children = PropertyList(reader, result).ToDictionary(c => c.Name.Replace(".img", ""), c => c);
+            } else {
+                result.Children = new Dictionary<string, WZProperty>();
             }
             width = reader.ReadWZInt(); // width
             height = reader.ReadWZInt(); // height

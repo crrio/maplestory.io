@@ -20,8 +20,8 @@ namespace PKG1 {
         }
         public WZPropertyWeak(Func<K> val, WZProperty original)
          : this(val, original.Name, original.Path, original.FileContainer, original.Type, original.Parent, original.Size, original.Checksum, original.Offset) {
-
-         }
+            this.Children = original.Children;
+        }
         public WZPropertyWeak(Func<K> val, string name, string path, Package container, PropertyType type, WZProperty parent, uint size, int checksum, uint offset) : base(name, path, container, type, parent, size, checksum, offset) {
             _weakValue = new WeakishReference<K>(null, val);
         }
@@ -33,7 +33,7 @@ namespace PKG1 {
     {
         public K Value { get; set; }
         public WZPropertyVal(K val, WZProperty original)
-         : this(val, original.Name, original.Path, original.FileContainer, original.Type, original.Parent, original.Size, original.Checksum, original.Offset) { _weakChildren = original._weakChildren; }
+         : this(val, original.Name, original.Path, original.FileContainer, original.Type, original.Parent, original.Size, original.Checksum, original.Offset) { Children = original.Children; }
         public WZPropertyVal(K val, string name, string path, Package container, PropertyType type, WZProperty parent, uint size, int checksum, uint offset) : base(name, path, container, type, parent, size, checksum, offset) {
             Value = val;
         }
@@ -53,10 +53,12 @@ namespace PKG1 {
         public PropertyType Type;
         public WZProperty Parent;
         public Dictionary<string, WZProperty> Children{
-            get => _children ?? _weakChildren.GetValue();
+            get {
+                return _children ?? _weakChildren?.GetValue() ?? new Dictionary<string, WZProperty>();
+            }
             set {
                 _children = value;
-                if(_weakChildren != null){
+                if(_weakChildren != null) {
                     _weakChildren.Dispose();
                     _weakChildren = null;
                 }
