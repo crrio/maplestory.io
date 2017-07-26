@@ -32,21 +32,7 @@ namespace WZData.MapleStory.Maps
             result.Y = data.ResolveFor<int>("y") ?? int.MinValue; // y
             result.WalkAreaX1 = data.ResolveFor<int>("rx0") ?? int.MinValue; // rx0
             result.WalkAreaX2 = data.ResolveFor<int>("rx1") ?? int.MinValue; // rx1
-
-            WZProperty id = data.Resolve("id");
-            if (id != null)
-            {
-                switch (id.Type)
-                {
-                    case PropertyType.Int32:
-                        result.Id = ((WZPropertyVal<int>)id).Value;
-                        break;
-                    case PropertyType.String:
-                        result.Id = int.Parse(((WZPropertyVal<string>)id).Value);
-                        break;
-                }
-            }
-
+            result.Id = data.ResolveFor<int>("id") ?? -1;
             result.Foothold = data.ResolveFor<int>("fh") ?? -1; // fh
             result.Hidden = data.ResolveFor<bool>("hide") ?? false; // hide
             result.Type = data.ResolveForOrNull<string>("type").ToLower() == "n" ? LifeType.NPC : LifeType.Monster; // type

@@ -68,6 +68,7 @@ namespace maplestory.io.Services.MapleStory
             avatar.FrameNumber = frame;
             avatar.ElfEars = showEars;
             avatar.Padding = padding;
+            avatar.Mode = renderMode;
 
             var result = avatar.Render();
             return result;
