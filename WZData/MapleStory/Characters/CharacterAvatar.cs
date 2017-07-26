@@ -51,6 +51,8 @@ namespace WZData.MapleStory.Characters {
             Frame[] partsFrames = partsData.Select(c => c.frame).ToArray();
 
             Dictionary<string, Point> anchorPositions = new Dictionary<string, Point>() { { "navel", new Point(0, 0) } };
+            RankedFrame bodyFrame = partsData.FirstOrDefault(c => c.frame.Position == "body");
+            Point navelOffsetBody = bodyFrame.frame.MapOffset["navel"];
 
             List<KeyValuePair<string, Point>[]> offsets = partsFrames.Where(c => c.MapOffset != null).Select(c => c.MapOffset.ToArray()).ToList();
             while (offsets.Count > 0) {
@@ -68,8 +70,8 @@ namespace WZData.MapleStory.Characters {
                 offsets.Remove(offsetPairing);
             }
 
-            Tuple<Frame, Point>[] positionedFrames = partsFrames.Where(c => c.MapOffset != null).Select(c => {
-                KeyValuePair<string, Point> anchorPointEntry = c.MapOffset.Where(b => anchorPositions.ContainsKey(b.Key)).First();
+            Tuple<Frame, Point>[] positionedFrames = partsFrames.Select(c => {
+                KeyValuePair<string, Point> anchorPointEntry = (c.MapOffset ?? new Dictionary<string, Point>()).Where(b => anchorPositions.ContainsKey(b.Key)).DefaultIfEmpty(new KeyValuePair<string, Point>("navel", navelOffsetBody)).First();
                 Point anchorPoint = anchorPoint = anchorPositions[anchorPointEntry.Key];
                 Point vectorFromPoint = anchorPointEntry.Value;
                 Point fromAnchorPoint = new Point(anchorPoint.X - vectorFromPoint.X, anchorPoint.Y - vectorFromPoint.Y);
@@ -254,7 +256,7 @@ namespace WZData.MapleStory.Characters {
             .Where(c => c != null)
             .SelectMany(c => c)
             .Concat(Equips.Select(c => { // Concat any effects for items equipped
-                WZProperty node = wz.Resolve($"Effect/ItemEff/{c.ItemId}"); // Resolve the selected animation
+                WZProperty node = wz.Resolve($"Effect/ItemEff/{c.ItemId}/effect"); // Resolve the selected animation
                 if (node == null) return null;
                 WZProperty effectNode = node.Resolve(c.AnimationName ?? AnimationName) ?? node.Resolve("default");
                 if (effectNode == null) return null;
