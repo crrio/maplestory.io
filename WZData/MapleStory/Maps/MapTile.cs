@@ -12,6 +12,8 @@ namespace WZData.MapleStory.Maps
     public class MapTile : IPositionedFrameContainer
     {
         public string pathToImage;
+        private bool FrontMost;
+
         public Frame Canvas { get; set; }
         public Vector3 Position { get; set; }
         public RectangleF Bounds {
@@ -34,11 +36,13 @@ namespace WZData.MapleStory.Maps
                 data.ResolveForOrNull<string>("no")
             });
             WZProperty tileCanvas = data.ResolveOutlink($"Map/Tile/{result.pathToImage}");
+            if (tileCanvas == null) return null;
             result.Canvas = Frame.Parse(tileCanvas.Children.Values.FirstOrDefault(c => c.Type == PropertyType.Canvas) ?? tileCanvas);
+            result.FrontMost = data.ResolveFor<bool>("front") ?? false;
             result.Position = new Vector3(
                 data.ResolveFor<int>("x") ?? 0,
                 data.ResolveFor<int>("y") ?? 0,
-                tileCanvas.ResolveFor<int>("z") ?? 1000
+                result.FrontMost ? 100000000 : (tileCanvas.ResolveFor<int>("z") + 1000 ?? 100)
             );
             return result;
         }

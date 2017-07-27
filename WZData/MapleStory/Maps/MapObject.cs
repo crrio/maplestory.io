@@ -28,6 +28,9 @@ namespace WZData.MapleStory.Maps
         }
 
         public float? Rotation;
+        public bool FrontMost;
+        public int[] Quests;
+        public string Tags;
 
         public static MapObject Parse(WZProperty data)
         {
@@ -38,13 +41,20 @@ namespace WZData.MapleStory.Maps
                 data.ResolveForOrNull<string>("l1"),
                 data.ResolveForOrNull<string>("l2"),
             }).Where(c => c != null));
+            result.FrontMost = data.ResolveFor<bool>("front") ?? false;
             result.Position = new Vector3(
                 data.ResolveFor<float>("x") ?? 0,
                 data.ResolveFor<float>("y") ?? 0,
-                data.ResolveFor<float>("z") ?? 0
+                result.FrontMost ? 100000000 : Math.Max(data.ResolveFor<float>("z") ?? 0, data.ResolveFor<float>("zM") ?? 0)
             );
+            result.Quests = data.Resolve("quest")?.Children?.Keys
+                .Where(c => int.TryParse(c, out int blah))
+                .Select(c => int.Parse(c))
+                .ToArray();
+            result.Tags = data.ResolveForOrNull<string>("tags");
             result.Rotation = data.ResolveFor<float>("r");
             WZProperty objCanvas = data.ResolveOutlink($"Map/Obj/{result.pathToImage}");
+            if (objCanvas == null) return null;
             result.Canvas = Frame.Parse(objCanvas.Children.Values.FirstOrDefault() ?? objCanvas);
             return result;
         }

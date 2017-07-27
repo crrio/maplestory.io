@@ -18,7 +18,7 @@ namespace maplestory.io.Services.MapleStory
 
         public Map GetMap(int id) {
             MapName name = GetMapName(id);
-            Map map = Map.Parse(name, wz);
+            Map map = Map.Parse(id, name, wz);
             return map;
         }
         public MapMark GetMapMark(string markName) => MapMark.Parse(_factory.GetWZ(region, version).Resolve($"Map/MapHelper.img/mark/{markName}"));
@@ -32,7 +32,7 @@ namespace maplestory.io.Services.MapleStory
                 .SelectMany(c => c.Children)
                 .Where(c => c.Key == id.ToString())
                 .Select(c => c.Value)
-                .First();
+                .FirstOrDefault();
             MapName name = MapName.Parse(mapName);
             return name;
         }

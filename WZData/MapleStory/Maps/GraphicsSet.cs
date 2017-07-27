@@ -24,8 +24,8 @@ namespace WZData.MapleStory.Maps
             GraphicsSet result = new GraphicsSet();
             result.Index = index;
             result.TileSet = data.ResolveForOrNull<string>("info/tS");
-            result.Objects = data.Resolve("obj").Children.Values.Select(c => MapObject.Parse(c));
-            result.Tiles = data.Resolve("tile").Children.Values.Select(c => MapTile.Parse(c, result.TileSet));
+            result.Objects = data.Resolve("obj").Children.Values.Select(c => MapObject.Parse(c)).Where(c => c != null);
+            result.Tiles = data.Resolve("tile").Children.Values.Select(c => MapTile.Parse(c, result.TileSet)).Where(c => c != null);
 
             return result;
         }
