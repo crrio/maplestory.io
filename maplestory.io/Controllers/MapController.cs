@@ -62,6 +62,12 @@ namespace maplestory.io.Controllers
             return GetMarkByName(map.MapMark);
         }
 
+        [Route("{mapId}/minimap")]
+        [HttpGet]
+        [Produces("image/png")]
+        public IActionResult GetMinimap(int mapId)
+            => File(_factory.GetWithWZ(region, version).GetMap(mapId).MiniMap.canvas.ImageToByte(), "image/png");
+
         [Route("{mapId}/bgm")]
         [HttpGet]
         [Produces("audio/mpeg")]
