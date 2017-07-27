@@ -1,9 +1,6 @@
 using System;
-using ImageSharp;
-using System.Collections.Generic;
-using System.Linq;
 using System.Numerics;
-using PKG1;
+using SixLabors.Primitives;
 
 namespace WZData.MapleStory.Images
 {
@@ -12,5 +9,6 @@ namespace WZData.MapleStory.Images
         Frame Canvas { get; }
         Vector3 Position { get; }
         RectangleF Bounds { get; }
+        bool Flip { get; }
     }
 }

@@ -30,9 +30,4 @@ namespace WZData.MapleStory.Maps
             return result;
         }
     }
-
-    public class MapLayerResult {
-        public Point Position;
-        public Image<Rgba32> Canvas;
-    }
 }

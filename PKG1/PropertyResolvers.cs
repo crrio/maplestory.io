@@ -3,10 +3,10 @@ using System.IO;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Linq;
-using ImageSharp;
-using ImageSharp.PixelFormats;
 using System.Threading;
 using System.Diagnostics;
+using SixLabors.Primitives;
+using ImageSharp;
 
 namespace PKG1 {
     public class PropertyResolvers {

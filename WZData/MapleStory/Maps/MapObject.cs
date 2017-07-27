@@ -6,6 +6,9 @@ using PKG1;
 using System.Linq;
 using System.Numerics;
 using WZData.MapleStory.Images;
+using ImageSharp.Processing;
+using SixLabors.Primitives;
+using ImageSharp.PixelFormats;
 
 namespace WZData.MapleStory.Maps
 {
@@ -31,7 +34,7 @@ namespace WZData.MapleStory.Maps
         public bool FrontMost;
         public int[] Quests;
         public string Tags;
-
+        public bool Flip { get; set; }
         public static MapObject Parse(WZProperty data)
         {
             MapObject result = new MapObject();
@@ -56,6 +59,10 @@ namespace WZData.MapleStory.Maps
             WZProperty objCanvas = data.ResolveOutlink($"Map/Obj/{result.pathToImage}");
             if (objCanvas == null) return null;
             result.Canvas = Frame.Parse(objCanvas.Children.Values.FirstOrDefault(c => c.Type == PropertyType.Canvas) ?? objCanvas);
+            result.Flip = data.ResolveFor<bool>("f") ?? false;
+            if (result.Flip)
+                result.Canvas.Image = result.Canvas.Image.Flip(FlipType.Vertical);
+
             return result;
         }
     }

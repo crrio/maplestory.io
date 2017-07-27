@@ -6,6 +6,8 @@ using PKG1;
 using System.Linq;
 using System.Numerics;
 using WZData.MapleStory.Images;
+using ImageSharp.Processing;
+using SixLabors.Primitives;
 
 namespace WZData.MapleStory.Maps
 {
@@ -13,11 +15,10 @@ namespace WZData.MapleStory.Maps
     {
         public string BackgroundSet;
         public string pathToImage;
-        public bool ShouldFlip;
+        public bool Flip { get; set; }
         public float Alpha;
         public BackgroundType Type;
         private bool Front;
-
         public Frame Canvas { get; set; }
         public Vector3 Position { get; set; }
         public RectangleF Bounds {
@@ -42,7 +43,7 @@ namespace WZData.MapleStory.Maps
             });
             result.Front = data.ResolveFor<bool>("front") ?? false;
             result.Alpha = (data.ResolveFor<int>("a") ?? 255) / 255;
-            result.ShouldFlip = data.ResolveFor<bool>("f") ?? false;
+            result.Flip = data.ResolveFor<bool>("f") ?? false;
             WZProperty tileCanvas = data.ResolveOutlink($"Map/Back/{result.pathToImage}");
             if (tileCanvas != null) // Could be null as we're not supporting ani backgrounds
                 result.Canvas = Frame.Parse(tileCanvas?.Children.Values.FirstOrDefault(c => c.Type == PropertyType.Canvas) ?? tileCanvas);

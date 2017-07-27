@@ -6,8 +6,10 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using ImageSharp;
+using ImageSharp.Processing;
 using Newtonsoft.Json;
 using PKG1;
+using SixLabors.Primitives;
 using WZData.MapleStory.Images;
 
 namespace WZData.MapleStory.Maps
@@ -103,7 +105,8 @@ namespace WZData.MapleStory.Maps
             }).IsCompleted) Thread.Sleep(1);
 
             Image<Rgba32> layered = RenderBackground(this.Backgrounds, minX, minY, maxX, maxY);
-            foreach(Image<Rgba32> layer in layers.OrderBy(c => c.Key).Select(c => c.Value)) layered.DrawImage(layer, 1, new Size(layered.Width, layered.Height), new Point(0,0));
+            foreach(Image<Rgba32> layer in layers.OrderBy(c => c.Key).Select(c => c.Value))
+                layered.DrawImage(layer, 1, new Size(layered.Width, layered.Height), new Point(0,0));
 
             return layered;
         }
@@ -123,7 +126,7 @@ namespace WZData.MapleStory.Maps
                     case BackgroundType.Single:
                         if (layerResult.Bounds.IntersectsWith(new Rectangle(drawAt, frameSize)))
                             layerResult.DrawImage(
-                                frameContainer.Canvas.Image, frameContainer.Alpha,
+                                frameContainer.Canvas.Image.To<Rgba32>().Flip(frameContainer.Flip ? FlipType.Horizontal : FlipType.None), frameContainer.Alpha,
                                 new Size (frameContainer.Canvas.Image.Width, frameContainer.Canvas.Image.Height),
                                 drawAt
                             );
@@ -134,19 +137,20 @@ namespace WZData.MapleStory.Maps
                             drawAt = new Point((int)(x - minX), drawAt.Y);
                             if (layerResult.Bounds.IntersectsWith(new Rectangle(drawAt, frameSize)))
                                 layerResult.DrawImage(
-                                    frameContainer.Canvas.Image, frameContainer.Alpha,
+                                    frameContainer.Canvas.Image.To<Rgba32>().Flip(frameContainer.Flip ? FlipType.Horizontal : FlipType.None), frameContainer.Alpha,
                                     new Size (frameContainer.Canvas.Image.Width, frameContainer.Canvas.Image.Height),
                                     drawAt
                                 );
                         }
                         break;
 
+                    case BackgroundType.TiledVertical:
                     case BackgroundType.ScrollingTiledVertical:
                         for(int y = (int)minY; y < maxY; y += frameContainer.Canvas.Image.Height) {
                             drawAt = new Point(drawAt.X, (int)(y - minY));
                             if (layerResult.Bounds.IntersectsWith(new Rectangle(drawAt, frameSize)))
                                 layerResult.DrawImage(
-                                    frameContainer.Canvas.Image, frameContainer.Alpha,
+                                    frameContainer.Canvas.Image.To<Rgba32>().Flip(frameContainer.Flip ? FlipType.Horizontal : FlipType.None), frameContainer.Alpha,
                                     new Size (frameContainer.Canvas.Image.Width, frameContainer.Canvas.Image.Height),
                                     drawAt
                                 );
@@ -161,7 +165,7 @@ namespace WZData.MapleStory.Maps
                             drawAt = new Point((int)(x - minX), (int)(y - minY));
                             if (layerResult.Bounds.IntersectsWith(new Rectangle(drawAt, frameSize)))
                                 layerResult.DrawImage(
-                                    frameContainer.Canvas.Image, frameContainer.Alpha,
+                                    frameContainer.Canvas.Image.To<Rgba32>().Flip(frameContainer.Flip ? FlipType.Horizontal : FlipType.None), frameContainer.Alpha,
                                     new Size (frameContainer.Canvas.Image.Width, frameContainer.Canvas.Image.Height),
                                     drawAt
                                 );
@@ -182,7 +186,7 @@ namespace WZData.MapleStory.Maps
                 );
                 if (!layerResult.Bounds.Contains(drawAt)) continue;
                 layerResult.DrawImage(
-                    frameContainer.Canvas.Image, 1,
+                    frameContainer.Canvas.Image.To<Rgba32>().Flip(frameContainer.Flip ? FlipType.Horizontal : FlipType.None), 1,
                     new Size (frameContainer.Canvas.Image.Width, frameContainer.Canvas.Image.Height),
                     drawAt
                 );
