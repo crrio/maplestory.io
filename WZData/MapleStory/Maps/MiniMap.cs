@@ -13,6 +13,7 @@ namespace WZData.MapleStory.Maps
 
         public static MiniMap Parse(WZProperty data)
         {
+            if (data == null) return null;
             MiniMap result = new MiniMap();
             result.canvas = data.ResolveForOrNull<Image<Rgba32>>("canvas");
             result.centerX = data.ResolveFor<int>("centerX") ?? -1;

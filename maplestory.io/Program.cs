@@ -38,9 +38,9 @@ namespace maplestory.io
             Package.Logging = (s) => packageLogger.LogInformation(s);
             Parallel.ForEach(wzPath.versions, (version) => WZFactory.AddWz(version.path, version.region, version.version));
 
-            readerLogging.LogDebug("Caching item requirements");
+            // readerLogging.LogDebug("Caching item requirements");
             WZFactory wzFactory = new WZFactory();
-            ItemFactory.CacheEquipMeta(wzFactory, logging.CreateLogger<ItemFactory>());
+            // ItemFactory.CacheEquipMeta(wzFactory, logging.CreateLogger<ItemFactory>());
 
             ILogger prog = logging.CreateLogger<Program>();
             watch.Stop();

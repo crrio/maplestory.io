@@ -13,6 +13,7 @@ namespace WZData.MapleStory.Maps
 
         public static MapName Parse(WZProperty mapEntry)
         {
+            if (mapEntry == null) return null;
             return new MapName()
             {
                 Id = int.Parse(mapEntry.Name),
