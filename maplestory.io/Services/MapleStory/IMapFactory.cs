@@ -12,7 +12,7 @@ namespace maplestory.io.Services.MapleStory
     {
         IEnumerable<MapName> GetMapNames();
         MapName GetMapName(int id);
-        Map GetMap(int id);
+        Map GetMap(int id, bool followLinks = true);
         MapMark GetMapMark(string markName);
         Image<Rgba32> Render(int id);
     }

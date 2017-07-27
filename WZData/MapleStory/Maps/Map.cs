@@ -25,6 +25,7 @@ namespace WZData.MapleStory.Maps
         public bool? IsSwim;
         public string MapMark;
         public MiniMap MiniMap;
+        public int? LinksTo;
         [JsonIgnore]
         public IEnumerable<GraphicsSet> Graphics;
         [JsonIgnore]
@@ -46,6 +47,7 @@ namespace WZData.MapleStory.Maps
             if (mapEntry == null) return null;
             WZProperty mapInfo = mapEntry.Resolve("info");
 
+            result.LinksTo = mapInfo.ResolveFor<int>("link");
             result.BackgroundMusic = mapInfo.ResolveForOrNull<string>("bgm");
             result.ReturnMap = mapInfo.ResolveFor<int>("returnMap");
 //            result.IsReturnMap = result.ReturnMap == result.Id;
@@ -64,16 +66,26 @@ namespace WZData.MapleStory.Maps
             result.Graphics = mapEntry.Children.Keys
                 .Where(c => int.TryParse(c, out int blah))
                 .Select((c, i) => GraphicsSet.Parse(mapEntry.Children[c], i));
-            result.Backgrounds = mapEntry.Resolve("back").Children.Values.Select(c => MapBackground.Parse(c));
+            result.Backgrounds = mapEntry.Resolve("back")?.Children.Values.Select(c => MapBackground.Parse(c));
 
             return result;
+        }
+
+        public void ExtendFrom(Map linked)
+        {
+            this.Npcs = linked.Npcs;
+            this.Mobs = linked.Mobs;
+            this.MiniMap = linked.MiniMap;
+            this.portals = linked.portals;
+            this.Graphics = linked.Graphics;
+            this.Backgrounds = linked.Backgrounds;
         }
 
         public Image<Rgba32> Render()
         {
             IEnumerable<IEnumerable<IPositionedFrameContainer>> frameContainers = Graphics
                 .Select(g => g.Objects.Select(c => (IPositionedFrameContainer)c).Concat(g.Tiles).ToArray());
-            if (frameContainers.Count() == 0) return null;
+            if (frameContainers.Count() == 0 || frameContainers.Select(c => c.Count()).Sum() == 0) return null;
             IEnumerable<RectangleF> Bounds = frameContainers.SelectMany(c => c).Select(c => c.Bounds).ToArray();
             float minX = Bounds.Select(c => c.X).Min();
             float maxX = Bounds.Select(c => c.X + c.Width).Max();
