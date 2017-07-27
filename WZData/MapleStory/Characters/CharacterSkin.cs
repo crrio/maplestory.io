@@ -133,7 +133,7 @@ namespace WZData.MapleStory.Characters
             if (cached == null) load();
             return cached;
         } set => cached = value; }
-        public Point? Center { get; set; }
+        public Point? Origin { get; set; }
         public string Position { get; set; }
         public Dictionary<string, Point> MapOffset { get; set; }
         internal static BodyPart Parse(WZProperty part)
@@ -145,7 +145,7 @@ namespace WZData.MapleStory.Characters
                 result.Name = part.Name;
                 result.load = () => result.Image = part.ResolveForOrNull<Image<Rgba32>>();
                 // result.
-                result.Center = part.ResolveFor<Point>("origin");
+                result.Origin = part.ResolveFor<Point>("origin");
                 result.Position = part.ResolveForOrNull<string>("z") ?? part.ResolveForOrNull<string>("../z");
                 result.MapOffset = part.Resolve("map")?.Children
                     .Where(c => c.Value.Type == PropertyType.Vector2)

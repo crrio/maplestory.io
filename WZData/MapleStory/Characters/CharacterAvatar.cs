@@ -89,7 +89,7 @@ namespace WZData.MapleStory.Characters {
                         fromAnchorPoint = new Point(anchorPoint.X - vectorFromPoint.X, anchorPoint.Y - vectorFromPoint.Y);
                     }
                 }
-                Point partOrigin = c.Center ?? Point.Empty;
+                Point partOrigin = c.Origin ?? Point.Empty;
 
                 return new Tuple<Frame, Point>(
                     c,

@@ -25,7 +25,7 @@ namespace WZData.MapleStory.Maps
         }
 
         public Image<Rgba32> Render() {
-
+            return null;
         }
     }
 }
