@@ -47,7 +47,7 @@ namespace WZData.MapleStory.Maps
             result.Position = new Vector3(
                 data.ResolveFor<int>("x") ?? 0,
                 data.ResolveFor<int>("y") ?? 0,
-                result.FrontMost ? 100000000 : (tileCanvas.ResolveFor<int>("z") + 1000000 ?? 100)
+                result.FrontMost ? 100000000 : (tileCanvas.ResolveFor<int>("z") ?? 1)
             );
             return result;
         }

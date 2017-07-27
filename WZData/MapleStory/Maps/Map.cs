@@ -32,6 +32,9 @@ namespace WZData.MapleStory.Maps
         public IEnumerable<GraphicsSet> Graphics;
         [JsonIgnore]
         public IEnumerable<MapBackground> Backgrounds;
+        [JsonIgnore]
+        private IEnumerable<MapLife> Life;
+        public Dictionary<int, Foothold> Footholds;
 
         public static Map Parse(int id, MapName name, PackageCollection collection)
         {
@@ -59,12 +62,18 @@ namespace WZData.MapleStory.Maps
             result.MobRate = mapInfo.ResolveFor<double>("mobRate");
             result.MapMark = mapInfo.ResolveForOrNull<string>("mapMark");
 
+            result.Footholds = mapEntry.Resolve("foothold").Children.Values
+                .SelectMany(c => c.Children.Values)
+                .SelectMany(c => c.Children.Values)
+                .Select(c => Foothold.Parse(c))
+                .ToDictionary(c => c.id);
+
             result.portals = mapEntry.Resolve("portal")?.Children.Values.Select(Portal.Parse);
             result.MiniMap = result.MiniMap = MiniMap.Parse(mapEntry.Resolve("miniMap"));
 
-            IEnumerable<MapLife> life = mapEntry.Resolve("life")?.Children.Values.Select(MapLife.Parse);
-            result.Npcs = life?.Where(c => c.Type == LifeType.NPC);
-            result.Mobs = life?.Where(c => c.Type == LifeType.Monster);
+            result.Life = mapEntry.Resolve("life")?.Children.Values.Select(c => MapLife.Parse(c, result.Footholds));
+            result.Npcs = result.Life?.Where(c => c.Type == LifeType.NPC);
+            result.Mobs = result.Life?.Where(c => c.Type == LifeType.Monster);
             result.Graphics = mapEntry.Children.Keys
                 .Where(c => int.TryParse(c, out int blah))
                 .Select((c, i) => GraphicsSet.Parse(mapEntry.Children[c], i));
@@ -81,9 +90,10 @@ namespace WZData.MapleStory.Maps
             this.portals = linked.portals;
             this.Graphics = linked.Graphics;
             this.Backgrounds = linked.Backgrounds;
+            this.Footholds = linked.Footholds;
         }
 
-        public Image<Rgba32> Render()
+        public Image<Rgba32> Render(bool showLife, bool showPortals)
         {
             IEnumerable<IEnumerable<IPositionedFrameContainer>> frameContainers = Graphics
                 .Select(g => g.Objects.Select(c => (IPositionedFrameContainer)c).Concat(g.Tiles).ToArray());
@@ -109,6 +119,11 @@ namespace WZData.MapleStory.Maps
                 layers.TryAdd(graphicsContainer.Index * 2, objsLayer);
                 layers.TryAdd((graphicsContainer.Index * 2) + 1, tileLayer);
             }).IsCompleted) Thread.Sleep(1);
+
+            if (showLife) {
+                Image<Rgba32> lifeLayer = RenderPositioned(Life, minX, minY, maxX, maxY);
+                layers.TryAdd(2000000000, lifeLayer);
+            }
 
             Image<Rgba32> layered = RenderBackground(this.Backgrounds, minX, minY, maxX, maxY);
             foreach(Image<Rgba32> layer in layers.OrderBy(c => c.Key).Select(c => c.Value))
@@ -184,7 +199,7 @@ namespace WZData.MapleStory.Maps
 
         Image<Rgba32> RenderPositioned(IEnumerable<IPositionedFrameContainer> frameContainerZ, float minX, float minY, float maxX, float maxY) {
             Image<Rgba32> layerResult = new Image<Rgba32>((int)(maxX - minX), (int)(maxY - minY));
-            foreach(IPositionedFrameContainer frameContainer in frameContainerZ.Where(c => c.Canvas.Image != null)) {
+            foreach(IPositionedFrameContainer frameContainer in frameContainerZ.Where(c => c?.Canvas?.Image != null)) {
                 Point origin = frameContainer.Canvas.Origin ?? (new Point(frameContainer.Canvas.Image.Width / 2, frameContainer.Canvas.Image.Height / 2));
                 Point drawAt = new Point (
                     (int)((frameContainer.Position.X - origin.X) - minX),
@@ -199,5 +214,29 @@ namespace WZData.MapleStory.Maps
             }
             return layerResult;
         }
+    }
+
+    public class Foothold {
+        public int id;
+        public int next;
+        public int prev;
+        public int piece;
+        public int x1, x2, y1, y2;
+        internal static Foothold Parse(WZProperty c)
+        {
+            Foothold result = new Foothold();
+            result.id = int.Parse(c.Name);
+            result.next = c.ResolveFor<int>("next") ?? 0;
+            result.prev = c.ResolveFor<int>("prev") ?? 0;
+            result.piece = c.ResolveFor<int>("piece") ?? 0;
+            result.x1 = c.ResolveFor<int>("x1") ?? 0;
+            result.x2 = c.ResolveFor<int>("x2") ?? 0;
+            result.y1 = c.ResolveFor<int>("y1") ?? 0;
+            result.y2 = c.ResolveFor<int>("y2") ?? 0;
+            return result;
+        }
+
+        public int YAtX(int x)
+            => (y1 + ((y2 - y1) / ((x2 - x1) * (x - x1))));
     }
 }

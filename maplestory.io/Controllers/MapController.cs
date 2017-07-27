@@ -65,8 +65,8 @@ namespace maplestory.io.Controllers
         [Route("{mapId}/render")]
         [HttpGet]
         [Produces("image/png")]
-        public IActionResult RenderMap(int mapId)
-            => File(_factory.GetWithWZ(region, version).Render(mapId).ImageToByte(), "image/png");
+        public IActionResult RenderMap(int mapId, [FromQuery]bool showLife = false, [FromQuery]bool showPortals = false)
+            => File(_factory.GetWithWZ(region, version).Render(mapId, showLife, showPortals).ImageToByte(), "image/png");
 
         [Route("{mapId}/minimap")]
         [HttpGet]

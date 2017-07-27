@@ -14,6 +14,6 @@ namespace maplestory.io.Services.MapleStory
         MapName GetMapName(int id);
         Map GetMap(int id, bool followLinks = true);
         MapMark GetMapMark(string markName);
-        Image<Rgba32> Render(int id);
+        Image<Rgba32> Render(int id, bool showLife, bool showPortals);
     }
 }
