@@ -55,7 +55,7 @@ namespace WZData.MapleStory.Maps
             result.Rotation = data.ResolveFor<float>("r");
             WZProperty objCanvas = data.ResolveOutlink($"Map/Obj/{result.pathToImage}");
             if (objCanvas == null) return null;
-            result.Canvas = Frame.Parse(objCanvas.Children.Values.FirstOrDefault() ?? objCanvas);
+            result.Canvas = Frame.Parse(objCanvas.Children.Values.FirstOrDefault(c => c.Type == PropertyType.Canvas) ?? objCanvas);
             return result;
         }
     }
