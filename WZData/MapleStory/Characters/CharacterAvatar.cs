@@ -53,8 +53,13 @@ namespace WZData.MapleStory.Characters {
             Dictionary<string, Point> anchorPositions = new Dictionary<string, Point>() { { "navel", new Point(0, 0) } };
             RankedFrame bodyFrame = partsData.FirstOrDefault(c => c.frame.Position == "body");
             Point neckOffsetBody = bodyFrame.frame.MapOffset["neck"];
+            Point navelOffsetBody = bodyFrame.frame.MapOffset["navel"];
 
-            List<KeyValuePair<string, Point>[]> offsets = partsFrames.Where(c => c.MapOffset != null).Select(c => c.MapOffset.ToArray()).ToList();
+            List<KeyValuePair<string, Point>[]> offsets = partsFrames
+                .Where(c => c.MapOffset != null)
+                .Select(c => c.MapOffset.Where(k => !k.Key.Equals("zero")).ToArray())
+                .Where(c => c.Length > 0)
+                .ToList();
             while (offsets.Count > 0) {
                 KeyValuePair<string, Point>[] offsetPairing = offsets.FirstOrDefault(c => c.Any(b => anchorPositions.ContainsKey(b.Key)));
                 KeyValuePair<string, Point> anchorPointEntry = offsetPairing.Where(c => anchorPositions.ContainsKey(c.Key)).FirstOrDefault();
@@ -71,12 +76,18 @@ namespace WZData.MapleStory.Characters {
             }
 
             Tuple<Frame, Point>[] positionedFrames = partsFrames.Select(c => {
+                // Some effects are centered off of the neck
                 Point fromAnchorPoint = neckOffsetBody;
                 if (c.MapOffset != null) {
-                    KeyValuePair<string, Point> anchorPointEntry = (c.MapOffset ?? new Dictionary<string, Point>()).Where(b => anchorPositions.ContainsKey(b.Key)).DefaultIfEmpty(new KeyValuePair<string, Point>(null, Point.Empty)).First();
-                    Point anchorPoint = anchorPoint = anchorPositions[anchorPointEntry.Key];
-                    Point vectorFromPoint = anchorPointEntry.Value;
-                    fromAnchorPoint = new Point(anchorPoint.X - vectorFromPoint.X, anchorPoint.Y - vectorFromPoint.Y);
+                    // Some effects are centered on the origin (0,0)
+                    if (c.MapOffset.All(b => b.Key.Equals("zero"))) {
+                        fromAnchorPoint = new Point(-navelOffsetBody.X, -navelOffsetBody.Y);
+                    } else { // Default positioning based off of offsets
+                        KeyValuePair<string, Point> anchorPointEntry = (c.MapOffset ?? new Dictionary<string, Point>()).Where(b => anchorPositions.ContainsKey(b.Key)).DefaultIfEmpty(new KeyValuePair<string, Point>(null, Point.Empty)).First();
+                        Point anchorPoint = anchorPoint = anchorPositions[anchorPointEntry.Key];
+                        Point vectorFromPoint = anchorPointEntry.Value;
+                        fromAnchorPoint = new Point(anchorPoint.X - vectorFromPoint.X, anchorPoint.Y - vectorFromPoint.Y);
+                    }
                 }
                 Point partOrigin = c.Center ?? Point.Empty;
 
@@ -282,7 +293,7 @@ namespace WZData.MapleStory.Characters {
             ConcurrentBag<RankedFrame> rankedFrames = new ConcurrentBag<RankedFrame>();
 
             while(!Parallel.ForEach(frameParts, (c) => {
-                string zIndex = c.Resolve().ResolveForOrNull<string>("z") ?? c.ResolveForOrNull<string>("../z");
+                string zIndex = c.ResolveForOrNull<string>("../z") ?? c.Resolve().ResolveForOrNull<string>("z");
                 int zPosition = 0;
                 if (!int.TryParse(zIndex, out zPosition))
                     zPosition = zmap.IndexOf(zIndex);
