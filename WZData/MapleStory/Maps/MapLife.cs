@@ -17,7 +17,7 @@ namespace WZData.MapleStory.Maps
         public int WalkAreaX1;
         public int WalkAreaX2;
         public int Id;
-        public int FootholdId;
+        public int? FootholdId;
         public Foothold Foothold;
         public bool Hidden;
         public LifeType Type;
@@ -48,7 +48,7 @@ namespace WZData.MapleStory.Maps
             result.WalkAreaX1 = data.ResolveFor<int>("rx0") ?? int.MinValue; // rx0
             result.WalkAreaX2 = data.ResolveFor<int>("rx1") ?? int.MinValue; // rx1
             result.Id = data.ResolveFor<int>("id") ?? -1;
-            result.FootholdId = data.ResolveFor<int>("fh") ?? -1; // fh
+            result.FootholdId = data.ResolveFor<int>("fh"); // fh
             result.Hidden = data.ResolveFor<bool>("hide") ?? false; // hide
             result.Type = data.ResolveForOrNull<string>("type").ToLower() == "n" ? LifeType.NPC : LifeType.Monster; // type
 
@@ -74,7 +74,8 @@ namespace WZData.MapleStory.Maps
         internal static MapLife Parse(WZProperty c, Dictionary<int, Foothold> footholds, Dictionary<int, Frame> lifeLookup)
         {
             MapLife result = Parse(c, lifeLookup);
-            result.UpdateWithFH(footholds[result.FootholdId]);
+            if (result.FootholdId.HasValue && footholds.ContainsKey(result.FootholdId.Value))
+                result.UpdateWithFH(footholds[result.FootholdId.Value]);
             return result;
         }
     }
