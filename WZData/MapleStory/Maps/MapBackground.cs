@@ -47,6 +47,8 @@ namespace WZData.MapleStory.Maps
             WZProperty tileCanvas = data.ResolveOutlink($"Map/Back/{result.pathToImage}");
             if (tileCanvas != null) // Could be null as we're not supporting ani backgrounds
                 result.Canvas = Frame.Parse(tileCanvas?.Children.Values.FirstOrDefault(c => c.Type == PropertyType.Canvas) ?? tileCanvas);
+            if (result.Flip && result.Canvas != null && result.Canvas.Image != null)
+                result.Canvas.Image = new Image<Rgba32>(result.Canvas.Image).Flip(FlipType.Horizontal);
             result.Type = (BackgroundType)(data.ResolveFor<int>("type") ?? 0);
             result.Position = new Vector3(
                 data.ResolveFor<int>("x") ?? 0,

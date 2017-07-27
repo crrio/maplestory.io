@@ -42,12 +42,12 @@ namespace WZData.MapleStory.Maps
             result.Canvas = Frame.Parse(tileCanvas.Children.Values.FirstOrDefault(c => c.Type == PropertyType.Canvas) ?? tileCanvas);
             result.FrontMost = data.ResolveFor<bool>("front") ?? false;
             result.Flip = data.ResolveFor<bool>("f") ?? false;
-            if (result.Flip)
-                result.Canvas.Image = result.Canvas.Image.Flip(FlipType.Vertical);
+            if (result.Flip && result.Canvas != null && result.Canvas.Image != null)
+                result.Canvas.Image = new Image<Rgba32>(result.Canvas.Image).Flip(FlipType.Horizontal);
             result.Position = new Vector3(
                 data.ResolveFor<int>("x") ?? 0,
                 data.ResolveFor<int>("y") ?? 0,
-                result.FrontMost ? 100000000 : (tileCanvas.ResolveFor<int>("z") + 1000 ?? 100)
+                result.FrontMost ? 100000000 : (tileCanvas.ResolveFor<int>("z") + 1000000 ?? 100)
             );
             return result;
         }
