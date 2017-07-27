@@ -190,7 +190,11 @@ namespace PKG1 {
             if (convertFrom == convertTo) return new WZPropertyVal<K>((K)currentValue, prop);
 
             if (currentValue is string && convertTo != typeof(string) && convertFrom != convertTo)
-                currentValue = decimal.Parse(currentValue.ToString());
+            {
+                decimal newValue;
+                if (decimal.TryParse(currentValue.ToString(), out newValue))
+                    currentValue = newValue;
+            }
 
             if (currentValue is IConvertible)
                 return new WZPropertyVal<K>((K)Convert.ChangeType(

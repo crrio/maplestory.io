@@ -19,7 +19,7 @@ namespace WZData
 
         public static ItemDescription Parse(WZProperty itemString, int itemId)
         {
-            if (itemString.Children.ContainsKey("name")) return null;
+            if (!itemString.Children.ContainsKey("name")) return null;
 
             return new ItemDescription(
                 itemId,
