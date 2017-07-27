@@ -27,12 +27,6 @@ namespace WZData
                 .Where(c => c.Value.Type == PropertyType.Vector2)
                 .ToDictionary(b => b.Key, b => b.Value.ResolveFor<Point>() ?? Point.Empty);
 
-            if (animationFrame.MapOffset == null && value.ResolveFor<int>("../pos") == 1) {
-                animationFrame.MapOffset = new Dictionary<string, Point>() {
-                    { "neck", new Point(0,0) }
-                };
-            }
-
             return animationFrame;
         }
 
