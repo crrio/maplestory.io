@@ -5,14 +5,26 @@ using System.Text;
 using PKG1;
 using System.Linq;
 using System.Numerics;
+using WZData.MapleStory.Images;
 
 namespace WZData.MapleStory.Maps
 {
-    public class MapTile
+    public class MapTile : IPositionedFrameContainer
     {
         public string pathToImage;
-        public Point Position;
-        public Frame Canvas;
+        public Frame Canvas { get; set; }
+        public Vector3 Position { get; set; }
+        public RectangleF Bounds {
+            get {
+                Point canvasOrigin = Canvas.Origin ?? new Point(Canvas.Image.Width / 2, Canvas.Image.Height / 2);
+                return new RectangleF(
+                    Position.X - canvasOrigin.X,
+                    Position.Y - canvasOrigin.Y,
+                    Canvas.Image.Width,
+                    Canvas.Image.Height
+                );
+            }
+        }
         public static MapTile Parse(WZProperty data, string tileSet)
         {
             MapTile result = new MapTile();
@@ -21,11 +33,12 @@ namespace WZData.MapleStory.Maps
                 data.ResolveForOrNull<string>("u"),
                 data.ResolveForOrNull<string>("no")
             });
-            WZProperty tileCanvas = data.Resolve($"Map/Tile/{result.pathToImage}");
-            result.Canvas = Frame.Parse(tileCanvas.Children.Values.FirstOrDefault() ?? tileCanvas);
-            result.Position = new Point(
+            WZProperty tileCanvas = data.ResolveOutlink($"Map/Tile/{result.pathToImage}");
+            result.Canvas = Frame.Parse(tileCanvas.Children.Values.FirstOrDefault(c => c.Type == PropertyType.Canvas) ?? tileCanvas);
+            result.Position = new Vector3(
                 data.ResolveFor<int>("x") ?? 0,
-                data.ResolveFor<int>("y") ?? 0
+                data.ResolveFor<int>("y") ?? 0,
+                tileCanvas.ResolveFor<int>("z") ?? 1000
             );
             return result;
         }

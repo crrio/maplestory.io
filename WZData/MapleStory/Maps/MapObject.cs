@@ -5,14 +5,28 @@ using System.Text;
 using PKG1;
 using System.Linq;
 using System.Numerics;
+using WZData.MapleStory.Images;
 
 namespace WZData.MapleStory.Maps
 {
-    public class MapObject
+    public class MapObject : IPositionedFrameContainer
     {
         public string pathToImage;
-        public Frame Canvas;
-        public Vector3 Position;
+        public Frame Canvas { get; set; }
+        public Vector3 Position { get; set; }
+
+        public RectangleF Bounds  {
+            get {
+                Point canvasOrigin = Canvas.Origin ?? new Point(Canvas.Image.Width / 2, Canvas.Image.Height / 2);
+                return new RectangleF(
+                    Position.X - canvasOrigin.X,
+                    Position.Y - canvasOrigin.Y,
+                    Canvas.Image.Width,
+                    Canvas.Image.Height
+                );
+            }
+        }
+
         public float? Rotation;
 
         public static MapObject Parse(WZProperty data)
@@ -30,7 +44,7 @@ namespace WZData.MapleStory.Maps
                 data.ResolveFor<float>("z") ?? 0
             );
             result.Rotation = data.ResolveFor<float>("r");
-            WZProperty objCanvas = data.Resolve($"Map/Obj/{result.pathToImage}");
+            WZProperty objCanvas = data.ResolveOutlink($"Map/Obj/{result.pathToImage}");
             result.Canvas = Frame.Parse(objCanvas.Children.Values.FirstOrDefault() ?? objCanvas);
             return result;
         }

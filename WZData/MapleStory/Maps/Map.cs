@@ -1,10 +1,14 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 using ImageSharp;
 using Newtonsoft.Json;
 using PKG1;
+using WZData.MapleStory.Images;
 
 namespace WZData.MapleStory.Maps
 {
@@ -44,22 +48,53 @@ namespace WZData.MapleStory.Maps
             result.MobRate = mapInfo.ResolveFor<double>("mobRate");
             result.MapMark = mapInfo.ResolveForOrNull<string>("mapMark");
 
-            result.portals = mapEntry.Resolve("portal").Children.Values.Select(Portal.Parse);
+            result.portals = mapEntry.Resolve("portal")?.Children.Values.Select(Portal.Parse);
             result.MiniMap = result.MiniMap = MiniMap.Parse(mapEntry.Resolve("miniMap"));
 
-            IEnumerable<MapLife> life = mapEntry.Resolve("life").Children.Values.Select(MapLife.Parse);
+            IEnumerable<MapLife> life = mapEntry.Resolve("life")?.Children.Values.Select(MapLife.Parse);
             result.Npcs = life?.Where(c => c.Type == LifeType.NPC);
             result.Mobs = life?.Where(c => c.Type == LifeType.Monster);
             result.Graphics = mapEntry.Children.Keys
                 .Where(c => int.TryParse(c, out int blah))
-                .Select(c => GraphicsSet.Parse(mapEntry.Children[c]));
+                .Select((c, i) => GraphicsSet.Parse(mapEntry.Children[c], i));
 
             return result;
         }
 
         public Image<Rgba32> Render()
         {
-            return null;
+            IEnumerable<IEnumerable<IPositionedFrameContainer>> frameContainers = Graphics
+                .Select(g => g.Objects.Select(c => (IPositionedFrameContainer)c).Concat(g.Tiles).ToArray());
+            if (frameContainers.Count() == 0) return null;
+            IEnumerable<RectangleF> Bounds = frameContainers.SelectMany(c => c).Select(c => c.Bounds).ToArray();
+            float minX = Bounds.Select(c => c.X).Min();
+            float maxX = Bounds.Select(c => c.X + c.Width).Max();
+            float minY = Bounds.Select(c => c.Y).Min();
+            float maxY = Bounds.Select(c => c.Y + c.Height).Max();
+            ConcurrentDictionary<int, Image<Rgba32>> layers = new ConcurrentDictionary<int, Image<Rgba32>>();
+
+            while(!Parallel.ForEach(Graphics, graphicsContainer => {
+                while (!Parallel.ForEach(graphicsContainer.Objects.Select(c => (IPositionedFrameContainer)c).Concat(graphicsContainer.Tiles).GroupBy(c => c.Position.Z), (frameContainerZ) => {
+                    Image<Rgba32> layerResult = new Image<Rgba32>((int)(maxX - minX), (int)(maxY - minY));
+                    foreach(IPositionedFrameContainer frameContainer in frameContainerZ) {
+                        Point origin = frameContainer.Canvas.Origin ?? (new Point(frameContainer.Canvas.Image.Width / 2, frameContainer.Canvas.Image.Height / 2));
+                        layerResult.DrawImage(
+                            frameContainer.Canvas.Image, 1,
+                            new Size (frameContainer.Canvas.Image.Width, frameContainer.Canvas.Image.Height),
+                            new Point (
+                                (int)((frameContainer.Position.X - origin.X) - minX),
+                                (int)((frameContainer.Position.Y - origin.Y) - minY)
+                            )
+                        );
+                    }
+                    layers.TryAdd((int)((graphicsContainer.Index * 100000) + frameContainerZ.Key), layerResult);
+                }).IsCompleted) Thread.Sleep(1);
+            }).IsCompleted) Thread.Sleep(1);
+
+            Image<Rgba32> layered = new Image<Rgba32>((int)(maxX - minX), (int)(maxY - minY));
+            foreach(Image<Rgba32> layer in layers.OrderBy(c => c.Key).Select(c => c.Value)) layered.DrawImage(layer, 1, new Size(layered.Width, layered.Height), new Point(0,0));
+
+            return layered;
         }
     }
 }

@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using WZData.MapleStory.Maps;
 using WZData.MapleStory.Quests;
 using PKG1;
+using ImageSharp;
 
 namespace maplestory.io.Services.MapleStory
 {
@@ -37,5 +38,8 @@ namespace maplestory.io.Services.MapleStory
         }
         public override IMapFactory GetWithWZ(Region region, string version)
             => new MapFactory(_factory, region, version);
+
+        public Image<Rgba32> Render(int id)
+            => GetMap(id).Render();
     }
 }

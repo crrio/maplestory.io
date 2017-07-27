@@ -98,7 +98,7 @@ namespace PKG1 {
                 }
             }).ToArray();
 
-        WZProperty ParseExtendedProperty(WZReader reader, WZProperty parent, string name) {
+        WZProperty ParseExtendedProperty(WZReader reader, WZProperty parent, string name, bool maintainReader = false) {
             string type = reader.ReadWZStringBlock();
             PropertyType propType;
             switch (type) {
@@ -137,7 +137,10 @@ namespace PKG1 {
                 (uint)reader.BaseStream.Position
             );
 
-            return Resolve(parent.FileContainer, result);
+            if (maintainReader)
+                return Resolve(parent.FileContainer, result, reader);
+            else
+                return Resolve(parent.FileContainer, result);
         }
 
         public WZProperty Directory(WZReader reader, WZProperty self) {
@@ -216,7 +219,7 @@ namespace PKG1 {
 
         public WZProperty Convex(WZReader reader, WZProperty self) {
             int count = reader.ReadWZInt();
-            self.Children = Enumerable.Range(0, count).Select(c => ParseExtendedProperty(reader, self, c.ToString())).ToDictionary(c => c.Name.Replace(".img", ""), c => c);
+            self.Children = Enumerable.Range(0, count).Select(c => ParseExtendedProperty(reader, self, c.ToString(), true)).ToDictionary(c => c.Name.Replace(".img", ""), c => c);
             return self;
         }
 
@@ -230,26 +233,30 @@ namespace PKG1 {
             // Determine lazy loading here
             using (WZReader reader = container.GetContentReader(null, self)) {
                 reader.BaseStream.Seek(self.Offset, SeekOrigin.Begin);
-                switch(self.Type) {
-                    case PropertyType.Directory:
-                        return Directory(reader, self);
-                    case PropertyType.Image:
-                        return Image(reader, self);
-                    case PropertyType.SubProperty:
-                        return SubProp(reader, self);
-                    case PropertyType.Convex:
-                        return Convex(reader, self);
-                    case PropertyType.Vector2:
-                        return Vector(reader, self);
-                    case PropertyType.Audio:
-                        return Audio(reader, self);
-                    case PropertyType.Canvas:
-                        return Canvas(reader, self);
-                    case PropertyType.UOL:
-                        return UOL(reader, self);
-                    default:
-                        return self;
-                }
+                return Resolve(container, self, reader);
+            }
+        }
+
+        public WZProperty Resolve(Package container, WZProperty self, WZReader reader) {
+            switch(self.Type) {
+                case PropertyType.Directory:
+                    return Directory(reader, self);
+                case PropertyType.Image:
+                    return Image(reader, self);
+                case PropertyType.SubProperty:
+                    return SubProp(reader, self);
+                case PropertyType.Convex:
+                    return Convex(reader, self);
+                case PropertyType.Vector2:
+                    return Vector(reader, self);
+                case PropertyType.Audio:
+                    return Audio(reader, self);
+                case PropertyType.Canvas:
+                    return Canvas(reader, self);
+                case PropertyType.UOL:
+                    return UOL(reader, self);
+                default:
+                    return self;
             }
         }
 

@@ -62,6 +62,12 @@ namespace maplestory.io.Controllers
             return GetMarkByName(map.MapMark);
         }
 
+        [Route("{mapId}/render")]
+        [HttpGet]
+        [Produces("image/png")]
+        public IActionResult RenderMap(int mapId)
+            => File(_factory.GetWithWZ(region, version).Render(mapId).ImageToByte(), "image/png");
+
         [Route("{mapId}/bgm")]
         [HttpGet]
         [Produces("audio/mpeg")]

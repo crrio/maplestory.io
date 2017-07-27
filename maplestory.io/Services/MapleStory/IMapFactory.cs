@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using ImageSharp;
 using PKG1;
 using WZData.MapleStory.Maps;
 
@@ -13,5 +14,6 @@ namespace maplestory.io.Services.MapleStory
         MapName GetMapName(int id);
         Map GetMap(int id);
         MapMark GetMapMark(string markName);
+        Image<Rgba32> Render(int id);
     }
 }

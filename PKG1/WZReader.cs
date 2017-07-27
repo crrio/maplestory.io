@@ -109,6 +109,10 @@ namespace PKG1 {
                 case 1:
                 case 0x1B:
                     return ReadDeDupedString();
+                case 0xBF:
+                    BaseStream.Seek(-1, SeekOrigin.Current);
+                    byte[] unk = ReadBytes(100);
+                    throw new Exception($"Unknown type ({type}) of string block");
                 default:
                     throw new Exception($"Unknown type ({type}) of string block");
             }
