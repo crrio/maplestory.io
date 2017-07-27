@@ -36,7 +36,7 @@ namespace maplestory.io.Services.MapleStory
                 PackageCollection wz = factory.GetWZ(region, "latest");
 
                 logging.LogInformation($"Caching {region} - {wz}");
-                if (wz == null) return;
+                if (wz == null) continue;
 
                 ConcurrentDictionary<int, Tuple<string[], byte?, bool>> regionData = new ConcurrentDictionary<int, Tuple<string[], byte?, bool>>();
 
