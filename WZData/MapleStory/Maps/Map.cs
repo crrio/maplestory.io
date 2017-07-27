@@ -6,8 +6,10 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using ImageSharp;
+using ImageSharp.Processing;
 using Newtonsoft.Json;
 using PKG1;
+using SixLabors.Primitives;
 using WZData.MapleStory.Images;
 
 namespace WZData.MapleStory.Maps
@@ -94,16 +96,23 @@ namespace WZData.MapleStory.Maps
             ConcurrentDictionary<int, Image<Rgba32>> layers = new ConcurrentDictionary<int, Image<Rgba32>>();
 
             while(!Parallel.ForEach(Graphics, graphicsContainer => {
-                while (!Parallel.ForEach(graphicsContainer.Objects.Where(c => string.IsNullOrEmpty(c.Tags) && (c.Quests == null || c.Quests.Length == 0)).Select(c => (IPositionedFrameContainer)c).Concat(graphicsContainer.Tiles).GroupBy(c => c.Position.Z), (frameContainerZ) => {
-                    layers.TryAdd(
-                        (int)((graphicsContainer.Index * 100000) + frameContainerZ.Key),
-                        RenderPositioned(frameContainerZ, minX, minY, maxX, maxY)
-                    );
-                }).IsCompleted) Thread.Sleep(1);
+                Image<Rgba32> objsLayer = RenderPositioned(
+                    graphicsContainer.Objects
+                        .Where(c => string.IsNullOrEmpty(c.Tags) && (c.Quests == null || c.Quests.Length == 0))
+                        .OrderBy(c => c),
+                    minX, minY, maxX, maxY
+                );
+                Image<Rgba32> tileLayer = RenderPositioned(
+                    graphicsContainer.Tiles.OrderBy(c => c.Position.Z),
+                    minX, minY, maxX, maxY
+                );
+                layers.TryAdd(graphicsContainer.Index * 2, objsLayer);
+                layers.TryAdd((graphicsContainer.Index * 2) + 1, tileLayer);
             }).IsCompleted) Thread.Sleep(1);
 
             Image<Rgba32> layered = RenderBackground(this.Backgrounds, minX, minY, maxX, maxY);
-            foreach(Image<Rgba32> layer in layers.OrderBy(c => c.Key).Select(c => c.Value)) layered.DrawImage(layer, 1, new Size(layered.Width, layered.Height), new Point(0,0));
+            foreach(Image<Rgba32> layer in layers.OrderBy(c => c.Key).Select(c => c.Value))
+                layered.DrawImage(layer, 1, new Size(layered.Width, layered.Height), new Point(0,0));
 
             return layered;
         }
@@ -141,6 +150,7 @@ namespace WZData.MapleStory.Maps
                         }
                         break;
 
+                    case BackgroundType.TiledVertical:
                     case BackgroundType.ScrollingTiledVertical:
                         for(int y = (int)minY; y < maxY; y += frameContainer.Canvas.Image.Height) {
                             drawAt = new Point(drawAt.X, (int)(y - minY));

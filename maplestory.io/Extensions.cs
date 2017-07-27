@@ -13,7 +13,7 @@ namespace maplestory.io
         {
             using (MemoryStream mem = new MemoryStream())
             {
-                img.Save(mem);
+                img.Save(mem, ImageFormats.Png);
                 return mem.ToArray();
             }
         }
