@@ -68,6 +68,12 @@ namespace maplestory.io.Controllers
         public IActionResult RenderMap(int mapId)
             => File(_factory.GetWithWZ(region, version).Render(mapId).ImageToByte(), "image/png");
 
+        [Route("{mapId}/minimap")]
+        [HttpGet]
+        [Produces("image/png")]
+        public IActionResult GetMinimap(int mapId)
+            => File(_factory.GetWithWZ(region, version).GetMap(mapId).MiniMap.canvas.ImageToByte(), "image/png");
+
         [Route("{mapId}/bgm")]
         [HttpGet]
         [Produces("audio/mpeg")]
