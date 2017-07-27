@@ -108,7 +108,7 @@ namespace WZData.MapleStory.Mobs
         /// <summary>
         /// Takes the info from another mob
         /// </summary>
-        public string LinksToOtherMob; // link
+        public int? LinksToOtherMob; // link
         /// <summary>
         /// Can only be damaged by normal attack
         /// </summary>
@@ -196,7 +196,7 @@ namespace WZData.MapleStory.Mobs
             result.HPGaugeHide = info.ResolveFor<bool>("HPgaugeHide");
             result.NoRespawn = info.ResolveFor<bool>("noRegen");
             result.RevivesMonsterId = info.Resolve("revive")?.Children?.Select(c => Convert.ToInt32(((IWZPropertyVal) c.Value).GetValue()));
-            result.LinksToOtherMob = info.ResolveForOrNull<string>("link");
+            result.LinksToOtherMob = info.ResolveFor<int>("link");
             result.OnlyNormalAttack = info.ResolveFor<bool>("onlyNormalAttack");
             result.FixedDamageAmount = info.ResolveFor<uint>("fixedDamage");
             result.IsBoss = info.ResolveFor<bool>("boss");

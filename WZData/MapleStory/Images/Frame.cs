@@ -13,6 +13,7 @@ namespace WZData
         public Image<Rgba32> Image { get; set; }
         public int? delay;
         public Point? Origin { get; set; }
+        public Point OriginOrZero { get => Origin ?? Point.Empty; }
         public Dictionary<string, Point> MapOffset { get; set; }
         public string Position { get; set; }
 

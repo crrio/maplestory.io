@@ -15,7 +15,6 @@ namespace WZData.MapleStory.Mobs
         public MobMeta Meta;
         public string Name;
         public Dictionary<string, IEnumerable<FrameBook>> Framebooks;
-        private int? Link;
 
         public static Mob Parse(WZProperty stringWz, bool followLink = true)
         {
@@ -29,8 +28,6 @@ namespace WZData.MapleStory.Mobs
 
             WZProperty mobImage = stringWz.ResolveOutlink($"Mob/{id.ToString("D7")}");
 
-            result.Link = mobImage.ResolveFor<int>("link");
-
             result.Name = stringWz.ResolveForOrNull<string>("name");
             result.Meta = mobImage.Children.ContainsKey("info") ? MobMeta.Parse(mobImage.Resolve("info")) : null;
             /// Note: This *does* work. However, it increases the response to 1min+ and 15mb+
@@ -43,9 +40,9 @@ namespace WZData.MapleStory.Mobs
 
             List<int> linkFollowed = new List<int>();
             Mob linked = result;
-            while (followLink && linked.Link.HasValue && !linkFollowed.Contains(linked.Link.Value)) {
-                linkFollowed.Add(linked.Link.Value);
-                linked = Parse(stringWz.ResolveOutlink($"String/Mob/{linked.Link.Value}"), false);
+            while (followLink && linked.Meta.LinksToOtherMob.HasValue && !linkFollowed.Contains(linked.Meta.LinksToOtherMob.Value)) {
+                linkFollowed.Add(linked.Meta.LinksToOtherMob.Value);
+                linked = Parse(stringWz.ResolveOutlink($"String/Mob/{linked.Meta.LinksToOtherMob.Value}"), false);
             }
 
             if (linked != result) {

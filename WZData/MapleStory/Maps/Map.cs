@@ -35,6 +35,9 @@ namespace WZData.MapleStory.Maps
         [JsonIgnore]
         private IEnumerable<MapLife> Life;
         public Dictionary<int, Foothold> Footholds;
+        public int? MinimumStarForce;
+        public int? MinimumArcaneForce;
+        public int? MinimumLevel;
 
         public static Map Parse(int id, MapName name, PackageCollection collection)
         {
@@ -61,17 +64,24 @@ namespace WZData.MapleStory.Maps
             result.IsSwim = mapInfo.ResolveFor<bool>("swim");
             result.MobRate = mapInfo.ResolveFor<double>("mobRate");
             result.MapMark = mapInfo.ResolveForOrNull<string>("mapMark");
+            result.MinimumStarForce = mapInfo.ResolveFor<int>("barrier");
+            result.MinimumArcaneForce = mapInfo.ResolveFor<int>("barrierArc");
+            result.MinimumLevel = mapInfo.ResolveFor<int>("lvLimit");
 
-            result.Footholds = mapEntry.Resolve("foothold").Children.Values
+            ConcurrentDictionary<int, Foothold> fhHolder = new ConcurrentDictionary<int, Foothold>();
+            Parallel.ForEach(mapEntry.Resolve("foothold").Children.Values
                 .SelectMany(c => c.Children.Values)
-                .SelectMany(c => c.Children.Values)
-                .Select(c => Foothold.Parse(c))
-                .ToDictionary(c => c.id);
+                .SelectMany(c => c.Children.Values), (fh) => {
+                    Foothold res = Foothold.Parse(fh);
+                    fhHolder.TryAdd(res.id, res);
+                });
+            result.Footholds = new Dictionary<int, Foothold>(fhHolder);
 
             result.portals = mapEntry.Resolve("portal")?.Children.Values.Select(Portal.Parse);
             result.MiniMap = result.MiniMap = MiniMap.Parse(mapEntry.Resolve("miniMap"));
 
-            result.Life = mapEntry.Resolve("life")?.Children.Values.Select(c => MapLife.Parse(c, result.Footholds));
+            Dictionary<int, Frame> lifeTemplateCache = new Dictionary<int, Frame>();
+            result.Life = mapEntry.Resolve("life")?.Children.Values.Select(c => MapLife.Parse(c, result.Footholds, lifeTemplateCache));
             result.Npcs = result.Life?.Where(c => c.Type == LifeType.NPC);
             result.Mobs = result.Life?.Where(c => c.Type == LifeType.Monster);
             result.Graphics = mapEntry.Children.Keys
@@ -98,12 +108,33 @@ namespace WZData.MapleStory.Maps
             IEnumerable<IEnumerable<IPositionedFrameContainer>> frameContainers = Graphics
                 .Select(g => g.Objects.Select(c => (IPositionedFrameContainer)c).Concat(g.Tiles).ToArray());
             if (frameContainers.Count() == 0 || frameContainers.Select(c => c.Count()).Sum() == 0) return null;
-            IEnumerable<RectangleF> Bounds = frameContainers.SelectMany(c => c).Select(c => c.Bounds).ToArray();
+            IEnumerable<RectangleF> Bounds = frameContainers.SelectMany(c => c)
+                .Select(c => c.Bounds)
+                .Concat(portals.Select(c => c.Bounds))
+                .Concat(Life.Select(c => c.Bounds))
+                .ToArray();
             float minX = Bounds.Select(c => c.X).Min();
             float maxX = Bounds.Select(c => c.X + c.Width).Max();
             float minY = Bounds.Select(c => c.Y).Min();
             float maxY = Bounds.Select(c => c.Y + c.Height).Max();
             ConcurrentDictionary<int, Image<Rgba32>> layers = new ConcurrentDictionary<int, Image<Rgba32>>();
+
+            Image<Rgba32> layered = null;
+            Task waitingFor = Task.Run(() => layered = RenderBackground(this.Backgrounds, minX, minY, maxX, maxY));
+
+            if (showLife) {
+                waitingFor = Task.WhenAll(waitingFor, Task.Run(() => {
+                    Image<Rgba32> lifeLayer = RenderPositioned(Life, minX, minY, maxX, maxY);
+                    layers.TryAdd(2000000001, lifeLayer);
+                }));
+            }
+
+            if (showPortals) {
+                waitingFor = Task.WhenAll(waitingFor, Task.Run(() => {
+                    Image<Rgba32> lifeLayer = RenderPositioned(portals.Where(c => c.Type == PortalType.Portal), minX, minY, maxX, maxY);
+                    layers.TryAdd(2000000000, lifeLayer);
+                }));
+            }
 
             while(!Parallel.ForEach(Graphics, graphicsContainer => {
                 Image<Rgba32> objsLayer = RenderPositioned(
@@ -120,12 +151,8 @@ namespace WZData.MapleStory.Maps
                 layers.TryAdd((graphicsContainer.Index * 2) + 1, tileLayer);
             }).IsCompleted) Thread.Sleep(1);
 
-            if (showLife) {
-                Image<Rgba32> lifeLayer = RenderPositioned(Life, minX, minY, maxX, maxY);
-                layers.TryAdd(2000000000, lifeLayer);
-            }
+            if (waitingFor != null) Task.WaitAll(waitingFor);
 
-            Image<Rgba32> layered = RenderBackground(this.Backgrounds, minX, minY, maxX, maxY);
             foreach(Image<Rgba32> layer in layers.OrderBy(c => c.Key).Select(c => c.Value))
                 layered.DrawImage(layer, 1, new Size(layered.Width, layered.Height), new Point(0,0));
 
