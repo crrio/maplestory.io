@@ -264,6 +264,6 @@ namespace WZData.MapleStory.Maps
         }
 
         public int YAtX(int x)
-            => (y1 + ((y2 - y1) / ((x2 - x1) * (x - x1))));
+            => ((x2 - x1) * (x - x1)) == 0 ? x : (y1 + ((y2 - y1) / ((x2 - x1) * (x - x1))));
     }
 }
