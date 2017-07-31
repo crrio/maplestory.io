@@ -33,7 +33,7 @@ namespace WZData.MapleStory.Maps
         public Frame Canvas { get; set; }
         public Vector3 Position { get => new Vector3(X, Y, 1); }
         public RectangleF Bounds {
-            get => Canvas == null ? new RectangleF(x, y, 1, 1) : new RectangleF(new Point(x - Canvas.OriginOrZero.X,y - Canvas.OriginOrZero.Y), new Size(Canvas.Image.Width, Canvas.Image.Height));
+            get => Canvas == null ? new RectangleF(X, Y, 1, 1) : new RectangleF(new Point(X - Canvas.OriginOrZero.X,Y - Canvas.OriginOrZero.Y), new Size(Canvas.Image.Width, Canvas.Image.Height));
         }
         public bool Flip { get; }
         public static MapLife Parse(WZProperty data)
