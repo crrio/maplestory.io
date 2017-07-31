@@ -35,7 +35,7 @@ namespace WZData.MapleStory.Maps
         }
 
         public RectangleF Bounds {
-            get => new RectangleF(new Point(x - Canvas.OriginOrZero.X,y - Canvas.OriginOrZero.Y), new Size(Canvas.Image.Width, Canvas.Image.Height));
+            get => Canvas == null ? new RectangleF(x, y, 1, 1) : new RectangleF(new Point(x - Canvas.OriginOrZero.X,y - Canvas.OriginOrZero.Y), new Size(Canvas.Image.Width, Canvas.Image.Height));
         }
         [JsonIgnore]
         public bool Flip => false;

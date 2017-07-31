@@ -192,7 +192,7 @@ namespace WZData.MapleStory.Characters {
             // Build a sorted list of defined exclusive locks from items
             IEnumerable<Tuple<int, string[]>> exclusiveLockItems = equipped
                 .OrderBy(c =>  zmap.IndexOf(c.Item1.ResolveForOrNull<string>("info/islot")?.Substring(0, 2)))
-                .Select(c => new Tuple<int, string>(c.Item2.ItemId, c.Item1.ResolveForOrNull<string>("info/vslot"))) // Override item specific vslots here
+                .Select(c => new Tuple<int, string>(c.Item2.ItemId, c.Item1.ResolveForOrNull<string>("info/vslot") ?? "")) // Override item specific vslots here
                 .Select(c => new Tuple<int, string[]>(c.Item1, Enumerable.Range(0, c.Item2.Length / 2).Select((b, i) => c.Item2.Substring(i * 2, 2)).ToArray()));
 
             // Build a dictionary between what is locked and what is locking it
