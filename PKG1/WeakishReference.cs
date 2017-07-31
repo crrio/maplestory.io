@@ -27,7 +27,7 @@ namespace PKG1 {
                 } while(Interlocked.CompareExchange(ref weakishChecks, newChecks, weakishChecks) != weakishChecks);
 
                 Parallel.ForEach(oldChecks, a => a());
-            }, null, TimeSpan.FromMinutes(5), TimeSpan.FromMinutes(5));
+            }, null, TimeSpan.FromSeconds(5), TimeSpan.FromSeconds(5));
         }
 
         public WeakishReference(K initialValue, Func<K> refreshData)
@@ -43,7 +43,7 @@ namespace PKG1 {
 
             Action t = null;
             t = () => {
-                if ((DateTime.Now - lastAccess) > TimeSpan.FromMinutes(5)) {
+                if ((DateTime.Now - lastAccess) > TimeSpan.FromSeconds(5)) {
                     strongReference = null;
                     resetStrongReference = null;
                 } else if (resetStrongReference == t)
