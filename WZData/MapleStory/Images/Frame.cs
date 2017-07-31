@@ -19,6 +19,7 @@ namespace WZData
 
         internal static Frame Parse(WZProperty value)
         {
+            if (value == null) return null;
             Frame animationFrame = new Frame();
 
             animationFrame.Image = value.ResolveForOrNull<Image<Rgba32>>();
