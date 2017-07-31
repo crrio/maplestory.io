@@ -263,7 +263,7 @@ namespace WZData.MapleStory.Maps
             return result;
         }
 
-        public int YAtX(int x)
-            => ((x2 - x1) * (x - x1)) == 0 ? x : (y1 + ((y2 - y1) / ((x2 - x1) * (x - x1))));
+        public int YAtX(int x) // If (x - x1) = 0 || (x2-x1) = 0 then by extension ((x2 - x1) * (x - x1)) = 0, and y1 should equal y2 so we can just return y1
+            => ((x2 - x1) * (x - x1)) == 0 ? y1 : (y1 + ((y2 - y1) / ((x2 - x1) * (x - x1))));
     }
 }

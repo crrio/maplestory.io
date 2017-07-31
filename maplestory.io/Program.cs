@@ -11,6 +11,7 @@ using PKG1;
 using System.Diagnostics;
 using WZData.MapleStory.Characters;
 using ImageSharp;
+using System.Threading;
 
 namespace maplestory.io
 {
@@ -38,9 +39,10 @@ namespace maplestory.io
             Package.Logging = (s) => packageLogger.LogInformation(s);
             Parallel.ForEach(wzPath.versions, (version) => WZFactory.AddWz(version.path, version.region, version.version));
 
-            readerLogging.LogDebug("Caching item requirements");
+            readerLogging.LogDebug("Caching item requirements in background");
             WZFactory wzFactory = new WZFactory();
-            ItemFactory.CacheEquipMeta(wzFactory, logging.CreateLogger<ItemFactory>());
+            // Background caching, because we don't /need/ the meta data to start the server
+            new Thread(() => ItemFactory.CacheEquipMeta(wzFactory, logging.CreateLogger<ItemFactory>())).Start();
 
             ILogger prog = logging.CreateLogger<Program>();
             watch.Stop();
