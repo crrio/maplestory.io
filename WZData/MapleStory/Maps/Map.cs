@@ -238,6 +238,7 @@ namespace WZData.MapleStory.Maps
                     new Size (frameContainer.Canvas.Image.Width, frameContainer.Canvas.Image.Height),
                     drawAt
                 );
+//                layerResult.DrawText( NPC Names.
             }
             return layerResult;
         }

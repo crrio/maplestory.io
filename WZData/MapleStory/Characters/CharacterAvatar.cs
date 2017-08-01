@@ -52,7 +52,7 @@ namespace WZData.MapleStory.Characters {
             Frame[] partsFrames = partsData.Select(c => c.frame).ToArray();
 
             Dictionary<string, Point> anchorPositions = new Dictionary<string, Point>() { { "navel", new Point(0, 0) } };
-            RankedFrame bodyFrame = partsData.FirstOrDefault(c => c.frame.Position == "body");
+            RankedFrame bodyFrame = partsData.FirstOrDefault(c => c.frame.Position == "body" || c.frame.Position == "backBody");
             Point neckOffsetBody = bodyFrame.frame.MapOffset["neck"];
             Point navelOffsetBody = bodyFrame.frame.MapOffset["navel"];
 
@@ -63,6 +63,7 @@ namespace WZData.MapleStory.Characters {
                 .ToList();
             while (offsets.Count > 0) {
                 KeyValuePair<string, Point>[] offsetPairing = offsets.FirstOrDefault(c => c.Any(b => anchorPositions.ContainsKey(b.Key)));
+                if (offsetPairing == null) break;
                 KeyValuePair<string, Point> anchorPointEntry = offsetPairing.Where(c => anchorPositions.ContainsKey(c.Key)).FirstOrDefault();
                 // Handle alert position? How to :<
                 Point anchorPoint = anchorPoint = anchorPositions[anchorPointEntry.Key];
