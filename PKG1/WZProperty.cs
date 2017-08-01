@@ -21,6 +21,7 @@ namespace PKG1 {
         public WZPropertyWeak(Func<K> val, WZProperty original)
          : this(val, original.Name, original.Path, original.FileContainer, original.Type, original.Parent, original.Size, original.Checksum, original.Offset) {
             this.Children = original.Children;
+            this.Encrypted = original.Encrypted;
         }
         public WZPropertyWeak(Func<K> val, string name, string path, Package container, PropertyType type, WZProperty parent, uint size, int checksum, uint offset) : base(name, path, container, type, parent, size, checksum, offset) {
             _weakValue = new WeakishReference<K>(null, val);
@@ -33,7 +34,10 @@ namespace PKG1 {
     {
         public K Value { get; set; }
         public WZPropertyVal(K val, WZProperty original)
-         : this(val, original.Name, original.Path, original.FileContainer, original.Type, original.Parent, original.Size, original.Checksum, original.Offset) { Children = original.Children; }
+         : this(val, original.Name, original.Path, original.FileContainer, original.Type, original.Parent, original.Size, original.Checksum, original.Offset) {
+            Children = original.Children;
+            this.Encrypted = original.Encrypted;
+        }
         public WZPropertyVal(K val, string name, string path, Package container, PropertyType type, WZProperty parent, uint size, int checksum, uint offset) : base(name, path, container, type, parent, size, checksum, offset) {
             Value = val;
         }
@@ -70,7 +74,7 @@ namespace PKG1 {
         public uint Size;
         public int Checksum;
         public uint Offset;
-
+        public bool Encrypted;
         public uint ContainerStartLocation;
         ~WZProperty() {
             _weakChildren?.Dispose();

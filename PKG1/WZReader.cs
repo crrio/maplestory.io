@@ -69,6 +69,7 @@ namespace PKG1 {
         Encoding _encoding;
         public Package Package;
         public WZProperty Container;
+        public byte[] EncryptionKey = null;
         public WZReader(Package package, WZProperty container, Stream str, uint versionKey, byte versionHash, uint contentsStart) : base(str) {
             this.VersionHash = versionHash;
             this.VersionKey = versionKey;
@@ -105,10 +106,10 @@ namespace PKG1 {
             switch (type) {
                 case 0:
                 case 0x73:
-                    return ReadWZString();
+                    return ReadWZString(false, encrypted);
                 case 1:
                 case 0x1B:
-                    return ReadDeDupedString();
+                    return ReadDeDupedString(false, encrypted);
                 case 0xBF:
                     BaseStream.Seek(-1, SeekOrigin.Current);
                     byte[] unk = ReadBytes(100);
@@ -134,7 +135,7 @@ namespace PKG1 {
             if (!isUnicode) return Encoding.ASCII.GetString(textData.ToArray());
             return Encoding.Unicode.GetString(textData.ToArray());
         }
-        public string ReadWZString(bool readByte = false) {
+        public string ReadWZString(bool readByte = false, bool encrypted = false) {
             if (readByte && this.ReadByte() == 0) return "";
             int length = this.ReadSByte();
             bool isUnicode = length > 0;
@@ -149,7 +150,12 @@ namespace PKG1 {
             byte asciiMask = 0xAA;
             ushort unicodeMask = 0xAAAA;
 
-            if (!isUnicode) return Encoding.ASCII.GetString(textData.Select(c => (byte)(c ^ asciiMask++)).ToArray());
+            if (!isUnicode){
+                byte[] asciiBytes = textData.Select(c => (byte)(c ^ asciiMask++)).ToArray();
+                if (encrypted)
+                    asciiBytes = DecryptBytes(asciiBytes, KMSKey).ToArray();
+                return Encoding.ASCII.GetString(asciiBytes);
+            }
 
             for (int i = 0; i < length; i += 2) {
                 textData[i] ^= (byte)(unicodeMask & 0xFF);
@@ -157,16 +163,19 @@ namespace PKG1 {
                 unicodeMask++;
             }
 
+            if (encrypted)
+                textData = DecryptBytes(textData, KMSKey).ToArray();
+
             return Encoding.Unicode.GetString(textData);
         }
 
-        public string ReadDeDupedString(bool readByte = false) => ReadWZStringAtOffset(ReadInt32(), readByte);
+        public string ReadDeDupedString(bool readByte = false, bool encrypted = false) => ReadWZStringAtOffset(ReadInt32(), readByte, encrypted);
 
-        public string ReadWZStringAtOffset(long offset, bool readByte = false) {
+        public string ReadWZStringAtOffset(long offset, bool readByte = false, bool encrypted = false) {
             long currentOffset = BaseStream.Position;
 
             BaseStream.Seek(Container.ContainerStartLocation + offset, SeekOrigin.Begin);
-            string result = ReadWZString(readByte);
+            string result = ReadWZString(readByte, encrypted);
             BaseStream.Seek(currentOffset, SeekOrigin.Begin);
 
             return result;
@@ -213,25 +222,23 @@ namespace PKG1 {
             return bytes.Select((a,i) => (byte)(a ^ wzKey[i]));
         }
 
-        internal IEnumerable<IEnumerable<byte>> DecryptPNGNested(Stream inData, uint length)
+        internal IEnumerable<IEnumerable<byte>> DecryptPNGNested(Stream inData, uint length, byte[] wzKey = null)
         {
             long expectedEndPosition = inData.Position + length;
             using (BinaryReader reader = new BinaryReader(inData)) {
                 while (inData.Position < expectedEndPosition) {
                     int blockLen = reader.ReadInt32();
-                    yield return DecryptBytes(reader.ReadBytes(blockLen));
+                    yield return DecryptBytes(reader.ReadBytes(blockLen), wzKey);
                 }
             }
         }
 
-        IEnumerable<byte> DecryptPNG(Stream inData, uint length) => DecryptPNGNested(inData, length).SelectMany(c => c);
+        IEnumerable<byte> DecryptPNG(Stream inData, uint length, byte[] wzKey = null) => DecryptPNGNested(inData, length, wzKey).SelectMany(c => c);
 
         byte[] Inflate(Stream data, uint dataLength)
         {
             long length = 512*1024;
-            try {
-                length = Math.Max(dataLength, length);
-            } catch {}
+            length = Math.Max(dataLength, length);
             byte[] dec = new byte[length];
             using (DeflateStream deflator = new DeflateStream(data, CompressionMode.Decompress))
             using (MemoryStream @out = new MemoryStream(dec.Length*2)) {
@@ -241,11 +248,20 @@ namespace PKG1 {
             }
         }
 
-        internal Image<Rgba32> ParsePNG(int width, int height, int format, bool isEncrypted, uint imageLength)
+        internal Image<Rgba32> ParsePNG(int width, int height, int format, bool isEncrypted, uint imageLength, byte[] encryptionKey = null)
         {
-            byte[] sourceData = isEncrypted ? DecryptPNG(BaseStream, imageLength).ToArray() : ReadBytes((int)imageLength);
+            // For use restoring position if we need to switch to KMS Key, by default we use GMS Key
+            long position = this.BaseStream.Position;
+            byte[] sourceData = isEncrypted ? DecryptPNG(BaseStream, imageLength, encryptionKey).ToArray() : ReadBytes((int)imageLength);
             Stream sourceDataFromStream = new MemoryStream(sourceData, 2, sourceData.Length - 2);
-            sourceData = Inflate(sourceDataFromStream, imageLength);
+            try {
+                sourceData = Inflate(sourceDataFromStream, imageLength);
+            } catch (Exception ex) {
+                if (isEncrypted && encryptionKey == null) {
+                    BaseStream.Position = position;
+                    return ParsePNG(width, height, format, isEncrypted, imageLength, KMSKey);
+                }
+            }
             int sourceDataLength = sourceData.Length;
 
             switch (format) {

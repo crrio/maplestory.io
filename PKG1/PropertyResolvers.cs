@@ -29,7 +29,8 @@ namespace PKG1 {
                     }
                 }, self.Name, self.Path, self.FileContainer, PropertyType.String, self.Parent, self.Size, self.Checksum, self.Offset);
             if(imgType != 0x73) throw new InvalidOperationException("Unknown image type, not supported!");
-            if(!reader.ReadWZString().Equals("Property")) throw new InvalidOperationException("No supporting nested encryption yet");
+            if(!reader.ReadWZString(false, self.Encrypted).Equals("Property"))
+                self.Encrypted = true;
             if(reader.ReadInt16() != 0) throw new InvalidOperationException("Image needs to have 0 as part of header");
 
             self.LoadChildren += () => {
@@ -37,7 +38,8 @@ namespace PKG1 {
                     reader.BaseStream.Seek(self.Offset, SeekOrigin.Begin);
 
                     if(reader.ReadByte() != 0x73) throw new InvalidOperationException("Image should have header of 0x73");
-                    if(!reader.ReadWZString().Equals("Property")) throw new InvalidOperationException("No supporting nested encryption yet");
+                    if(!reader.ReadWZString(false, self.Encrypted).Equals("Property"))
+                        throw new InvalidOperationException("Encryption not valid");
                     if(reader.ReadInt16() != 0) throw new InvalidOperationException("Image needs to have 0 as part of header");
 
                     return PropertyList(reader, self).ToDictionary(c => c.Name.Replace(".img", ""), c => c);
@@ -61,7 +63,7 @@ namespace PKG1 {
         public IEnumerable<WZProperty> PropertyList(WZReader reader, WZProperty parent)
             => Enumerable.Range(0, reader.ReadWZInt()).Select(i => {
                 uint position = (uint)reader.BaseStream.Position;
-                string name = reader.ReadWZStringBlock();
+                string name = reader.ReadWZStringBlock(parent.Encrypted || parent.Container.Encrypted);
                 byte type = reader.ReadByte();
                 switch (type) {
                     case 0:
@@ -83,7 +85,7 @@ namespace PKG1 {
                     case 5:
                         return new WZPropertyVal<Double>(reader.ReadDouble(), name, Path.Combine(parent.Path, name), parent.FileContainer, PropertyType.Double, parent, 8, 0, position);
                     case 8:
-                        return new WZPropertyVal<string>(reader.ReadWZStringBlock(), name, Path.Combine(parent.Path, name), parent.FileContainer, PropertyType.Double, parent, 0, 0, position);
+                        return new WZPropertyVal<string>(reader.ReadWZStringBlock(parent.Encrypted || parent.Container.Encrypted), name, Path.Combine(parent.Path, name), parent.FileContainer, PropertyType.Double, parent, 0, 0, position);
                     case 9:
                         uint blockLen = reader.ReadUInt32();
                         WZProperty result = reader.PeekFor(() => ParseExtendedProperty(reader, parent, name));
@@ -99,7 +101,7 @@ namespace PKG1 {
             }).ToArray();
 
         WZProperty ParseExtendedProperty(WZReader reader, WZProperty parent, string name, bool maintainReader = false) {
-            string type = reader.ReadWZStringBlock();
+            string type = reader.ReadWZStringBlock(parent.Encrypted || parent.Container.Encrypted);
             PropertyType propType;
             switch (type) {
                 case "Property":
@@ -161,12 +163,12 @@ namespace PKG1 {
                                 reader.PeekFor(() => {
                                     reader.BaseStream.Position = dedupedAt;
                                     type = reader.ReadByte();
-                                    name = reader.ReadWZString();
+                                    name = reader.ReadWZString(false, self.Encrypted || self.Container.Encrypted);
                                 });
                                 break;
                             case 3:
                             case 4:
-                                name = reader.ReadWZString();
+                                name = reader.ReadWZString(false, self.Encrypted || self.Container.Encrypted);
                                 break;
                             default:
                                 throw new Exception("Unknown child type");
@@ -227,7 +229,7 @@ namespace PKG1 {
             => new WZPropertyVal<Point>(new Point(reader.ReadWZInt(), reader.ReadWZInt()), self);
 
         public WZProperty UOL(WZReader reader, WZProperty self)
-            => new WZPropertyVal<string>(reader.ReadWZStringBlock(), self);
+            => new WZPropertyVal<string>(reader.ReadWZStringBlock(self.Encrypted || self.Container.Encrypted), self);
 
         public WZProperty Resolve(Package container, WZProperty self) {
             // Determine lazy loading here
