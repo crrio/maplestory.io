@@ -32,6 +32,7 @@ namespace WZData.MapleStory.Characters {
             this.wz = wz;
         }
         public CharacterAvatar(CharacterAvatar old) {
+            this.body = old.body;
             this.SkinId = old.SkinId;
             this.Equips = old.Equips;
             this.Mode = old.Mode;
@@ -304,7 +305,7 @@ namespace WZData.MapleStory.Characters {
                     zPosition = zmap.IndexOf(zIndex);
                 RankedFrame ranked = new RankedFrame(Frame.Parse(c), zPosition);
 
-                if (ranked.frame.Position == "face" && !hasFace) return;
+                if (ranked?.frame?.Position == "face" && !hasFace) return;
 
                 rankedFrames.Add(ranked);
             }).IsCompleted) Thread.Sleep(1);
