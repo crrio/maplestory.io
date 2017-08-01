@@ -87,7 +87,7 @@ namespace WZData.MapleStory.Characters {
                     if (c.MapOffset.All(b => b.Key.Equals("zero"))) {
                         fromAnchorPoint = new Point(-navelOffsetBody.X, -navelOffsetBody.Y);
                     } else { // Default positioning based off of offsets
-                        KeyValuePair<string, Point> anchorPointEntry = (c.MapOffset ?? new Dictionary<string, Point>()).Where(b => anchorPositions.ContainsKey(b.Key)).DefaultIfEmpty(new KeyValuePair<string, Point>(null, Point.Empty)).First();
+                        KeyValuePair<string, Point> anchorPointEntry = (c.MapOffset ?? new Dictionary<string, Point>()).Where(b => b.Key != null && anchorPositions.ContainsKey(b.Key)).DefaultIfEmpty(new KeyValuePair<string, Point>(null, Point.Empty)).First();
                         Point anchorPoint = anchorPoint = anchorPositions[anchorPointEntry.Key];
                         Point vectorFromPoint = anchorPointEntry.Value;
                         fromAnchorPoint = new Point(anchorPoint.X - vectorFromPoint.X, anchorPoint.Y - vectorFromPoint.Y);
