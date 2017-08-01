@@ -18,7 +18,7 @@ namespace WZData.MapleStory.Maps
         private PackageCollection collection;
         public string portalImage;
         public bool? onlyOnce;
-
+        [JsonIgnore]
         public Map LinkedMap {
             get => Map.Parse(ToMap, null, collection);
         }

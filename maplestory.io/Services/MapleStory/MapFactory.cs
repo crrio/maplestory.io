@@ -48,6 +48,6 @@ namespace maplestory.io.Services.MapleStory
             => new MapFactory(_factory, region, version);
 
         public Image<Rgba32> Render(int id, bool showLife, bool showPortals)
-            => GetMap(id).Render(showLife, showPortals);
+            => GetMap(id)?.Render(showLife, showPortals);
     }
 }
