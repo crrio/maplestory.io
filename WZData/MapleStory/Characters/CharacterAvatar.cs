@@ -26,6 +26,7 @@ namespace WZData.MapleStory.Characters {
         private List<string> zmap;
         public Tuple<WZProperty, EquipSelection>[] equipped;
         private bool preloaded;
+        private WZProperty body;
 
         public CharacterAvatar(PackageCollection wz) {
             this.wz = wz;
@@ -163,7 +164,7 @@ namespace WZData.MapleStory.Characters {
 
             string bodyId = SkinId.ToString("D8");
             string headId = (SkinId + 10000).ToString("D8");
-            WZProperty body = wz.Resolve($"Character/{bodyId}");
+            this.body = wz.Resolve($"Character/{bodyId}");
             WZProperty head = wz.Resolve($"Character/{headId}");
 
             // Cache the node points for all equips, should be relatively quick as it's only node names and IDs
@@ -223,6 +224,8 @@ namespace WZData.MapleStory.Characters {
 
         public IEnumerable<RankedFrame> GetAnimationParts() {
             Preload();
+
+            bool hasFace = (body.Resolve(AnimationName) ?? body.Resolve("default")).ResolveFor<bool>($"{FrameNumber}/face") ?? true;
 
             Dictionary<string, int> exclusiveLocksRender = new Dictionary<string, int>(exclusiveLocks);
             // Resolve to action nodes and then to frame nodes
@@ -300,6 +303,9 @@ namespace WZData.MapleStory.Characters {
                 if (!int.TryParse(zIndex, out zPosition))
                     zPosition = zmap.IndexOf(zIndex);
                 RankedFrame ranked = new RankedFrame(Frame.Parse(c), zPosition);
+
+                if (ranked.frame.Position == "face" && !hasFace) return;
+
                 rankedFrames.Add(ranked);
             }).IsCompleted) Thread.Sleep(1);
 
