@@ -39,7 +39,7 @@ namespace WZData.MapleStory.Maps
             });
             WZProperty tileCanvas = data.ResolveOutlink($"Map/Tile/{result.pathToImage}");
             if (tileCanvas == null) return null;
-            result.Canvas = Frame.Parse(tileCanvas.Children.Values.FirstOrDefault(c => c.Type == PropertyType.Canvas) ?? tileCanvas);
+            result.Canvas = Frame.Parse(tileCanvas.Children.Values.FirstOrDefault(c => c.Type == PropertyType.Canvas || c.Type == PropertyType.UOL)?.Resolve() ?? tileCanvas);
             result.FrontMost = data.ResolveFor<bool>("front") ?? false;
             result.Flip = data.ResolveFor<bool>("f") ?? false;
             if (result.Flip && result.Canvas != null && result.Canvas.Image != null)
