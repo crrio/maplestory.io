@@ -1,73 +1,159 @@
-﻿@inject Microsoft.ApplicationInsights.AspNetCore.JavaScriptSnippet JavaScriptSnippet
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html>
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - maplestory.io</title>
+    <title>maplestory.io - @ViewData["Title"]</title>
+    <link href="https://fonts.googleapis.com/css?family=Roboto|Titillium+Web" rel="stylesheet">
+    <style>
+        body, html {
+            margin: 0px;
+            background: white;
+            color: rgba(30,30,30,.9);
+            text-rendering: optimizeLegibility;
+        }
 
-    <environment names="Development">
-        <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.css" />
-        <link rel="stylesheet" href="~/css/site.css" />
-    </environment>
-    <environment names="Staging,Production">
-        <link rel="stylesheet" href="https://ajax.aspnetcdn.com/ajax/bootstrap/3.3.7/css/bootstrap.min.css"
-              asp-fallback-href="~/lib/bootstrap/dist/css/bootstrap.min.css"
-              asp-fallback-test-class="sr-only" asp-fallback-test-property="position" asp-fallback-test-value="absolute" />
-        <link rel="stylesheet" href="~/css/site.min.css" asp-append-version="true" />
-    </environment>
-    @Html.Raw(JavaScriptSnippet.FullScript)
+        h1, h2, h3, h4, h5 {
+            font-family: 'Roboto', sans-serif;
+        }
+
+        p {
+            font-family: 'Titillium Web', sans-serif;
+            line-height: 24px;
+        }
+
+        a.fancy {
+            padding: 16px 64px;
+            box-shadow: 0 0 2px #111;
+            display: inline-block;
+            text-decoration: none;
+        }
+
+        a.fancy:not(.rainbowBackground) {
+            background: white;
+        }
+
+        .rainbowBackground, a.fancy:not(.rainbowBackground):not(.noRainbow) div, .rainbowText {
+            background: #61b1ce;
+            background: -moz-linear-gradient(left, #61b1ce 0%, #6ac4a9 100%);
+            background: -webkit-linear-gradient(left, #61b1ce 0%,#6ac4a9 100%);
+            background: linear-gradient(to right, #1e5799 0%,#ff0000 100%);
+            filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#61b1ce', endColorstr='#6ac4a9',GradientType=1 );
+        }
+
+        a.fancy:not(.rainbowBackground):not(.noRainbow) div, .rainbowText {
+            color: transparent;
+            -webkit-background-clip: text;
+            background-clip: text;
+        }
+
+        a.fancy div, .rainbowText {
+            font-size: 14px;
+            font-family: 'Roboto';
+            text-transform: uppercase;
+            text-decoration: none;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body > * {
+            padding: 32px 64px;
+        }
+
+        .header {
+            color: rgba(230,230,230,1);
+            overflow: hidden;
+            min-height: 600px;
+            /* Permalink - use to edit and share this gradient: http://colorzilla.com/gradient-editor/#1e5799+0,7db9e8+100 */
+            background: #1e5799; /* Old browsers */
+            background: -moz-linear-gradient(left, #1e5799 0%, #7db9e8 100%); /* FF3.6-15 */
+            background: -webkit-linear-gradient(left, #1e5799 0%,#7db9e8 100%); /* Chrome10-25,Safari5.1-6 */
+            background: linear-gradient(to right, #1e5799 0%,#7db9e8 100%); /* W3C, IE10+, FF16+, Chrome26+, Opera12+, Safari7+ */
+            filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#1e5799', endColorstr='#7db9e8',GradientType=1 ); /* IE6-9 */
+            position: relative;
+            -webkit-clip-path: polygon(0 0, 100% 0, 100% 85%, 0 100%);
+            clip-path: polygon(0 0, 100% 0, 100% 85%, 0 100%);
+            align-items: center;
+            display: flex;
+            justify-content: space-around;
+        }
+
+        .header > div.content {
+            display: flex;
+            width: 50%;
+            flex-direction: column;
+            max-width: 600px;
+        }
+
+        .header > div.icons {
+            position: relative;
+            width: 50%;
+            text-align: center;
+        }
+
+        .header > div.icons > * {
+            display: inline-flex;
+            padding: 8px;
+            background: rgba(245, 245, 245, 1);
+            border-radius: 4px;
+            box-shadow: 0 0 10px rgba(10, 10, 10, 0.5);
+            position: absolute;
+        }
+
+        .icons > *:nth-child(1) { top: -50px; left: 60%; }
+        .icons > *:nth-child(2) { top: 0px; left: 50%; }
+        .icons > *:nth-child(3) { top: -100px; left: 5%; }
+        .icons > *:nth-child(4) { top: -150px; left: 20%; }
+        .icons > *:nth-child(5) { top: -40px; left: 45%; }
+        .icons > *:nth-child(6) { top: 100px; left: 30%; }
+        .icons > *:nth-child(7) { top: 150px; left: 70%; }
+        .icons > *:nth-child(8) { top: -200px; left: 0px; }
+        .icons > *:nth-child(9) { top: -150px; left: 50%; }
+        .icons > *:nth-child(10) { top: 50px; left: 20%; }
+        .icons > *:nth-child(11) { top: 20px; left: 80%; }
+
+        .header > div > div {
+            margin-top: 2em;
+        }
+
+        .about {
+            display: flex;
+            flex-direction: row;
+            min-height: 600px;
+        }
+
+        .about > div {
+            width: 50%;
+        }
+
+        .about .mapRendering {
+            background-image:url('https://labs.maplestory.io/api/gms/latest/map/2000111/render');
+            background-position: 35% 40%;
+            background-repeat: no-repeat;
+            border-radius: 5px;
+            box-shadow: 0 0 5px rgba(10,10,10, 0.5);
+            margin-left: 15px;
+        }
+
+        .about a.viewAll { margin-top: 48px; background-color: #3366cc; }
+        .about a.viewAll div { color: rgba(240,240,240,1); }
+
+        .info {
+            margin-top: 128px;
+            text-align: center;
+        }
+
+        .footer {
+            background-image: url(https://labs.maplestory.io/api/kms/latest/map/402000200/render);
+            min-height: 400px;
+            background-position: 50% 85%;
+            background-repeat: no-repeat;
+        }
+    </style>
 </head>
 <body>
-    <nav class="navbar navbar-inverse navbar-fixed-top">
-        <div class="container">
-            <div class="navbar-header">
-                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
-                    <span class="sr-only">Toggle navigation</span>
-                    <span class="icon-bar"></span>
-                    <span class="icon-bar"></span>
-                    <span class="icon-bar"></span>
-                </button>
-                <a asp-area="" asp-controller="Home" asp-action="Index" class="navbar-brand">maplestory.io</a>
-            </div>
-            <div class="navbar-collapse collapse">
-                <ul class="nav navbar-nav">
-                    <li><a asp-area="" asp-controller="Home" asp-action="Index">Home</a></li>
-                    <li><a asp-area="" asp-controller="Home" asp-action="About">About</a></li>
-                    <li><a asp-area="" asp-controller="Home" asp-action="Contact">Contact</a></li>
-                </ul>
-            </div>
-        </div>
-    </nav>
-    <div class="container body-content">
-        @RenderBody()
-        <hr />
-        <footer>
-            <p>&copy; 2017 - maplestory.io</p>
-        </footer>
-    </div>
-
-    <environment names="Development">
-        <script src="~/lib/jquery/dist/jquery.js"></script>
-        <script src="~/lib/bootstrap/dist/js/bootstrap.js"></script>
-        <script src="~/js/site.js" asp-append-version="true"></script>
-    </environment>
-    <environment names="Staging,Production">
-        <script src="https://ajax.aspnetcdn.com/ajax/jquery/jquery-2.2.0.min.js"
-                asp-fallback-src="~/lib/jquery/dist/jquery.min.js"
-                asp-fallback-test="window.jQuery"
-                crossorigin="anonymous"
-                integrity="sha384-K+ctZQ+LL8q6tP7I94W+qzQsfRV2a+AfHIi9k8z8l9ggpc8X+Ytst4yBo/hH+8Fk">
-        </script>
-        <script src="https://ajax.aspnetcdn.com/ajax/bootstrap/3.3.7/bootstrap.min.js"
-                asp-fallback-src="~/lib/bootstrap/dist/js/bootstrap.min.js"
-                asp-fallback-test="window.jQuery && window.jQuery.fn && window.jQuery.fn.modal"
-                crossorigin="anonymous"
-                integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa">
-        </script>
-        <script src="~/js/site.min.js" asp-append-version="true"></script>
-    </environment>
-
-    @RenderSection("Scripts", required: false)
+    @RenderBody()
 </body>
 </html>
