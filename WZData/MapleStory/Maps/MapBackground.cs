@@ -44,7 +44,7 @@ namespace WZData.MapleStory.Maps
             result.Front = data.ResolveFor<bool>("front") ?? false;
             result.Alpha = (data.ResolveFor<int>("a") ?? 255) / 255;
             result.Flip = data.ResolveFor<bool>("f") ?? false;
-            WZProperty tileCanvas = data.ResolveOutlink($"Map/Back/{result.pathToImage}");
+            WZProperty tileCanvas = data.ResolveOutlink($"Map/Back/{result.pathToImage}") ?? data.ResolveOutlink($"Map2/Back/{result.pathToImage}");
             if (tileCanvas != null) // Could be null as we're not supporting ani backgrounds
                 result.Canvas = Frame.Parse(tileCanvas?.Children.Values.FirstOrDefault(c => c.Type == PropertyType.Canvas) ?? tileCanvas);
             if (result.Flip && result.Canvas != null && result.Canvas.Image != null)

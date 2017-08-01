@@ -59,7 +59,7 @@ namespace WZData.MapleStory.Maps
                 .ToArray();
             result.Tags = data.ResolveForOrNull<string>("tags");
             result.Rotation = data.ResolveFor<float>("r");
-            WZProperty objCanvas = data.ResolveOutlink($"Map/Obj/{result.pathToImage}");
+            WZProperty objCanvas = data.ResolveOutlink($"Map/Obj/{result.pathToImage}") ?? data.ResolveOutlink($"Map2/Obj/{result.pathToImage}");
             if (objCanvas == null) return null;
             result.Canvas = Frame.Parse(objCanvas.Children.Values.FirstOrDefault(c => c.Type == PropertyType.Canvas || c.Type == PropertyType.UOL)?.Resolve() ?? objCanvas);
             result.Flip = data.ResolveFor<bool>("f") ?? false;
