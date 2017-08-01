@@ -26,7 +26,7 @@ namespace WZData.MapleStory.Mobs
 
             result.Id = id;
 
-            WZProperty mobImage = stringWz.ResolveOutlink($"Mob/{id.ToString("D7")}");
+            WZProperty mobImage = stringWz.ResolveOutlink($"Mob/{id.ToString("D7")}") ?? stringWz.ResolveOutlink($"Mob2/{id.ToString("D7")}");
 
             result.Name = stringWz.ResolveForOrNull<string>("name");
             result.Meta = mobImage.Children.ContainsKey("info") ? MobMeta.Parse(mobImage.Resolve("info")) : null;

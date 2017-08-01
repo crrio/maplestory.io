@@ -19,15 +19,7 @@ namespace WZData.MapleStory.Maps
         public Frame Canvas { get; set; }
         public Vector3 Position { get; set; }
         public RectangleF Bounds {
-            get {
-                Point canvasOrigin = Canvas.Origin ?? new Point(Canvas.Image.Width / 2, Canvas.Image.Height / 2);
-                return new RectangleF(
-                    Position.X - canvasOrigin.X,
-                    Position.Y - canvasOrigin.Y,
-                    Canvas.Image.Width,
-                    Canvas.Image.Height
-                );
-            }
+            get => Canvas == null ? new RectangleF(Position.X, Position.Y, 1, 1) : new RectangleF(Position.X - Canvas.OriginOrZero.X, Position.Y - Canvas.OriginOrZero.Y, Canvas?.Image.Width ?? 1, Canvas?.Image.Height ?? 1);
         }
         public static MapTile Parse(WZProperty data, string tileSet)
         {
