@@ -18,9 +18,6 @@ namespace WZData.MapleStory.Items
             get {
                 if (!TypeInfo.OverallCategory.Equals("equip", StringComparison.CurrentCultureIgnoreCase)) return null;
 
-                if (Id / 1000000 != 1 && Id / 10000 != 254 || Id / 10000 == 119 || Id / 10000 == 168)
-                    return 2;
-
                 if (Id < 100000)
                 {
                     // This definitely applies to hair. I *think* it applies to face aswell.
@@ -38,7 +35,8 @@ namespace WZData.MapleStory.Items
                         default:
                             return 2;
                     }
-                } else
+                } else if (Id / 1000000 != 1 && (Id / 10000 != 254 || Id / 10000 == 119 || Id / 10000 == 168))
+                    return 2;
                 {
                     return Id / 1000 % 10;
                 }
