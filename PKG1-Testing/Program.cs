@@ -17,6 +17,9 @@ namespace PKG1_Testing
             Console.WriteLine($"PKG1 took {watch.ElapsedMilliseconds}ms");
             Console.ReadLine();
 
+            WZProperty prop = collection.Resolve("Character/00002000/alert/0/body/map");
+            Console.WriteLine(prop.ToString());
+
             // Equip res = DataFactory.Cache<Equip>(() => Equip.Parse(collection.Resolve("String/Eqp/Eqp/Weapon/1212000")));
         }
     }

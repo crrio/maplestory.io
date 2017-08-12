@@ -58,6 +58,20 @@ namespace WZData.MapleStory.Characters {
             Point neckOffsetBody = bodyFrame.frame.MapOffset["neck"];
             Point navelOffsetBody = bodyFrame.frame.MapOffset["navel"];
 
+            if (AnimationName.Equals("alert", StringComparison.CurrentCultureIgnoreCase)) {
+                switch (FrameNumber % 3) {
+                    case 0:
+                        anchorPositions.Add("handMove", new Point(-8, -2));
+                        break;
+                    case 1:
+                        anchorPositions.Add("handMove", new Point(-10, 0));
+                        break;
+                    case 2:
+                        anchorPositions.Add("handMove", new Point(-12, 3));
+                        break;
+                }
+            }
+
             List<KeyValuePair<string, Point>[]> offsets = partsFrames
                 .Where(c => c.MapOffset != null)
                 .Select(c => c.MapOffset.Where(k => !k.Key.Equals("zero")).ToArray())
