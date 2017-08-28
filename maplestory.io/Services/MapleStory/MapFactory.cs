@@ -47,7 +47,7 @@ namespace maplestory.io.Services.MapleStory
         public override IMapFactory GetWithWZ(Region region, string version)
             => new MapFactory(_factory, region, version);
 
-        public Image<Rgba32> Render(int id, bool showLife, bool showPortals)
-            => GetMap(id)?.Render(showLife, showPortals);
+        public Image<Rgba32> Render(int id, bool showLife, bool showPortals, bool showBackgrounds)
+            => GetMap(id)?.Render(showLife, showPortals, showBackgrounds);
     }
 }

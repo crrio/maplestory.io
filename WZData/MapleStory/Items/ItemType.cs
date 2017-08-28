@@ -102,7 +102,8 @@ namespace WZData
                     new Tuple<string, int, int>("Jett Fists", 1352820, 1352830), //I have no idea, seems like a mixture of Jett secondaries and others?
                     new Tuple<string, int, int>("Mass", 1352930, 1352940), // Guess // Jet
                     new Tuple<string, int, int>("Fox Marble", 1353100, 1353110),
-                    new Tuple<string, int, int>("Core Controller", 1353000, 1353010) // Guess
+                    new Tuple<string, int, int>("Core Controller", 1353000, 1353010), // Guess,
+                    new Tuple<string, int, int>("Charges", 1353400, 1353410) // Blaster
 
                 }
             },
@@ -123,7 +124,8 @@ namespace WZData
                     new Tuple<string, int, int>("Katana", 1542000, 1543000),
                     new Tuple<string, int, int>("Fan", 1552000, 1553000),
                     new Tuple<string, int, int>("Lapis", 1562000, 1563000),
-                    new Tuple<string, int, int>("Lazuli", 1572000, 1573000)
+                    new Tuple<string, int, int>("Lazuli", 1572000, 1573000),
+                    new Tuple<string, int, int>("Arm Cannon", 1582000, 1583000) // Blaster
                 }
             },
             {"Character",

@@ -103,7 +103,7 @@ namespace WZData.MapleStory.Maps
             this.Footholds = linked.Footholds;
         }
 
-        public Image<Rgba32> Render(bool showLife, bool showPortals)
+        public Image<Rgba32> Render(bool showLife, bool showPortals, bool showBackgrounds)
         {
             IEnumerable<IEnumerable<IPositionedFrameContainer>> frameContainers = Graphics
                 .Select(g => g.Objects.Select(c => (IPositionedFrameContainer)c).Concat(g.Tiles).ToArray());
@@ -120,7 +120,7 @@ namespace WZData.MapleStory.Maps
             ConcurrentDictionary<int, Image<Rgba32>> layers = new ConcurrentDictionary<int, Image<Rgba32>>();
 
             Image<Rgba32> layered = null;
-            Task waitingFor = Task.Run(() => layered = RenderBackground(this.Backgrounds, minX, minY, maxX, maxY));
+            Task waitingFor = Task.Run(() => layered = showBackgrounds ? RenderBackground(this.Backgrounds, minX, minY, maxX, maxY) : new Image<Rgba32>((int)(maxX - minX), (int)(maxY - minY)));
 
             if (showLife) {
                 waitingFor = Task.WhenAll(waitingFor, Task.Run(() => {

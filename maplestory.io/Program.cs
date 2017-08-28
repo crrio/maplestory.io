@@ -42,7 +42,7 @@ namespace maplestory.io
             readerLogging.LogDebug("Caching item requirements in background");
             WZFactory wzFactory = new WZFactory();
             // Background caching, because we don't /need/ the meta data to start the server
-            new Thread(() => ItemFactory.CacheEquipMeta(wzFactory, logging.CreateLogger<ItemFactory>())).Start();
+            // new Thread(() => ItemFactory.CacheEquipMeta(wzFactory, logging.CreateLogger<ItemFactory>())).Start();
 
             ILogger prog = logging.CreateLogger<Program>();
             watch.Stop();
