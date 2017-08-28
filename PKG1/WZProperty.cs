@@ -201,10 +201,12 @@ namespace PKG1 {
             }
 
             if (currentValue is IConvertible)
-                return new WZPropertyVal<K>((K)Convert.ChangeType(
-                    currentValue,
-                    convertTo
-                ), prop);
+                try {
+                    return new WZPropertyVal<K>((K)Convert.ChangeType(
+                        currentValue,
+                        convertTo
+                    ), prop);
+                } catch (Exception ex) { }
 
             return null;
         }
