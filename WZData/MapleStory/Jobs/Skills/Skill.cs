@@ -41,7 +41,7 @@ namespace WZData
             skillEntry.masterLevel = skill.ResolveFor<int>("masterLevel");
             skillEntry.invisible = skill.ResolveFor<bool>("invisible");
             skillEntry.hyper = skill.ResolveFor<bool>("hyper");
-            skillEntry.actions = skill.Resolve("action").Children.Select(c => ((IWZPropertyVal)c.Value).GetValue().ToString());
+            skillEntry.actions = skill.Resolve("action")?.Children.Select(c => ((IWZPropertyVal)c.Value).GetValue().ToString());
             skillEntry.elementalAttribute = skill.ResolveForOrNull<string>("elemAttr");
 
             skillEntry.weapons = skill.Children
