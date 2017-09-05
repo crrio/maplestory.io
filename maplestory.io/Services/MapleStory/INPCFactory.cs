@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using PKG1;
+using WZData;
 using WZData.MapleStory.NPC;
 
 namespace maplestory.io.Services.MapleStory
@@ -8,5 +9,6 @@ namespace maplestory.io.Services.MapleStory
     {
         NPC GetNPC(int id);
         IEnumerable<NPCInfo> GetNPCs();
+        IEnumerable<Frame> GetFrames(int npcId, string frameBook);
     }
 }

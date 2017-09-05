@@ -235,8 +235,8 @@ namespace WZData.ItemMetaInfo
         public int? android;
         public int? androidGrade;
 
-        public IEnumerable<string> vslots { get => (new string[vslot.Length / 2]).Select((c, i) => vslot.Substring(i * 2, 2)); }
-        public IEnumerable<string> islots { get => (new string[islot.Length / 2]).Select((c, i) => islot.Substring(i * 2, 2)); }
+        public IEnumerable<string> vslots { get => (new string[(vslot ?? "").Length / 2]).Select((c, i) => (vslot ?? "").Substring(i * 2, 2)); }
+        public IEnumerable<string> islots { get => (new string[(islot ?? "").Length / 2]).Select((c, i) => (islot ?? "").Substring(i * 2, 2)); }
 
         public static EquipInfo Parse(WZProperty info)
         {

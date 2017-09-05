@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Newtonsoft.Json;
 using PKG1;
 
 namespace WZData.MapleStory.NPC
@@ -9,11 +10,15 @@ namespace WZData.MapleStory.NPC
     public class NPC
     {
         public Dictionary<string, string> Dialogue;
+
+        [JsonIgnore]
+        public WZProperty npcImg { get; private set; }
+
         public IEnumerable<string> KnownMessages;
         public string Function;
         public string Name;
         public bool IsShop;
-        public Dictionary<string, IEnumerable<FrameBook>> Framebooks;
+        public List<string> Framebooks;
         public int Id;
         private int? Link;
         private bool? IsComponentNPC;
@@ -35,23 +40,21 @@ namespace WZData.MapleStory.NPC
                 .Where(c => c.Key != "func" && c.Key != "name" && c.Key != "dialogue")
                 .ToDictionary(c => c.Key, c => ((IWZPropertyVal)c.Value).GetValue().ToString());
 
-            WZProperty npcImg = stringWz.ResolveOutlink($"Npc/{id.ToString("D7")}");
+            result.npcImg = stringWz.ResolveOutlink($"Npc/{id.ToString("D7")}");
 
-            result.IsShop = npcImg?.ResolveFor<bool>("info/shop") ?? false;
-            result.Link = npcImg.ResolveFor<int>("link");
+            result.IsShop = result.npcImg?.ResolveFor<bool>("info/shop") ?? false;
+            result.Link = result.npcImg.ResolveFor<int>("link");
 
-            result.Framebooks = npcImg.Children
-                //.Where(c => c.Key != "info") // We're only showing stand for now
-                .Where(c => c.Key == "stand")
-                .ToDictionary(k => k.Key, v => FrameBook.Parse(v.Value));
-            if (npcImg.Resolve("info/default")?.Type == PropertyType.Canvas) {
-                result.Framebooks.Add("default", FrameBook.Parse(npcImg.Resolve("info/default")));
-            }
+            result.Framebooks = result.npcImg.Children
+                .Where(c => c.Key != "info")
+                .Select(k => k.Key).ToList();
+            if (result.npcImg.Resolve("info/default")?.Type == PropertyType.Canvas)
+                result.Framebooks.Add("default");
 
-            result.IsComponentNPC = npcImg.ResolveFor<bool>("info/componentNPC") ?? false;
+            result.IsComponentNPC = result.npcImg.ResolveFor<bool>("info/componentNPC") ?? false;
             if (result.IsComponentNPC ?? false) {
-                result.ComponentIds = npcImg.Resolve("info/component")?.Children.Where(c => c.Key != "skin").Select(c => c.Value.ResolveFor<int>()).Where(c => c.HasValue).Select(c => c.Value).ToArray();
-                result.ComponentSkin = npcImg.ResolveFor<int>("info/component/skin") + 2000;
+                result.ComponentIds = result.npcImg.Resolve("info/component")?.Children.Where(c => c.Key != "skin").Select(c => c.Value.ResolveFor<int>()).Where(c => c.HasValue).Select(c => c.Value).ToArray();
+                result.ComponentSkin = result.npcImg.ResolveFor<int>("info/component/skin") + 2000;
             }
 
             List<int> linkFollowed = new List<int>();
@@ -67,6 +70,9 @@ namespace WZData.MapleStory.NPC
 
             return result;
         }
+
+        public IEnumerable<FrameBook> GetFrameBook(string bookName = null)
+            => FrameBook.Parse(npcImg.Resolve(bookName ?? Framebooks.First()));
 
         private void Extend(NPC linked)
             => this.Framebooks = linked.Framebooks;

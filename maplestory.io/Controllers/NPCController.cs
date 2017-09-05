@@ -45,12 +45,29 @@ namespace maplestory.io.Controllers
         public IActionResult GetFrame(int npcId)
         {
             NPC npcData = _factory.GetWithWZ(region, version).GetNPC(npcId);
-            if (!npcData.Framebooks.ContainsKey("stand")) return NotFound();
+            if (!npcData.Framebooks.Contains("stand")) return NotFound();
 
-            FrameBook standing = npcData.Framebooks["stand"].First();
+            FrameBook standing = npcData.GetFrameBook("stand").First();
             if (standing == null) return NotFound();
 
             Frame firstFrame = standing.frames.First();
+            if (firstFrame == null || firstFrame.Image == null) return NotFound();
+
+            return File(firstFrame.Image.ImageToByte(), "image/png");
+        }
+
+        [Route("{npcId}/render/{framebook}/{frame?}")]
+        [HttpGet]
+        [ProducesResponseType(200)]
+        [Produces("image/png")]
+        public IActionResult Render(int npcId, string framebook, int frame = 0)
+        {
+            NPC npcData = _factory.GetWithWZ(region, version).GetNPC(npcId);
+
+            FrameBook standing = npcData.GetFrameBook(framebook).First();
+            if (standing == null) return NotFound();
+
+            Frame firstFrame = standing.frames.ElementAt(frame % standing.frames.Count());
             if (firstFrame == null || firstFrame.Image == null) return NotFound();
 
             return File(firstFrame.Image.ImageToByte(), "image/png");

@@ -13,5 +13,7 @@ namespace maplestory.io.Services.MapleStory
         Job GetJob(int id);
         SkillDescription GetSkillDescription(int id);
         SkillBook GetSkillBook(int id);
+        Skill GetSkill(int id);
+        IEnumerable<SkillTree> GetSkills();
     }
 }

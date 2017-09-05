@@ -27,7 +27,7 @@ namespace WZData
 
             book.id = id;
             book.Description = skillDescriptions(id); //skillDescriptions.FirstOrDefault(c => c.Id == id && !string.IsNullOrEmpty(c.bookName));
-            book.Skills = skillBook.Resolve("skill").Children.Select(c => Skill.Parse(book, c.Value, skillDescriptions));
+            book.Skills = skillBook.Resolve("skill").Children.Select(c => Skill.Parse(c.Value, skillDescriptions));
             book.Job = relatedJob;
 
             return book;

@@ -24,7 +24,7 @@ namespace WZData
 
             animationFrame.Image = value.ResolveForOrNull<Image<Rgba32>>();
             animationFrame.delay = value.ResolveFor<int>("delay") ?? value.Resolve().ResolveFor<int>("delay");
-            animationFrame.Origin = value.ResolveFor<Point>("origin") ?? value.Resolve()?.ResolveFor<Point>("origin") ?? new Point(animationFrame.Image.Width / 2, animationFrame.Image.Height / 2);
+            animationFrame.Origin = value.ResolveFor<Point>("origin") ?? value.Resolve()?.ResolveFor<Point>("origin") ?? new Point(animationFrame.Image?.Width / 2 ?? 0, animationFrame.Image?.Height / 2 ?? 0);
             animationFrame.Position = value.ResolveForOrNull<string>("z") ?? value.ResolveForOrNull<string>("../z") ?? value.Resolve().ResolveForOrNull<string>("z") ?? value.Resolve().ResolveForOrNull<string>("../z");
             animationFrame.MapOffset = (value.Resolve("map") ?? value.Resolve().Resolve("map"))?.Children
                 .Where(c => c.Value.Type == PropertyType.Vector2)

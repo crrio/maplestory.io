@@ -29,6 +29,7 @@ namespace maplestory.io.Services.MapleStory
             { 16, "Pirate" }
         };
         private static Dictionary<Region, Dictionary<int, Tuple<string[], byte?, bool>>> RequiredJobs = new Dictionary<Region, Dictionary<int, Tuple<string[], byte?, bool>>>();
+        private static Dictionary<Region, Dictionary<decimal, ILookup<int, int>>> DroppedLookups = new Dictionary<Region, Dictionary<decimal, ILookup<int, int>>>();
 
         public static void CacheEquipMeta(IWZFactory factory, ILogger logging) {
             Region[] regions = (Region[])Enum.GetValues(typeof(Region));
@@ -90,30 +91,70 @@ namespace maplestory.io.Services.MapleStory
             });
         }
 
+        ILookup<int, int> GenerateDroppedByLookup(WZProperty prop) {
+            return prop.ResolveOutlink("String/MonsterBook")
+                .Children.Values
+                .SelectMany(c =>
+                    c.Resolve("reward").Children.Values
+                    .Select(b =>
+                        new Tuple<int, int?>(int.Parse(c.Name), b.ResolveFor<int>())
+                    ).Where(b => b.Item2 != null)
+                )
+                .ToLookup(c => c.Item2.Value, c => c.Item1);
+        }
+
         public MapleItem search(int id) {
+            if (DroppedLookups.ContainsKey(wz.WZRegion) && DroppedLookups[wz.WZRegion].ContainsKey(wz.BasePackage.VersionId))
+                return search(id, (i) => DroppedLookups[wz.WZRegion][wz.BasePackage.VersionId][i].ToArray());
+            else {
+                if (!DroppedLookups.ContainsKey(wz.WZRegion))
+                    DroppedLookups.Add(wz.WZRegion, new Dictionary<decimal, ILookup<int, int>>());
+                if (!DroppedLookups[wz.WZRegion].ContainsKey(wz.BasePackage.VersionId))
+                    DroppedLookups[wz.WZRegion].Add(wz.BasePackage.VersionId, GenerateDroppedByLookup(wz.BasePackage.MainDirectory));
+
+                return search(id);
+            }
+        }
+
+        public MapleItem search(int id, Func<int, int[]> getDroppedBy) {
             WZProperty stringWz = wz.Resolve("String");
 
             string idString = id.ToString();
+            MapleItem result = null;
 
             WZProperty item = stringWz.Resolve("Eqp/Eqp").Children.Values.FirstOrDefault(c => c.Children.ContainsKey(idString))?.Resolve(idString);
-            if (item != null) return Equip.Parse(item);
+            if (item != null) result = Equip.Parse(item);
 
-            item = stringWz.Resolve($"Etc/Etc/{idString}");
-            if (item != null) return Etc.Parse(item);
+            if (result == null) {
+                item = stringWz.Resolve($"Etc/Etc/{idString}");
+                if (item != null) result = Etc.Parse(item);
+            }
 
-            item = stringWz.Resolve($"Ins/{idString}");
-            if (item != null) return Install.Parse(item);
+            if (result == null) {
+                item = stringWz.Resolve($"Ins/{idString}");
+                if (item != null) result = Install.Parse(item);
+            }
 
-            item = stringWz.Resolve("Cash/{idString}");
-            if (item != null) return Cash.Parse(item);
+            if (result == null) {
+                item = stringWz.Resolve("Cash/{idString}");
+                if (item != null) result = Cash.Parse(item);
+            }
 
-            item = stringWz.Resolve($"Consume/{idString}");
-            if (item != null) return Consume.Parse(item);
+            if (result == null) {
+                item = stringWz.Resolve($"Consume/{idString}");
+                if (item != null) result = Consume.Parse(item);
+            }
 
-            item = stringWz.Resolve($"Pet/{idString}");
-            if (item != null) return Pet.Parse(item);
+            if (result == null) {
+                item = stringWz.Resolve($"Pet/{idString}");
+                if (item != null) result = Pet.Parse(item);
+            }
 
-            return null;
+            MobFactory mobs = new MobFactory(_factory, region, version);
+
+            result.MetaInfo.DroppedBy = getDroppedBy(id).Join(mobs.GetMobs(), c => c, c => c.Id, (a,b) => b).ToArray();
+
+            return result;
         }
 
         public override IItemFactory GetWithWZ(Region region, string version)

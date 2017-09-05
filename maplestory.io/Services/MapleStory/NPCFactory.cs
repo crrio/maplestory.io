@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using PKG1;
+using WZData;
 using WZData.MapleStory.NPC;
 
 namespace maplestory.io.Services.MapleStory
@@ -16,6 +17,7 @@ namespace maplestory.io.Services.MapleStory
             => NPC.Parse(wz.Resolve($"String/Npc/{id}"));
         public IEnumerable<NPCInfo> GetNPCs()
             => wz.Resolve("String/Npc").Children.Values.Select(NPCInfo.Parse);
+        public IEnumerable<Frame> GetFrames(int npcId, string frameBook) => GetNPC(npcId)?.GetFrameBook(frameBook)?.First().frames;
 
         public override INPCFactory GetWithWZ(Region region, string version)
             => new NPCFactory(_factory, region, version);

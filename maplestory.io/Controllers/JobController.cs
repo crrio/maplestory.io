@@ -68,9 +68,15 @@ namespace maplestory.io.Controllers
         [ProducesResponseType(typeof(SkillDescription), 200)]
         public IActionResult GetSkill(int skillId)
         {
-            SkillDescription desc = _factory.GetWithWZ(region, version).GetSkillDescription(skillId);
+            Skill desc = _factory.GetWithWZ(region, version).GetSkill(skillId);
             if (desc == null) return NotFound();
             return Json(desc);
         }
+
+        [Route("skilltree")]
+        [HttpGet]
+        [ProducesResponseType(typeof(IEnumerable<SkillTree>), 200)]
+        public IActionResult GetSkillTree()
+            => Json(_factory.GetWithWZ(region, version).GetSkills());
     }
 }

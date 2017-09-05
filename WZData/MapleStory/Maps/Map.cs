@@ -38,6 +38,7 @@ namespace WZData.MapleStory.Maps
         public int? MinimumStarForce;
         public int? MinimumArcaneForce;
         public int? MinimumLevel;
+        public RectangleF VRBounds;
 
         public static Map Parse(int id, MapName name, PackageCollection collection)
         {
@@ -67,6 +68,13 @@ namespace WZData.MapleStory.Maps
             result.MinimumStarForce = mapInfo.ResolveFor<int>("barrier");
             result.MinimumArcaneForce = mapInfo.ResolveFor<int>("barrierArc");
             result.MinimumLevel = mapInfo.ResolveFor<int>("lvLimit");
+
+            float top = mapInfo.ResolveFor<float>("VRTop") ?? 0,
+                right = mapInfo.ResolveFor<float>("VRRight") ?? 0,
+                bottom = mapInfo.ResolveFor<float>("VRBottom") ?? 0,
+                left = mapInfo.ResolveFor<float>("VRLeft") ?? 0;
+
+            result.VRBounds = new RectangleF(left, top, right - left, bottom - top);
 
             ConcurrentDictionary<int, Foothold> fhHolder = new ConcurrentDictionary<int, Foothold>();
             Parallel.ForEach(mapEntry.Resolve("foothold").Children.Values
@@ -107,11 +115,12 @@ namespace WZData.MapleStory.Maps
         {
             IEnumerable<IEnumerable<IPositionedFrameContainer>> frameContainers = Graphics
                 .Select(g => g.Objects.Select(c => (IPositionedFrameContainer)c).Concat(g.Tiles).ToArray());
-            if (frameContainers.Count() == 0 || frameContainers.Select(c => c.Count()).Sum() == 0) return null;
+            if ((frameContainers.Count() == 0 || frameContainers.Select(c => c.Count()).Sum() == 0) && Backgrounds.Count() == 0) return null;
             IEnumerable<RectangleF> Bounds = frameContainers.SelectMany(c => c)
                 .Select(c => c.Bounds)
                 .Concat(portals.Select(c => c.Bounds))
                 .Concat(Life.Select(c => c.Bounds))
+                .Append(VRBounds)
                 .ToArray();
             float minX = Bounds.Select(c => c.X).Min();
             float maxX = Bounds.Select(c => c.X + c.Width).Max();

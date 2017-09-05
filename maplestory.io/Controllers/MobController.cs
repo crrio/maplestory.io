@@ -44,14 +44,31 @@ namespace maplestory.io.Controllers
         {
             Mob mobData = _factory.GetWithWZ(region, version).GetMob(mobId);
 
-            string animation = mobData.Framebooks.ContainsKey("stand") ? "stand" : mobData.Framebooks.ContainsKey("fly") ? "fly" : null;
+            string animation = mobData.Framebooks.Contains("stand") ? "stand" : mobData.Framebooks.Contains("fly") ? "fly" : null;
 
             if (animation == null) return NotFound();
 
-            FrameBook standing = mobData.Framebooks[animation].First();
+            FrameBook standing = mobData.GetFrameBook(animation).First();
             if (standing == null) return NotFound();
 
             Frame firstFrame = standing.frames.First();
+            if (firstFrame == null || firstFrame.Image == null) return NotFound();
+
+            return File(firstFrame.Image.ImageToByte(), "image/png");
+        }
+
+        [Route("{mobId}/render/{framebook}/{frame?}")]
+        [HttpGet]
+        [ProducesResponseType(200)]
+        [Produces("image/png")]
+        public IActionResult Render(int mobId, string framebook, int frame = 0)
+        {
+            Mob mobData = _factory.GetWithWZ(region, version).GetMob(mobId);
+
+            FrameBook standing = mobData.GetFrameBook(framebook).First();
+            if (standing == null) return NotFound();
+
+            Frame firstFrame = standing.frames.ElementAt(frame % standing.frames.Count());
             if (firstFrame == null || firstFrame.Image == null) return NotFound();
 
             return File(firstFrame.Image.ImageToByte(), "image/png");

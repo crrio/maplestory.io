@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Newtonsoft.Json;
 using PKG1;
 
 namespace WZData.MapleStory.Mobs
@@ -12,9 +13,12 @@ namespace WZData.MapleStory.Mobs
         public const string FolderPath = "Mob";
         public const string StringPath = "Mob.img";
         public int Id;
+        [JsonIgnore]
+        public WZProperty mobImage { get; private set; }
+
         public MobMeta Meta;
         public string Name;
-        public Dictionary<string, IEnumerable<FrameBook>> Framebooks;
+        public List<string> Framebooks;
 
         public static Mob Parse(WZProperty stringWz, bool followLink = true)
         {
@@ -26,17 +30,15 @@ namespace WZData.MapleStory.Mobs
 
             result.Id = id;
 
-            WZProperty mobImage = stringWz.ResolveOutlink($"Mob/{id.ToString("D7")}") ?? stringWz.ResolveOutlink($"Mob2/{id.ToString("D7")}");
+            result.mobImage = stringWz.ResolveOutlink($"Mob/{id.ToString("D7")}") ?? stringWz.ResolveOutlink($"Mob2/{id.ToString("D7")}");
 
             result.Name = stringWz.ResolveForOrNull<string>("name");
-            result.Meta = mobImage.Children.ContainsKey("info") ? MobMeta.Parse(mobImage.Resolve("info")) : null;
+            result.Meta = result.mobImage.Children.ContainsKey("info") ? MobMeta.Parse(result.mobImage.Resolve("info")) : null;
             /// Note: This *does* work. However, it increases the response to 1min+ and 15mb+
             /// Do *NOT* enable this unless people request it, and even then require an opt-in parameter.
-            result.Framebooks = mobImage.Children
+            result.Framebooks = result.mobImage.Children
                 .Where(c => c.Key != "info")
-                .Where(c => c.Key == "fly" || c.Key == "stand")
-                .ToDictionary(k => k.Key, v => FrameBook.Parse(v.Value));
-
+                .Select(k => k.Key).ToList();
 
             List<int> linkFollowed = new List<int>();
             Mob linked = result;
@@ -51,6 +53,9 @@ namespace WZData.MapleStory.Mobs
 
             return result;
         }
+
+        public IEnumerable<FrameBook> GetFrameBook(string bookName = null)
+            => FrameBook.Parse(mobImage.Resolve(bookName ?? Framebooks.First()));
 
         private void Extend(Mob linked)
             => this.Framebooks = linked.Framebooks;

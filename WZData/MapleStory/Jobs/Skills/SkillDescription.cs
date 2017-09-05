@@ -21,6 +21,7 @@ namespace WZData
 
         public static SkillDescription Parse(WZProperty child)
         {
+            if (child == null) return null;
             int itemId = -1;
             if (!int.TryParse(child.Name, out itemId))
                 return null;

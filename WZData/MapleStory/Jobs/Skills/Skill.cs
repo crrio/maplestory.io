@@ -26,7 +26,7 @@ namespace WZData
         public string soundPath { get => $"Skill.img/{id}"; }
         public SkillDescription description;
 
-        internal static Skill Parse(SkillBook book, WZProperty skill, Func<int, SkillDescription> skillDescriptions)
+        public static Skill Parse(WZProperty skill, Func<int, SkillDescription> skillDescriptions)
         {
             Skill skillEntry = new Skill();
 

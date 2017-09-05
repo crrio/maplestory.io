@@ -56,9 +56,9 @@ namespace WZData.MapleStory.Maps
                 result.Canvas = lifeLookup[result.Id];
             else {
                 if (result.Type == LifeType.NPC)
-                    result.Canvas = NPC.NPC.Parse(data.ResolveOutlink($"String/Npc/{result.Id}"))?.Framebooks?.Values.FirstOrDefault()?.FirstOrDefault()?.frames?.FirstOrDefault();
+                    result.Canvas = NPC.NPC.Parse(data.ResolveOutlink($"String/Npc/{result.Id}")).GetFrameBook()?.FirstOrDefault()?.frames?.FirstOrDefault();
                 else if (result.Type == LifeType.Monster)
-                    result.Canvas = Mobs.Mob.Parse(data.ResolveOutlink($"String/Mob/{result.Id}"))?.Framebooks?.Values.FirstOrDefault()?.FirstOrDefault()?.frames?.FirstOrDefault();
+                    result.Canvas = Mobs.Mob.Parse(data.ResolveOutlink($"String/Mob/{result.Id}")).GetFrameBook()?.FirstOrDefault()?.frames?.FirstOrDefault();
                 lifeLookup.Add(result.Id, result.Canvas);
             }
 
