@@ -224,7 +224,7 @@ namespace WZData.MapleStory.Characters {
             // Build an smap dictionary to look up between what a position will require to lock before it can be rendered
             smap = wz.Resolve("Base/smap").Children
                 .Where(c => c.Value.ResolveForOrNull<string>() != null)
-                .ToDictionary(c => c.Key, c => c.Value.ResolveForOrNull<string>() ?? "");
+                .ToDictionary(c => c.Key, c => (c.Value.ResolveForOrNull<string>() ?? "").Replace("PnSo", "Pn"));
 
             // We need the weapon entry so we know what kind of weapon the character has equipped
             // Certain items require the weapon type to determine what kind of animation will be displayed
