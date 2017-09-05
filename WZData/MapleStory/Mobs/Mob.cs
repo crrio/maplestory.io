@@ -58,6 +58,9 @@ namespace WZData.MapleStory.Mobs
             => FrameBook.Parse(mobImage.Resolve(bookName ?? Framebooks.First()));
 
         private void Extend(Mob linked)
-            => this.Framebooks = linked.Framebooks;
+        {
+            this.Framebooks = linked.Framebooks;
+            this.mobImage = linked.mobImage;
+        }
     }
 }

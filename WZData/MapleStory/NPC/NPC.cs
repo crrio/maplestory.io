@@ -74,8 +74,10 @@ namespace WZData.MapleStory.NPC
         public IEnumerable<FrameBook> GetFrameBook(string bookName = null)
             => FrameBook.Parse(npcImg.Resolve(bookName ?? Framebooks.First()));
 
-        private void Extend(NPC linked)
-            => this.Framebooks = linked.Framebooks;
+        private void Extend(NPC linked) {
+            this.Framebooks = linked.Framebooks;
+            this.npcImg = linked.npcImg;
+        }
     }
 
     public class NPCInfo
