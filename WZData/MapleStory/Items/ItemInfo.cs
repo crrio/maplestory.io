@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using WZData.ItemMetaInfo;
 using PKG1;
 using WZData.MapleStory.Mobs;
+using WZData.MapleStory.Items;
 
 namespace WZData
 {
@@ -23,6 +24,7 @@ namespace WZData
         public ChairInfo Chair;
         public IconInfo Icon;
         public MobInfo[] DroppedBy;
+        public ItemSet Set;
 
         public  static ItemInfo Parse(WZProperty characterItem)
         {
@@ -36,6 +38,7 @@ namespace WZData
             results.Slot = SlotInfo.Parse(info);
             results.Chair = ChairInfo.Parse(info);
             results.Icon = IconInfo.Parse(info);
+            results.Set = ItemSet.ParseItemInfo(info);
 
             return results;
         }

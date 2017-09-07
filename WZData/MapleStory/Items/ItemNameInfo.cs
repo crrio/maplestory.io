@@ -82,5 +82,23 @@ namespace WZData.MapleStory.Items
                 .Select(c => ItemNameInfo.Parse(c.Value))
             );
         }
+
+        public static ILookup<int, ItemNameInfo> GetNameLookup(WZProperty stringFile)
+        {
+            return stringFile
+                .Resolve("Eqp.img/Eqp").Children
+                .SelectMany(c => c.Value.Children)
+            //Etc
+            .Concat(stringFile.Resolve("Etc.img/Etc").Children)
+            //Cash
+            .Concat(stringFile.Resolve("Cash.img").Children)
+            //Ins
+            .Concat(stringFile.Resolve("Ins.img").Children)
+            //Consume
+            .Concat(stringFile.Resolve("Consume.img").Children)
+            //Pet
+            .Concat(stringFile.Resolve("Pet.img").Children)
+            .ToLookup(c => int.Parse(c.Key), c => ItemNameInfo.Parse(c.Value));
+        }
     }
 }
