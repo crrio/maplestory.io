@@ -121,7 +121,14 @@ namespace PKG1 {
 
             if (string.IsNullOrEmpty(v)) return this;
 
-            int firstSlash = v.IndexOf('/');
+            int forwardSlashPosition = v.IndexOf('/');
+            int backSlashPosition = v.IndexOf('\\', 0, forwardSlashPosition == -1 ? v.Length : forwardSlashPosition);
+            int firstSlash = -1;
+
+            if (forwardSlashPosition == -1) firstSlash = backSlashPosition;
+            else if (backSlashPosition == -1) firstSlash = forwardSlashPosition;
+            else firstSlash = Math.Min(forwardSlashPosition, backSlashPosition);
+
             if (firstSlash == -1) firstSlash = v.Length;
 
             string childName = v.Substring(0, firstSlash).Replace(".img", "");

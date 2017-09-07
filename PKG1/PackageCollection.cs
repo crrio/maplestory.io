@@ -51,11 +51,18 @@ namespace PKG1
         }
 
         public WZProperty Resolve(string path) {
-            int slashStart = path.IndexOf('/');
-            if (slashStart == -1) slashStart = path.Length;
-            string wzName = path.Substring(0, slashStart);
+            int forwardSlashPosition = path.IndexOf('/');
+            int backSlashPosition = path.IndexOf('\\', 0, forwardSlashPosition == -1 ? path.Length : forwardSlashPosition);
+            int firstSlash = -1;
 
-            if (Packages.ContainsKey(wzName)) return Packages[wzName].Resolve(path.Substring(Math.Min(slashStart + 1, path.Length)));
+            if (forwardSlashPosition == -1) firstSlash = backSlashPosition;
+            else if (backSlashPosition == -1) firstSlash = forwardSlashPosition;
+            else firstSlash = Math.Min(forwardSlashPosition, backSlashPosition);
+
+            if (firstSlash == -1) firstSlash = path.Length;
+            string wzName = path.Substring(0, firstSlash);
+
+            if (Packages.ContainsKey(wzName)) return Packages[wzName].Resolve(path.Substring(Math.Min(firstSlash + 1, path.Length)));
 
             return null;
         }

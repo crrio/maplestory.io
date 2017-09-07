@@ -105,7 +105,7 @@ namespace maplestory.io.Services.MapleStory
 
         public MapleItem search(int id) {
             if (DroppedLookups.ContainsKey(wz.WZRegion) && DroppedLookups[wz.WZRegion].ContainsKey(wz.BasePackage.VersionId))
-                return search(id, (i) => DroppedLookups[wz.WZRegion][wz.BasePackage.VersionId][i].ToArray());
+                return search(id, (i) => DroppedLookups[wz.WZRegion][wz.BasePackage.VersionId][i]?.ToArray());
             else {
                 if (!DroppedLookups.ContainsKey(wz.WZRegion))
                     DroppedLookups.Add(wz.WZRegion, new Dictionary<decimal, ILookup<int, int>>());
@@ -152,7 +152,7 @@ namespace maplestory.io.Services.MapleStory
 
             MobFactory mobs = new MobFactory(_factory, region, version);
 
-            result.MetaInfo.DroppedBy = getDroppedBy(id).Join(mobs.GetMobs(), c => c, c => c.Id, (a,b) => b).ToArray();
+            result.MetaInfo.DroppedBy = getDroppedBy(id)?.Join(mobs.GetMobs(), c => c, c => c.Id, (a,b) => b)?.ToArray();
 
             return result;
         }
