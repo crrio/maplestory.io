@@ -47,7 +47,7 @@ namespace WZData.MapleStory.Items
             => new ItemNameInfo() {
                 Id = int.Parse(c.Name),
                 Name = c.ResolveForOrNull<string>("name"),
-                Desc = c.ResolveForOrNull<string>("desc")
+                Desc = string.Join("", c.ResolveForOrNull<string>("desc") ?? "", c.ResolveForOrNull<string>("autodesc") ?? "")
             };
 
         public static IEnumerable<ItemNameInfo> GetNames(WZProperty stringFile)

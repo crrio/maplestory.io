@@ -24,7 +24,7 @@ namespace WZData
             return new ItemDescription(
                 itemId,
                 itemString.ResolveForOrNull<string>("name"),
-                itemString.ResolveForOrNull<string>("desc")
+                string.Join("", itemString.ResolveForOrNull<string>("desc") ?? "", itemString.ResolveForOrNull<string>("autodesc") ?? "")
             );
         }
     }
