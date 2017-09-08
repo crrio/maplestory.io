@@ -16,9 +16,10 @@ namespace WZData.MapleStory.Mobs
         [JsonIgnore]
         public WZProperty mobImage { get; private set; }
 
+        public int? LinksTo;
         public MobMeta Meta;
         public string Name;
-        public List<string> Framebooks;
+        public Dictionary<string, int> Framebooks;
 
         public static Mob Parse(WZProperty stringWz, bool followLink = true)
         {
@@ -34,11 +35,11 @@ namespace WZData.MapleStory.Mobs
 
             result.Name = stringWz.ResolveForOrNull<string>("name");
             result.Meta = result.mobImage.Children.ContainsKey("info") ? MobMeta.Parse(result.mobImage.Resolve("info")) : null;
-            /// Note: This *does* work. However, it increases the response to 1min+ and 15mb+
-            /// Do *NOT* enable this unless people request it, and even then require an opt-in parameter.
+            result.LinksTo = result.Meta.LinksToOtherMob;
+
             result.Framebooks = result.mobImage.Children
                 .Where(c => c.Key != "info")
-                .Select(k => k.Key).ToList();
+                .ToDictionary(c => c.Key, c => FrameBook.GetFrameCount(c.Value));
 
             List<int> linkFollowed = new List<int>();
             Mob linked = result;
@@ -55,7 +56,7 @@ namespace WZData.MapleStory.Mobs
         }
 
         public IEnumerable<FrameBook> GetFrameBook(string bookName = null)
-            => FrameBook.Parse(mobImage.Resolve(bookName ?? Framebooks.First()));
+            => FrameBook.Parse(mobImage.Resolve(bookName ?? Framebooks.First().Key));
 
         private void Extend(Mob linked)
         {

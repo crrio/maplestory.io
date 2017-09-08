@@ -45,7 +45,7 @@ namespace maplestory.io.Controllers
         public IActionResult GetFrame(int npcId)
         {
             NPC npcData = _factory.GetWithWZ(region, version).GetNPC(npcId);
-            if (!npcData.Framebooks.Contains("stand")) return NotFound();
+            if (!npcData.Framebooks.ContainsKey("stand")) return NotFound();
 
             FrameBook standing = npcData.GetFrameBook("stand").First();
             if (standing == null) return NotFound();

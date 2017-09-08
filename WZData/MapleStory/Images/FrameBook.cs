@@ -38,5 +38,16 @@ namespace WZData
 
             return effect;
         }
+
+        public static int GetFrameCount(WZProperty self)
+        {
+            return self.Children
+                .Where(c =>
+                {
+                    int frameNumber = -1;
+                    return int.TryParse(c.Key, out frameNumber);
+                })
+                .OrderBy(c => int.Parse(c.Key)).Count();
+        }
     }
 }

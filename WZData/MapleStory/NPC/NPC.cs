@@ -18,7 +18,7 @@ namespace WZData.MapleStory.NPC
         public string Function;
         public string Name;
         public bool IsShop;
-        public List<string> Framebooks;
+        public Dictionary<string, int> Framebooks;
         public int Id;
         private int? Link;
         private bool? IsComponentNPC;
@@ -47,9 +47,10 @@ namespace WZData.MapleStory.NPC
 
             result.Framebooks = result.npcImg.Children
                 .Where(c => c.Key != "info")
-                .Select(k => k.Key).ToList();
+                .ToDictionary(c => c.Key, c => FrameBook.GetFrameCount(c.Value));
+
             if (result.npcImg.Resolve("info/default")?.Type == PropertyType.Canvas)
-                result.Framebooks.Add("default");
+                result.Framebooks.Add("default", FrameBook.GetFrameCount(result.npcImg.Resolve("info/default")));
 
             result.IsComponentNPC = result.npcImg.ResolveFor<bool>("info/componentNPC") ?? false;
             if (result.IsComponentNPC ?? false) {
@@ -72,7 +73,7 @@ namespace WZData.MapleStory.NPC
         }
 
         public IEnumerable<FrameBook> GetFrameBook(string bookName = null)
-            => FrameBook.Parse(npcImg.Resolve(bookName ?? Framebooks.First()));
+            => FrameBook.Parse(npcImg.Resolve(bookName ?? Framebooks.First().Key));
 
         private void Extend(NPC linked) {
             this.Framebooks = linked.Framebooks;

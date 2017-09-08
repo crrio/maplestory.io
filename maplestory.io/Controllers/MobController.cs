@@ -44,7 +44,7 @@ namespace maplestory.io.Controllers
         {
             Mob mobData = _factory.GetWithWZ(region, version).GetMob(mobId);
 
-            string animation = mobData.Framebooks.Contains("stand") ? "stand" : mobData.Framebooks.Contains("fly") ? "fly" : null;
+            string animation = mobData.Framebooks.ContainsKey("stand") ? "stand" : mobData.Framebooks.ContainsKey("fly") ? "fly" : null;
 
             if (animation == null) return NotFound();
 
