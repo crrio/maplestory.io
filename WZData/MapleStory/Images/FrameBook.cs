@@ -13,6 +13,8 @@ namespace WZData
 
         public static IEnumerable<FrameBook> Parse(WZProperty self)
         {
+            if (self == null) return null;
+
             bool isSingle = self.Children.Any(c => c.Value.Type == PropertyType.Canvas);
 
             if (!isSingle)

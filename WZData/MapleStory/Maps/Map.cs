@@ -11,6 +11,7 @@ using Newtonsoft.Json;
 using PKG1;
 using SixLabors.Primitives;
 using WZData.MapleStory.Images;
+using System.Diagnostics;
 
 namespace WZData.MapleStory.Maps
 {
@@ -43,7 +44,9 @@ namespace WZData.MapleStory.Maps
 
         public static Map Parse(int id, MapName name, PackageCollection collection)
         {
+            Stopwatch watch = Stopwatch.StartNew();
             Map result = new Map();
+            result.Id = id;
 
             if (name != null) {
                 result.Id = name.Id;
@@ -57,10 +60,67 @@ namespace WZData.MapleStory.Maps
             if (mapEntry == null) return null;
             WZProperty mapInfo = mapEntry.Resolve("info");
 
+            ParseInfo(result, mapEntry, mapInfo);
+            ParseFootholds(result, mapEntry);
+            ParseLife(result, mapEntry);
+            ParseGraphics(result, mapEntry);
+
+            watch.Stop();
+            Package.Logging($"Map Parse took {watch.ElapsedMilliseconds}");
+            return result;
+        }
+
+        private static void ParseGraphics(Map result, WZProperty mapEntry)
+        {
+            Stopwatch watch = Stopwatch.StartNew();
+            result.Graphics = mapEntry.Children.Keys
+                .Where(c => int.TryParse(c, out int blah))
+                .AsParallel()
+                .Select((c, i) => GraphicsSet.Parse(mapEntry.Children[c], i));
+            result.Backgrounds = mapEntry.Resolve("back")?.Children.Values.AsParallel().Select(c => MapBackground.Parse(c));
+            watch.Stop();
+            Package.Logging($"Map ParseGraphics took {watch.ElapsedMilliseconds}");
+        }
+
+        private static void ParseLife(Map result, WZProperty mapEntry)
+        {
+            Stopwatch watch = Stopwatch.StartNew();
+            ConcurrentDictionary<int, Tuple<string, Frame>> lifeTemplateCache = new ConcurrentDictionary<int, Tuple<string, Frame>>();
+            result.Life = mapEntry.Resolve("life")?.Children.Values
+                .GroupBy(c => c.ResolveFor<int>("id"))
+                .AsParallel()
+                .Select(grouping => grouping.Select(c => MapLife.Parse(c, result.Footholds, lifeTemplateCache)).ToArray())
+                .SelectMany(c => c)
+                .ToArray();
+            result.Npcs = result.Life?.Where(c => c.Type == LifeType.NPC).ToArray();
+            result.Mobs = result.Life?.Where(c => c.Type == LifeType.Monster).ToArray();
+            watch.Stop();
+            Package.Logging($"Map ParseLife took {watch.ElapsedMilliseconds}");
+        }
+
+        private static void ParseFootholds(Map result, WZProperty mapEntry)
+        {
+            Stopwatch watch = Stopwatch.StartNew();
+            ConcurrentDictionary<int, Foothold> fhHolder = new ConcurrentDictionary<int, Foothold>();
+            Parallel.ForEach(mapEntry.Resolve("foothold").Children.Values
+                .SelectMany(c => c.Children.Values)
+                .SelectMany(c => c.Children.Values), (fh) =>
+                {
+                    Foothold res = Foothold.Parse(fh);
+                    fhHolder.TryAdd(res.id, res);
+                });
+            result.Footholds = new Dictionary<int, Foothold>(fhHolder);
+            watch.Stop();
+            Package.Logging($"Map ParseFootholds took {watch.ElapsedMilliseconds}");
+        }
+
+        private static void ParseInfo(Map result, WZProperty mapEntry, WZProperty mapInfo)
+        {
+            Stopwatch watch = Stopwatch.StartNew();
             result.LinksTo = mapInfo.ResolveFor<int>("link");
             result.BackgroundMusic = mapInfo.ResolveForOrNull<string>("bgm");
             result.ReturnMap = mapInfo.ResolveFor<int>("returnMap");
-//            result.IsReturnMap = result.ReturnMap == result.Id;
+            //            result.IsReturnMap = result.ReturnMap == result.Id;
             result.IsReturnMap = result.ReturnMap == 999999999;
             if ((!result.IsReturnMap) ?? false && result.ReturnMap.HasValue)
                 result.ReturnMapName = MapName.GetMapNameLookup(mapInfo)[result.ReturnMap ?? -1].First() ?? new MapName() { Id = result.ReturnMap ?? -1, Name = "Unknown", StreetName = "Unknown" };
@@ -72,35 +132,13 @@ namespace WZData.MapleStory.Maps
             result.MinimumArcaneForce = mapInfo.ResolveFor<int>("barrierArc");
             result.MinimumLevel = mapInfo.ResolveFor<int>("lvLimit");
 
-            float top = mapInfo.ResolveFor<float>("VRTop") ?? 0,
-                right = mapInfo.ResolveFor<float>("VRRight") ?? 0,
-                bottom = mapInfo.ResolveFor<float>("VRBottom") ?? 0,
-                left = mapInfo.ResolveFor<float>("VRLeft") ?? 0;
+            float top = mapInfo.ResolveFor<float>("VRTop") ?? 0, right = mapInfo.ResolveFor<float>("VRRight") ?? 0, bottom = mapInfo.ResolveFor<float>("VRBottom") ?? 0, left = mapInfo.ResolveFor<float>("VRLeft") ?? 0;
 
             result.VRBounds = new RectangleF(left, top, right - left, bottom - top);
-
-            ConcurrentDictionary<int, Foothold> fhHolder = new ConcurrentDictionary<int, Foothold>();
-            Parallel.ForEach(mapEntry.Resolve("foothold").Children.Values
-                .SelectMany(c => c.Children.Values)
-                .SelectMany(c => c.Children.Values), (fh) => {
-                    Foothold res = Foothold.Parse(fh);
-                    fhHolder.TryAdd(res.id, res);
-                });
-            result.Footholds = new Dictionary<int, Foothold>(fhHolder);
-
             result.portals = mapEntry.Resolve("portal")?.Children.Values.Select(Portal.Parse);
             result.MiniMap = result.MiniMap = MiniMap.Parse(mapEntry.Resolve("miniMap"));
-
-            Dictionary<int, Tuple<string, Frame>> lifeTemplateCache = new Dictionary<int, Tuple<string, Frame>>();
-            result.Life = mapEntry.Resolve("life")?.Children.Values.Select(c => MapLife.Parse(c, result.Footholds, lifeTemplateCache));
-            result.Npcs = result.Life?.Where(c => c.Type == LifeType.NPC);
-            result.Mobs = result.Life?.Where(c => c.Type == LifeType.Monster);
-            result.Graphics = mapEntry.Children.Keys
-                .Where(c => int.TryParse(c, out int blah))
-                .Select((c, i) => GraphicsSet.Parse(mapEntry.Children[c], i));
-            result.Backgrounds = mapEntry.Resolve("back")?.Children.Values.Select(c => MapBackground.Parse(c));
-
-            return result;
+            watch.Stop();
+            Package.Logging($"Map ParseInfo took {watch.ElapsedMilliseconds}");
         }
 
         public void ExtendFrom(Map linked)

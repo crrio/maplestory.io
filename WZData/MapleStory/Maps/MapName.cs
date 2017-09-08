@@ -30,7 +30,7 @@ namespace WZData.MapleStory.Maps
             else
             {
                 names = stringWz.Resolve("Map").Children.Values.SelectMany(c => c.Children.Values).Select(c => MapName.Parse(c));
-                stringWz.FileContainer.Collection.VersionCache.AddOrUpdate("mapNames", names, (a, b) => a);
+                stringWz.FileContainer.Collection.VersionCache.AddOrUpdate("mapNames", names, (a, b) => b);
             }
 
             return names;
@@ -45,7 +45,7 @@ namespace WZData.MapleStory.Maps
             else
             {
                 lookup = anyWz.ResolveOutlink("String/Map").Children.Values.SelectMany(c => c.Children.Values).ToLookup(c => int.Parse(c.Name), c => MapName.Parse(c));
-                anyWz.FileContainer.Collection.VersionCache.AddOrUpdate("mapNameLookup", lookup, (a, b) => a);
+                anyWz.FileContainer.Collection.VersionCache.AddOrUpdate("mapNameLookup", lookup, (a, b) => b);
             }
 
             return lookup;

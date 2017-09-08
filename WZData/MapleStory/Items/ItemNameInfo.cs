@@ -86,7 +86,7 @@ namespace WZData.MapleStory.Items
                 stringFile.Resolve("Pet.img").Children
                     .Select(c => ItemNameInfo.Parse(c.Value))
                 );
-                stringFile.FileContainer.Collection.VersionCache.AddOrUpdate("itemNames", itemNames, (a, b) => a);
+                stringFile.FileContainer.Collection.VersionCache.AddOrUpdate("itemNames", itemNames, (a, b) => b);
             }
 
             return itemNames;
@@ -113,7 +113,7 @@ namespace WZData.MapleStory.Items
                 //Pet
                 .Concat(stringFile.Resolve("Pet.img").Children)
                 .ToLookup(c => int.Parse(c.Key), c => ItemNameInfo.Parse(c.Value));
-                stringFile.FileContainer.Collection.VersionCache.AddOrUpdate("itemNameLookup", itemNameLookup, (a, b) => a);
+                stringFile.FileContainer.Collection.VersionCache.AddOrUpdate("itemNameLookup", itemNameLookup, (a, b) => b);
             }
 
             return itemNameLookup;

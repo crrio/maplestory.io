@@ -7,6 +7,7 @@ using Newtonsoft.Json;
 using PKG1;
 using SixLabors.Primitives;
 using WZData.MapleStory.Images;
+using System.Collections.Concurrent;
 
 namespace WZData.MapleStory.Maps
 {
@@ -38,9 +39,9 @@ namespace WZData.MapleStory.Maps
         }
         public bool Flip { get; }
         public static MapLife Parse(WZProperty data)
-            => Parse(data, new Dictionary<int, Tuple<string, Frame>>());
+            => Parse(data, new ConcurrentDictionary<int, Tuple<string, Frame>>());
 
-        public static MapLife Parse(WZProperty data, Dictionary<int, Tuple<string, Frame>> lifeLookup)
+        public static MapLife Parse(WZProperty data, ConcurrentDictionary<int, Tuple<string, Frame>> lifeLookup)
         {
             MapLife result = new MapLife();
 
@@ -62,17 +63,15 @@ namespace WZData.MapleStory.Maps
             {
                 if (result.Type == LifeType.NPC)
                 {
-                    NPC.NPC npcLife = NPC.NPC.Parse(data.ResolveOutlink($"String/Npc/{result.Id}"));
-                    result.Name = npcLife.Name;
-                    result.Canvas = npcLife.GetFrameBook()?.FirstOrDefault()?.frames?.FirstOrDefault();
+                    result.Name = NPC.NPC.GetName(data, result.Id);
+                    result.Canvas = NPC.NPC.GetFirstFrame(data, result.Id);
                 }
                 else if (result.Type == LifeType.Monster)
                 {
-                    Mobs.Mob mobLife = Mobs.Mob.Parse(data.ResolveOutlink($"String/Mob/{result.Id}"));
-                    result.Name = mobLife.Name;
-                    result.Canvas = mobLife.GetFrameBook()?.FirstOrDefault()?.frames?.FirstOrDefault();
+                    result.Name = Mobs.Mob.GetName(data, result.Id);
+                    result.Canvas = Mobs.Mob.GetFirstFrame(data, result.Id);
                 }
-                lifeLookup.Add(result.Id, new Tuple<string, Frame>(result.Name, result.Canvas));
+                lifeLookup.AddOrUpdate(result.Id, new Tuple<string, Frame>(result.Name, result.Canvas), (a, b) => b);
             }
 
             return result;
@@ -84,7 +83,7 @@ namespace WZData.MapleStory.Maps
             Y = Foothold.YAtX(X);
         }
 
-        internal static MapLife Parse(WZProperty c, Dictionary<int, Foothold> footholds, Dictionary<int, Tuple<string, Frame>> lifeLookup)
+        internal static MapLife Parse(WZProperty c, Dictionary<int, Foothold> footholds, ConcurrentDictionary<int, Tuple<string, Frame>> lifeLookup)
         {
             MapLife result = Parse(c, lifeLookup);
             if (result.FootholdId.HasValue && footholds.ContainsKey(result.FootholdId.Value))

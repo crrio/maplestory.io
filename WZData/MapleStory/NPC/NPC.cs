@@ -86,6 +86,22 @@ namespace WZData.MapleStory.NPC
             this.Framebooks = linked.Framebooks;
             this.npcImg = linked.npcImg;
         }
+
+        public static Frame GetFirstFrame(WZProperty anyWz, int id)
+            => GetFirstFrame(anyWz, id.ToString("D7"));
+
+        public static Frame GetFirstFrame(WZProperty anyWz, string id)
+        {
+            WZProperty npcImg = anyWz.ResolveOutlink($"Npc/{id}");
+            string linksTo = npcImg.ResolveForOrNull<string>("info/link");
+            if (linksTo != null)
+                return GetFirstFrame(anyWz, linksTo);
+            return FrameBook.Parse(npcImg.Children.Where(c => c.Key != "info").Select(c => c.Value).FirstOrDefault())
+                    .FirstOrDefault().frames.FirstOrDefault();
+        }
+
+        public static string GetName(WZProperty anyWz, int id)
+            => anyWz.ResolveOutlinkForOrNull<string>($"String/Npc/{id}/name");
     }
 
     public class NPCInfo

@@ -22,11 +22,12 @@ namespace WZData.MapleStory.Maps
         public bool? onlyOnce;
         [JsonIgnore]
         public Map LinkedMap {
-            get => Map.Parse(ToMap, null, collection);
+            get => ToMap == 999999999 ? null : Map.Parse(ToMap, null, collection);
         }
-        public bool IsStarForcePortal {
-            get => LinkedMap.MinimumStarForce > 0;
-        }
+        public bool IsStarForcePortal;
+        //    get => LinkedMap?.MinimumStarForce > 0;
+        //}
+        public bool UnknownExit { get => ToMap == 999999999; }
 
         [JsonIgnore]
         public Frame Canvas { get; set; }
@@ -37,13 +38,14 @@ namespace WZData.MapleStory.Maps
         }
 
         public RectangleF Bounds {
-            get => Canvas == null ? new RectangleF(x, y, 1, 1) : new RectangleF(new Point(x - Canvas.OriginOrZero.X,y - Canvas.OriginOrZero.Y), new Size(Canvas.Image.Width, Canvas.Image.Height));
+            get => Canvas == null ? new RectangleF(x, y, 1, 1) : new RectangleF(new Point(x - Canvas.OriginOrZero.X, y - Canvas.OriginOrZero.Y), new Size(Canvas.Image.Width, Canvas.Image.Height));
         }
         [JsonIgnore]
         public bool Flip => false;
 
         public static Portal Parse(WZProperty portalData)
-            => new Portal()
+        {
+            Portal portal = new Portal()
             {
                 collection = portalData.FileContainer.Collection,
                 PortalName = portalData.ResolveForOrNull<string>("pn"),
@@ -57,6 +59,12 @@ namespace WZData.MapleStory.Maps
                 onlyOnce = portalData.ResolveFor<bool>("onlyOnce"),
                 Canvas = Frame.Parse(portalData.ResolveOutlink($"Map/MapHelper/portal/game/pv/{portalData.ResolveForOrNull<string>("image") ?? "default"}/0"))
             };
+
+            if (!portal.UnknownExit)
+                portal.IsStarForcePortal = (portalData.ResolveOutlinkFor<int>($"Map/Map/Map{portal.ToMap.ToString("D8")[0]}/{portal.ToMap.ToString("D8")}.img/info/barrier") ?? 0) > 0;
+
+            return portal;
+        }
     }
 
     public enum PortalType
