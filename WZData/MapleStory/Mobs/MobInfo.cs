@@ -17,9 +17,12 @@ namespace WZData.MapleStory.Mobs
         }
 
         public static MobInfo Parse(WZProperty stringWz)
-            => new MobInfo(
+            => stringWz == null ? null : new MobInfo(
                 int.Parse(stringWz.Name),
                 stringWz.ResolveForOrNull<string>("name")
             );
+
+        public static MobInfo GetFromId(WZProperty anyWz, int mobId)
+            => Parse(anyWz.ResolveOutlink($"String/Mob/{mobId}"));
     }
 }

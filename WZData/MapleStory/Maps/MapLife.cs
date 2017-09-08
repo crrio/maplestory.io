@@ -29,6 +29,7 @@ namespace WZData.MapleStory.Maps
                 return $"/mob/{Id}";
             }
         }
+        public string Name;
         [JsonIgnore]
         public Frame Canvas { get; set; }
         public Vector3 Position { get => new Vector3(X, Y, 1); }
@@ -37,9 +38,9 @@ namespace WZData.MapleStory.Maps
         }
         public bool Flip { get; }
         public static MapLife Parse(WZProperty data)
-            => Parse(data, new Dictionary<int, Frame>());
+            => Parse(data, new Dictionary<int, Tuple<string, Frame>>());
 
-        public static MapLife Parse(WZProperty data, Dictionary<int, Frame> lifeLookup)
+        public static MapLife Parse(WZProperty data, Dictionary<int, Tuple<string, Frame>> lifeLookup)
         {
             MapLife result = new MapLife();
 
@@ -53,13 +54,25 @@ namespace WZData.MapleStory.Maps
             result.Type = data.ResolveForOrNull<string>("type").ToLower() == "n" ? LifeType.NPC : LifeType.Monster; // type
 
             if (lifeLookup.ContainsKey(result.Id))
-                result.Canvas = lifeLookup[result.Id];
-            else {
+            {
+                result.Name = lifeLookup[result.Id].Item1;
+                result.Canvas = lifeLookup[result.Id].Item2;
+            }
+            else
+            {
                 if (result.Type == LifeType.NPC)
-                    result.Canvas = NPC.NPC.Parse(data.ResolveOutlink($"String/Npc/{result.Id}")).GetFrameBook()?.FirstOrDefault()?.frames?.FirstOrDefault();
+                {
+                    NPC.NPC npcLife = NPC.NPC.Parse(data.ResolveOutlink($"String/Npc/{result.Id}"));
+                    result.Name = npcLife.Name;
+                    result.Canvas = npcLife.GetFrameBook()?.FirstOrDefault()?.frames?.FirstOrDefault();
+                }
                 else if (result.Type == LifeType.Monster)
-                    result.Canvas = Mobs.Mob.Parse(data.ResolveOutlink($"String/Mob/{result.Id}")).GetFrameBook()?.FirstOrDefault()?.frames?.FirstOrDefault();
-                lifeLookup.Add(result.Id, result.Canvas);
+                {
+                    Mobs.Mob mobLife = Mobs.Mob.Parse(data.ResolveOutlink($"String/Mob/{result.Id}"));
+                    result.Name = mobLife.Name;
+                    result.Canvas = mobLife.GetFrameBook()?.FirstOrDefault()?.frames?.FirstOrDefault();
+                }
+                lifeLookup.Add(result.Id, new Tuple<string, Frame>(result.Name, result.Canvas));
             }
 
             return result;
@@ -71,7 +84,7 @@ namespace WZData.MapleStory.Maps
             Y = Foothold.YAtX(X);
         }
 
-        internal static MapLife Parse(WZProperty c, Dictionary<int, Foothold> footholds, Dictionary<int, Frame> lifeLookup)
+        internal static MapLife Parse(WZProperty c, Dictionary<int, Foothold> footholds, Dictionary<int, Tuple<string, Frame>> lifeLookup)
         {
             MapLife result = Parse(c, lifeLookup);
             if (result.FootholdId.HasValue && footholds.ContainsKey(result.FootholdId.Value))

@@ -6,6 +6,7 @@ using Newtonsoft.Json;
 using PKG1;
 using SixLabors.Primitives;
 using WZData.MapleStory.Images;
+using System.Linq;
 
 namespace WZData.MapleStory.Maps
 {
@@ -15,6 +16,7 @@ namespace WZData.MapleStory.Maps
         public PortalType Type;
         public int ToMap, x, y;
         public string LinkToMap => ToMap == 999999999 ? null : $"/map/{ToMap}";
+        public MapName ToMapName;
         private PackageCollection collection;
         public string portalImage;
         public bool? onlyOnce;
@@ -50,6 +52,7 @@ namespace WZData.MapleStory.Maps
                 Type = (PortalType)(portalData.ResolveFor<int>("pt") ?? 0),
                 x = portalData.ResolveFor<int>("x") ?? int.MinValue,
                 y = portalData.ResolveFor<int>("y") ?? int.MinValue,
+                ToMapName = MapName.GetMapNameLookup(portalData)[portalData.ResolveFor<int>("tm") ?? -1].FirstOrDefault(),
                 portalImage = portalData.ResolveForOrNull<string>("image"),
                 onlyOnce = portalData.ResolveFor<bool>("onlyOnce"),
                 Canvas = Frame.Parse(portalData.ResolveOutlink($"Map/MapHelper/portal/game/pv/{portalData.ResolveForOrNull<string>("image") ?? "default"}/0"))

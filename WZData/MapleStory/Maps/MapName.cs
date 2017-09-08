@@ -23,6 +23,32 @@ namespace WZData.MapleStory.Maps
         }
 
         public static IEnumerable<MapName> GetMapNames(WZProperty stringWz)
-            => stringWz.Resolve("Map").Children.Values.SelectMany(c => c.Children.Values).Select(c => MapName.Parse(c));
+        {
+            IEnumerable<MapName> names = null;
+            if (stringWz.FileContainer.Collection.VersionCache.TryGetValue("mapNames", out object mapNamesCached))
+                names = (IEnumerable<MapName>)mapNamesCached;
+            else
+            {
+                names = stringWz.Resolve("Map").Children.Values.SelectMany(c => c.Children.Values).Select(c => MapName.Parse(c));
+                stringWz.FileContainer.Collection.VersionCache.AddOrUpdate("mapNames", names, (a, b) => a);
+            }
+
+            return names;
+        }
+
+        public static ILookup<int, MapName> GetMapNameLookup(WZProperty anyWz)
+        {
+            ILookup<int, MapName> lookup = null;
+
+            if (anyWz.FileContainer.Collection.VersionCache.TryGetValue("mapNames", out object mapNamesCached))
+                lookup = (ILookup<int, MapName>)mapNamesCached;
+            else
+            {
+                lookup = anyWz.ResolveOutlink("String/Map").Children.Values.SelectMany(c => c.Children.Values).ToLookup(c => int.Parse(c.Name), c => MapName.Parse(c));
+                anyWz.FileContainer.Collection.VersionCache.AddOrUpdate("mapNameLookup", lookup, (a, b) => a);
+            }
+
+            return lookup;
+        }
     }
 }

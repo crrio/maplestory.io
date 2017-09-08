@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using Newtonsoft.Json;
 using PKG1;
+using WZData.MapleStory.Maps;
 
 namespace WZData.MapleStory.NPC
 {
@@ -20,10 +21,11 @@ namespace WZData.MapleStory.NPC
         public bool IsShop;
         public Dictionary<string, int> Framebooks;
         public int Id;
-        private int? Link;
-        private bool? IsComponentNPC;
-        private int? ComponentSkin;
-        private int[] ComponentIds;
+        public int? Link;
+        public bool? IsComponentNPC;
+        public int? ComponentSkin;
+        public int[] ComponentIds;
+        public MapName[] FoundAt;
 
         public static NPC Parse(WZProperty stringWz, bool followLink = true)
         {
@@ -58,6 +60,11 @@ namespace WZData.MapleStory.NPC
                 result.ComponentSkin = result.npcImg.ResolveFor<int>("info/component/skin") + 2000;
             }
 
+            result.FoundAt = result.npcImg.ResolveOutlink($"Etc/NpcLocation/{id}")
+                .Children.Keys.Where(c => int.TryParse(c, out int blah))
+                .Select(c => MapName.GetMapNameLookup(result.npcImg)[int.Parse(c)].FirstOrDefault())
+                .Where(c => c != null).ToArray();
+
             List<int> linkFollowed = new List<int>();
             NPC linked = result;
             while (followLink && linked.Link.HasValue && !linkFollowed.Contains(linked.Link.Value)) {
@@ -73,7 +80,7 @@ namespace WZData.MapleStory.NPC
         }
 
         public IEnumerable<FrameBook> GetFrameBook(string bookName = null)
-            => FrameBook.Parse(npcImg.Resolve(bookName ?? Framebooks.First().Key));
+            => bookName == null && Framebooks.Count == 0 ? null : FrameBook.Parse(npcImg.Resolve(bookName ?? Framebooks.First().Key));
 
         private void Extend(NPC linked) {
             this.Framebooks = linked.Framebooks;

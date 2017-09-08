@@ -104,7 +104,7 @@ namespace WZData.MapleStory.Mobs
         /// <summary>
         /// Spawn these mobs after death
         /// </summary>
-        public IEnumerable<int> RevivesMonsterId; // revive [0,1,...]
+        public IEnumerable<MobInfo> RevivesMonsterId; // revive [0,1,...]
         /// <summary>
         /// Takes the info from another mob
         /// </summary>
@@ -195,7 +195,7 @@ namespace WZData.MapleStory.Mobs
             result.HPTagBackgroundColor = info.ResolveFor<int>("hpTagBgcolor");
             result.HPGaugeHide = info.ResolveFor<bool>("HPgaugeHide");
             result.NoRespawn = info.ResolveFor<bool>("noRegen");
-            result.RevivesMonsterId = info.Resolve("revive")?.Children?.Select(c => Convert.ToInt32(((IWZPropertyVal) c.Value).GetValue()));
+            result.RevivesMonsterId = info.Resolve("revive")?.Children?.Select(c => Convert.ToInt32(((IWZPropertyVal) c.Value).GetValue())).Select(c => MobInfo.GetFromId(info, c)).Where(c => c != null);
             result.LinksToOtherMob = info.ResolveFor<int>("link");
             result.OnlyNormalAttack = info.ResolveFor<bool>("onlyNormalAttack");
             result.FixedDamageAmount = info.ResolveFor<uint>("fixedDamage");

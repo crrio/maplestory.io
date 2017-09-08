@@ -4,6 +4,8 @@ using System.Linq;
 using System.Text;
 using Newtonsoft.Json;
 using PKG1;
+using WZData.MapleStory.Maps;
+using WZData.MapleStory.Items;
 
 namespace WZData.MapleStory.Mobs
 {
@@ -19,7 +21,10 @@ namespace WZData.MapleStory.Mobs
         public int? LinksTo;
         public MobMeta Meta;
         public string Name;
+        public string Description;
         public Dictionary<string, int> Framebooks;
+        public MapName[] FoundAt;
+        public ItemName[] Drops;
 
         public static Mob Parse(WZProperty stringWz, bool followLink = true)
         {
@@ -40,6 +45,23 @@ namespace WZData.MapleStory.Mobs
             result.Framebooks = result.mobImage.Children
                 .Where(c => c.Key != "info")
                 .ToDictionary(c => c.Key, c => FrameBook.GetFrameCount(c.Value));
+
+            WZProperty familiarEntry = stringWz.ResolveOutlink($"String/MonsterBook/{id}");
+            result.Description = familiarEntry?.ResolveForOrNull<string>("episode");
+
+            ILookup<int, MapName> lookup = MapName.GetMapNameLookup(stringWz);
+            result.FoundAt = stringWz.ResolveOutlink($"Etc/MobLocation/{id}")
+                .Children.Values.Concat(familiarEntry?.Resolve("map")?.Children.Values ?? (new Dictionary<string, WZProperty>()).Values)
+                .Select(c => c.ResolveFor<int>() ?? -1).Distinct()
+                .Select(c => lookup[c]?.FirstOrDefault() ?? new MapName() { Name = "Unknown", StreetName = "Unknown", Id = c })
+                .ToArray();
+
+            ILookup<int, ItemNameInfo> reportedDrops = ItemNameInfo.GetNameLookup(stringWz.ResolveOutlink("String"));
+            result.Drops = familiarEntry?.Resolve("reward")?.Children.Values
+                .Select(c => c.ResolveFor<int>() ?? -1)
+                .Select(c => reportedDrops[c]?.FirstOrDefault())
+                .Where(c => c != null)
+                .ToArray();
 
             List<int> linkFollowed = new List<int>();
             Mob linked = result;

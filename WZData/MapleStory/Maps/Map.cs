@@ -39,6 +39,7 @@ namespace WZData.MapleStory.Maps
         public int? MinimumArcaneForce;
         public int? MinimumLevel;
         public RectangleF VRBounds;
+        public MapName ReturnMapName;
 
         public static Map Parse(int id, MapName name, PackageCollection collection)
         {
@@ -61,6 +62,8 @@ namespace WZData.MapleStory.Maps
             result.ReturnMap = mapInfo.ResolveFor<int>("returnMap");
 //            result.IsReturnMap = result.ReturnMap == result.Id;
             result.IsReturnMap = result.ReturnMap == 999999999;
+            if ((!result.IsReturnMap) ?? false && result.ReturnMap.HasValue)
+                result.ReturnMapName = MapName.GetMapNameLookup(mapInfo)[result.ReturnMap ?? -1].First() ?? new MapName() { Id = result.ReturnMap ?? -1, Name = "Unknown", StreetName = "Unknown" };
             result.IsTown = mapInfo.ResolveFor<bool>("town");
             result.IsSwim = mapInfo.ResolveFor<bool>("swim");
             result.MobRate = mapInfo.ResolveFor<double>("mobRate");
@@ -88,7 +91,7 @@ namespace WZData.MapleStory.Maps
             result.portals = mapEntry.Resolve("portal")?.Children.Values.Select(Portal.Parse);
             result.MiniMap = result.MiniMap = MiniMap.Parse(mapEntry.Resolve("miniMap"));
 
-            Dictionary<int, Frame> lifeTemplateCache = new Dictionary<int, Frame>();
+            Dictionary<int, Tuple<string, Frame>> lifeTemplateCache = new Dictionary<int, Tuple<string, Frame>>();
             result.Life = mapEntry.Resolve("life")?.Children.Values.Select(c => MapLife.Parse(c, result.Footholds, lifeTemplateCache));
             result.Npcs = result.Life?.Where(c => c.Type == LifeType.NPC);
             result.Mobs = result.Life?.Where(c => c.Type == LifeType.Monster);

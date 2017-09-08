@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -15,11 +16,14 @@ namespace PKG1
         public Dictionary<string, Package> Packages;
         public PropertyResolvers Resolver;
         public Region WZRegion;
+        public ConcurrentDictionary<string, object> VersionCache;
+
         public PackageCollection(string baseFilePath, ushort versionId = ushort.MinValue, Region region = Region.GMS) {
             Stopwatch watchGlobal = Stopwatch.StartNew();
             this.Resolver = new PropertyResolvers(this);
             Logging($"Took {watchGlobal.ElapsedMilliseconds}ms to initialize resolver");
             Folder = Path.GetDirectoryName(baseFilePath);
+            VersionCache = new ConcurrentDictionary<string, object>();
 
             WZRegion = region;
             BaseFilePath = baseFilePath;
@@ -47,6 +51,7 @@ namespace PKG1
             Packages.Add(BasePackage.FileName, BasePackage);
 
             watchGlobal.Stop();
+
             Logging($"Took {watchGlobal.ElapsedMilliseconds}ms total");
         }
 
