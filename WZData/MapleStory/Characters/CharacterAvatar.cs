@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using System.Collections.Concurrent;
 using System.Threading;
 using SixLabors.Primitives;
+using System.IO;
 
 namespace WZData.MapleStory.Characters {
     public class CharacterAvatar {
@@ -271,7 +272,7 @@ namespace WZData.MapleStory.Characters {
 
                     // If the z-position is equal to the equipCategory, the required locks are the vslot
                     // This seems to resolve the caps only requiring the locks of vslot, not the full `cap` in smap
-                    string equipCategory = framePartNode.Path.Split('/')[1];
+                    string equipCategory = framePartNode.Path.Split(Path.DirectorySeparatorChar)[1];
                     string zPosition = framePartNode.Resolve().ResolveForOrNull<string>("z") ?? framePartNode.ResolveForOrNull<string>("../z") ?? framePartNode.Name;
                     bool sameZAsContainer = !zPosition.Equals(equipCategory, StringComparison.CurrentCultureIgnoreCase);
 

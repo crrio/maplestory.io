@@ -50,7 +50,7 @@ namespace maplestory.io.Controllers
         [Produces("image/png")]
         public IActionResult GetMarkByName(string markName)
         {
-            return File(_factory.GetWithWZ(region, version).GetMapMark(markName).Mark.ImageToByte(), "image/png");
+            return File(_factory.GetWithWZ(region, version).GetMapMark(markName).Mark.ImageToByte(Request), "image/png");
         }
 
         [Route("{mapId}/icon")]
@@ -66,13 +66,13 @@ namespace maplestory.io.Controllers
         [HttpGet]
         [Produces("image/png")]
         public IActionResult RenderMap(int mapId, [FromQuery]bool showLife = false, [FromQuery]bool showPortals = false, [FromQuery]bool showBackgrounds = false)
-            => File(_factory.GetWithWZ(region, version).Render(mapId, showLife, showPortals, showBackgrounds).ImageToByte(), "image/png");
+            => File(_factory.GetWithWZ(region, version).Render(mapId, showLife, showPortals, showBackgrounds).ImageToByte(Request), "image/png");
 
         [Route("{mapId}/minimap")]
         [HttpGet]
         [Produces("image/png")]
         public IActionResult GetMinimap(int mapId)
-            => File(_factory.GetWithWZ(region, version).GetMap(mapId).MiniMap.canvas.ImageToByte(), "image/png");
+            => File(_factory.GetWithWZ(region, version).GetMap(mapId).MiniMap.canvas.ImageToByte(Request), "image/png");
 
         [Route("{mapId}/bgm")]
         [HttpGet]

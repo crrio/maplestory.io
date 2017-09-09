@@ -54,7 +54,7 @@ namespace maplestory.io.Controllers
             Frame firstFrame = standing.frames.First();
             if (firstFrame == null || firstFrame.Image == null) return NotFound();
 
-            return File(firstFrame.Image.ImageToByte(), "image/png");
+            return File(firstFrame.Image.ImageToByte(Request), "image/png");
         }
 
         [Route("{mobId}/render/{framebook}/{frame?}")]
@@ -71,7 +71,7 @@ namespace maplestory.io.Controllers
             Frame firstFrame = standing.frames.ElementAt(frame % standing.frames.Count());
             if (firstFrame == null || firstFrame.Image == null) return NotFound();
 
-            return File(firstFrame.Image.ImageToByte(), "image/png");
+            return File(firstFrame.Image.ImageToByte(Request), "image/png");
         }
     }
 }

@@ -14,6 +14,7 @@ using System.Diagnostics;
 using Microsoft.Extensions.Logging;
 using PKG1;
 using System.Collections.Concurrent;
+using Microsoft.AspNetCore.Http;
 
 namespace maplestory.io.Services.MapleStory
 {
@@ -97,7 +98,7 @@ namespace maplestory.io.Services.MapleStory
             return skin.Animations.Where(c => c.Value.AnimationName.Equals(c.Key, StringComparison.CurrentCultureIgnoreCase)).Select(c => c.Key).Where(c => eqps.All(e => e.FrameBooks.ContainsKey(c))).ToArray();
         }
 
-        public byte[] GetSpriteSheet(int id, bool showEars = false, int padding = 2, RenderMode renderMode = RenderMode.Full, params int[] itemEntries)
+        public byte[] GetSpriteSheet(HttpRequest request, int id, bool showEars = false, int padding = 2, RenderMode renderMode = RenderMode.Full, params int[] itemEntries)
         {
             Stopwatch watch = Stopwatch.StartNew();
             Equip face = itemEntries.Where(c => c >= 20000 && c <= 25000).Select(c => (Equip)itemFactory.search(c)).FirstOrDefault();
@@ -168,7 +169,7 @@ namespace maplestory.io.Services.MapleStory
                     Parallel.ForEach(allImages, (a) => {
                         var b = a();
                         if (b == null) return;
-                        bag.Add(new Tuple<string, byte[]>(b.Item1, b.Item2.ImageToByte()));
+                        bag.Add(new Tuple<string, byte[]>(b.Item1, b.Item2.ImageToByte(request)));
                     });
 
                     foreach(Tuple<string, byte[]> frameData in bag) {

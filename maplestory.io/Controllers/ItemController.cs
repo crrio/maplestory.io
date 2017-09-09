@@ -78,7 +78,7 @@ namespace maplestory.io.Controllers
         {
             Image<Rgba32> icon = null;
             if (itemFactory.GetWithWZ(region, version).DoesItemExist(itemId) && (icon = itemFactory.GetWithWZ(region, version).GetIcon(itemId)) != null)
-                return File(icon.ImageToByte(), "image/png");
+                return File(icon.ImageToByte(Request), "image/png");
             return NotFound("Item does not have an icon or a default effect");
         }
 
@@ -89,7 +89,7 @@ namespace maplestory.io.Controllers
         {
             Image<Rgba32> icon = null;
             if (itemFactory.GetWithWZ(region, version).DoesItemExist(itemId) && (icon = itemFactory.GetWithWZ(region, version).GetIconRaw(itemId)) != null)
-                return File(icon.ImageToByte(), "image/png");
+                return File(icon.ImageToByte(Request), "image/png");
             return NotFound("Item does not have an icon or a default effect");
         }
 

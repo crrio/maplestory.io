@@ -56,13 +56,13 @@ namespace maplestory.io.Controllers
         [HttpGet]
         [Produces("image/png")]
         public IActionResult GetBase(int skinId = 2000)
-            => File(_factory.GetWithWZ(region, version).GetBase(skinId).ImageToByte(), "image/png");
+            => File(_factory.GetWithWZ(region, version).GetBase(skinId).ImageToByte(Request), "image/png");
 
         [Route("base/{skinId?}/example")]
         [HttpGet]
         [Produces("image/png")]
         public IActionResult GetBaseExample(int skinId = 2000)
-            => File(_factory.GetWithWZ(region, version).GetBaseWithHair(skinId).ImageToByte(), "image/png");
+            => File(_factory.GetWithWZ(region, version).GetBaseWithHair(skinId).ImageToByte(Request), "image/png");
 
         [Route("{skinId}/{items?}/{animation?}/{frame?}")]
         [HttpGet]
@@ -74,7 +74,7 @@ namespace maplestory.io.Controllers
                     .Where(c => c.Length > 0 && int.TryParse(c[0], out int blah))
                     .Select(c => new Tuple<int, string>(int.Parse(c[0]), c.Length > 1 ? c[1] : animation))
                     .ToArray()
-                ).ImageToByte(), "image/png");
+                ).ImageToByte(Request), "image/png");
 
         [Route("compact/{skinId}/{items?}/{animation?}/{frame?}")]
         [HttpGet]
@@ -120,14 +120,14 @@ namespace maplestory.io.Controllers
                     itemIds.Concat(new int[] { face, hair })
                     .Select(c => new Tuple<int, string>(c, null))
                     .ToArray()
-                ).ImageToByte(), "image/png");
+                ).ImageToByte(Request), "image/png");
         }
 
         [Route("download/{skinId}/{items?}")]
         [HttpGet]
         [Produces("application/zip")]
         public IActionResult GetSpritesheet(int skinId, string items = "1102039", [FromQuery] RenderMode renderMode = RenderMode.Full, [FromQuery] bool showEars = false, [FromQuery] int padding = 2)
-            => File(_factory.GetWithWZ(region, version).GetSpriteSheet(skinId, showEars, padding, renderMode, items
+            => File(_factory.GetWithWZ(region, version).GetSpriteSheet(Request, skinId, showEars, padding, renderMode, items
                 .Split(new string[] { "," }, StringSplitOptions.RemoveEmptyEntries)
                 .Select(c => int.Parse(c))
                 .ToArray()), "application/zip", "CharacterSpriteSheet.zip");
