@@ -16,7 +16,7 @@ namespace maplestory.io
             {
                 string userResizeAmount = context.Query["resize"];
                 decimal resizeAmount = decimal.Parse(userResizeAmount);
-                img = img.Resize(new ImageSharp.Processing.ResizeOptions()
+                img = (new Image<Rgba32>(img)).Resize(new ImageSharp.Processing.ResizeOptions()
                 {
                     Mode = ImageSharp.Processing.ResizeMode.Stretch,
                     Sampler = new ImageSharp.Processing.NearestNeighborResampler(),
