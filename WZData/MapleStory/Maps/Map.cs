@@ -123,7 +123,7 @@ namespace WZData.MapleStory.Maps
             //            result.IsReturnMap = result.ReturnMap == result.Id;
             result.IsReturnMap = result.ReturnMap == 999999999;
             if ((!result.IsReturnMap) ?? false && result.ReturnMap.HasValue)
-                result.ReturnMapName = MapName.GetMapNameLookup(mapInfo)[result.ReturnMap ?? -1].First() ?? new MapName() { Id = result.ReturnMap ?? -1, Name = "Unknown", StreetName = "Unknown" };
+                result.ReturnMapName = MapName.GetMapNameLookup(mapInfo)[result.ReturnMap ?? -1].FirstOrDefault() ?? new MapName() { Id = result.ReturnMap ?? -1, Name = "Unknown", StreetName = "Unknown" };
             result.IsTown = mapInfo.ResolveFor<bool>("town");
             result.IsSwim = mapInfo.ResolveFor<bool>("swim");
             result.MobRate = mapInfo.ResolveFor<double>("mobRate");
