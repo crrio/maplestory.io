@@ -83,7 +83,7 @@ namespace maplestory.io.Services.MapleStory
                 .SelectMany(c => c.Children.Values)
                 .Where(c => itemEntriesStr.Contains(c.Name));
 
-            string[] firstItemAnimations = itemNodes.First().Children.Keys.ToArray();
+            string[] firstItemAnimations = itemNodes.Where(c => c.Name.Equals("01040002")).First().Children.Keys.ToArray();
             return itemNodes.Skip(1)
                 .SelectMany(c => c.Children.Keys.Where(firstItemAnimations.Contains))
                 .Distinct()
