@@ -79,7 +79,8 @@ namespace maplestory.io.Services.MapleStory
             bool? cashFilter = null, 
             int? minLevelFilter = null,
             int? maxLevelFilter = null, 
-            int? genderFilter = null
+            int? genderFilter = null,
+            string searchFor = null
         ) {
             WZProperty stringWz = wz.Resolve("String");
 
@@ -106,6 +107,7 @@ namespace maplestory.io.Services.MapleStory
                 matchesFilter &= minLevelFilter == null || minLevelFilter <= item.RequiredLevel;
                 matchesFilter &= maxLevelFilter == null || maxLevelFilter >= item.RequiredLevel;
                 matchesFilter &= genderFilter == null || item.RequiredGender == genderFilter;
+                matchesFilter &= searchFor == null || (item.Name?.Contains(searchFor) ?? false) || (item.Desc?.Contains(searchFor) ?? false);
 
                 return matchesFilter;
             })

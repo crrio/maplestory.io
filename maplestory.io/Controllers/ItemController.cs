@@ -42,8 +42,8 @@ namespace maplestory.io.Controllers
         [Route("")]
         [HttpGet]
         [ProducesResponseType(typeof(ItemNameInfo[]), 200)]
-        public IActionResult List([FromQuery] uint startPosition = 0, [FromQuery] uint? count = null, [FromQuery] string overallCategoryFilter = null, [FromQuery] string categoryFilter = null, [FromQuery] string subCategoryFilter = null, [FromQuery] int? jobFilter = null, [FromQuery] bool? cashFilter = null, [FromQuery] int? minLevelFilter = null, [FromQuery] int? maxLevelFilter = null, [FromQuery] int? genderFilter = null)
-            => Json(itemFactory.GetWithWZ(region, version).GetItems(startPosition, count, overallCategoryFilter, categoryFilter, subCategoryFilter, jobFilter, cashFilter, minLevelFilter, maxLevelFilter, genderFilter), serializerSettings);
+        public IActionResult List([FromQuery] uint startPosition = 0, [FromQuery] uint? count = null, [FromQuery] string overallCategoryFilter = null, [FromQuery] string categoryFilter = null, [FromQuery] string subCategoryFilter = null, [FromQuery] int? jobFilter = null, [FromQuery] bool? cashFilter = null, [FromQuery] int? minLevelFilter = null, [FromQuery] int? maxLevelFilter = null, [FromQuery] int? genderFilter = null, [FromQuery] string searchFor = null)
+            => Json(itemFactory.GetWithWZ(region, version).GetItems(startPosition, count, overallCategoryFilter, categoryFilter, subCategoryFilter, jobFilter, cashFilter, minLevelFilter, maxLevelFilter, genderFilter, searchFor), serializerSettings);
 
         [Route("category")]
         [HttpGet]
