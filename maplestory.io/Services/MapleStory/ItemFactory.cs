@@ -69,26 +69,50 @@ namespace maplestory.io.Services.MapleStory
 
         public IEnumerable<string> GetItemCategories() => ItemType.overall.Keys;
 
-        public IEnumerable<ItemNameInfo> GetItems() {
+        public IEnumerable<ItemNameInfo> GetItems(
+            uint startPosition = 0, 
+            uint? count = null, 
+            string overallCategoryFilter = null, 
+            string categoryFilter = null, 
+            string subCategoryFilter = null, 
+            int? jobFilter = null, 
+            bool? cashFilter = null, 
+            int? minLevelFilter = null,
+            int? maxLevelFilter = null, 
+            int? genderFilter = null
+        ) {
             WZProperty stringWz = wz.Resolve("String");
-            IEnumerable<WZProperty> eqp = stringWz.Resolve("Eqp/Eqp").Children.Values.SelectMany(c => c.Children.Values);
-            IEnumerable<WZProperty> etc = stringWz.Resolve("Etc/Etc").Children.Values;
-            IEnumerable<WZProperty> ins = stringWz.Resolve("Ins").Children.Values;
-            IEnumerable<WZProperty> cash = stringWz.Resolve("Cash").Children.Values;
-            IEnumerable<WZProperty> consume = stringWz.Resolve("Consume").Children.Values;
-            IEnumerable<WZProperty> pet = stringWz.Resolve("Pet").Children.Values;
 
-            IEnumerable<WZProperty> allItems = eqp.Concat(etc).Concat(ins).Concat(cash).Concat(consume).Concat(pet);
+            string[] jobFilterNames = jobFilter == null ? null : JobNameLookup.Where(b => (b.Key & jobFilter) == b.Key && (b.Key != 0 || jobFilter == 0)).Select(b => b.Value).ToArray();
 
-            return allItems.Select(c => {
-                ItemNameInfo name = ItemNameInfo.Parse(c);
-                if (RequiredJobs.ContainsKey(region) && RequiredJobs[region].ContainsKey(name.Id)) {
+            IEnumerable<ItemNameInfo> results = ItemNameInfo.GetNames(stringWz).Select(name =>
+            {
+                if (RequiredJobs.ContainsKey(region) && RequiredJobs[region].ContainsKey(name.Id))
+                {
                     name.RequiredJobs = RequiredJobs[region][name.Id].Item1;
                     name.RequiredLevel = RequiredJobs[region][name.Id].Item2;
                     name.IsCash = RequiredJobs[region][name.Id].Item3;
                 }
                 return name;
-            });
+            })
+            .Where(item =>
+            {
+                bool matchesFilter = true;
+                matchesFilter &= overallCategoryFilter == null || item.TypeInfo.OverallCategory.Equals(overallCategoryFilter, StringComparison.CurrentCultureIgnoreCase);
+                matchesFilter &= categoryFilter == null || item.TypeInfo.Category.Equals(categoryFilter, StringComparison.CurrentCultureIgnoreCase);
+                matchesFilter &= subCategoryFilter == null || item.TypeInfo.SubCategory.Equals(subCategoryFilter, StringComparison.CurrentCultureIgnoreCase);
+                matchesFilter &= jobFilter == null || item.RequiredJobs.SequenceEqual(jobFilterNames);
+                matchesFilter &= cashFilter == null || item.IsCash == cashFilter;
+                matchesFilter &= minLevelFilter == null || minLevelFilter <= item.RequiredLevel;
+                matchesFilter &= maxLevelFilter == null || maxLevelFilter >= item.RequiredLevel;
+                matchesFilter &= genderFilter == null || item.RequiredGender == genderFilter;
+
+                return matchesFilter;
+            })
+            .Skip((int)startPosition);
+
+            if (count != null && count.HasValue) return results.Take((int)count.Value);
+            return results;
         }
 
         ILookup<int, int> GenerateDroppedByLookup(WZProperty prop) {

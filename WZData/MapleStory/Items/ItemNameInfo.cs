@@ -57,35 +57,16 @@ namespace WZData.MapleStory.Items
                 itemNames = (IEnumerable<ItemNameInfo>)itemNamesCached;
             else
             {
-                itemNames = stringFile
-                    .Resolve("Eqp.img/Eqp").Children
-                    .SelectMany(c => c.Value.Children)
-                    .Select(c => ItemNameInfo.Parse(c.Value))
-                //Etc
-                .Concat(
-                stringFile.Resolve("Etc.img/Etc").Children
-                    .Select(c => ItemNameInfo.Parse(c.Value))
-                )
-                //Cash
-                .Concat(
-                stringFile.Resolve("Cash.img").Children
-                    .Select(c => ItemNameInfo.Parse(c.Value))
-                )
-                //Ins
-                .Concat(
-                stringFile.Resolve("Ins.img").Children
-                    .Select(c => ItemNameInfo.Parse(c.Value))
-                )
-                //Consume
-                .Concat(
-                stringFile.Resolve("Consume.img").Children
-                    .Select(c => ItemNameInfo.Parse(c.Value))
-                )
-                //Pet
-                .Concat(
-                stringFile.Resolve("Pet.img").Children
-                    .Select(c => ItemNameInfo.Parse(c.Value))
-                );
+                IEnumerable<WZProperty> eqp = stringFile.Resolve("Eqp/Eqp").Children.Values.SelectMany(c => c.Children.Values);
+                IEnumerable<WZProperty> etc = stringFile.Resolve("Etc/Etc").Children.Values;
+                IEnumerable<WZProperty> ins = stringFile.Resolve("Ins").Children.Values;
+                IEnumerable<WZProperty> cash = stringFile.Resolve("Cash").Children.Values;
+                IEnumerable<WZProperty> consume = stringFile.Resolve("Consume").Children.Values;
+                IEnumerable<WZProperty> pet = stringFile.Resolve("Pet").Children.Values;
+
+                IEnumerable<WZProperty> allItems = eqp.Concat(etc).Concat(ins).Concat(cash).Concat(consume).Concat(pet);
+                itemNames = allItems.Select(ItemNameInfo.Parse);
+
                 stringFile.FileContainer.Collection.VersionCache.AddOrUpdate("itemNames", itemNames, (a, b) => b);
             }
 
