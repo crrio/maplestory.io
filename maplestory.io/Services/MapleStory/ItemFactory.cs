@@ -102,7 +102,7 @@ namespace maplestory.io.Services.MapleStory
                 matchesFilter &= overallCategoryFilter == null || item.TypeInfo.OverallCategory.Equals(overallCategoryFilter, StringComparison.CurrentCultureIgnoreCase);
                 matchesFilter &= categoryFilter == null || item.TypeInfo.Category.Equals(categoryFilter, StringComparison.CurrentCultureIgnoreCase);
                 matchesFilter &= subCategoryFilter == null || item.TypeInfo.SubCategory.Equals(subCategoryFilter, StringComparison.CurrentCultureIgnoreCase);
-                matchesFilter &= jobFilter == null || item.RequiredJobs.SequenceEqual(jobFilterNames);
+                matchesFilter &= jobFilter == null || (item.RequiredJobs?.SequenceEqual(jobFilterNames) ?? false);
                 matchesFilter &= cashFilter == null || item.IsCash == cashFilter;
                 matchesFilter &= minLevelFilter == null || minLevelFilter <= item.RequiredLevel;
                 matchesFilter &= maxLevelFilter == null || maxLevelFilter >= item.RequiredLevel;
