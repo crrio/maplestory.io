@@ -67,7 +67,7 @@ namespace maplestory.io.Services.MapleStory
         public ItemFactory(IWZFactory factory) : base(factory) { }
         public ItemFactory(IWZFactory _factory, Region region, string version) : base(_factory, region, version) { }
 
-        public IEnumerable<string> GetItemCategories() => ItemType.overall.Keys;
+        public Dictionary<string, Dictionary<string, Tuple<string, int, int>[]>> GetItemCategories() => ItemType.overall;
 
         public IEnumerable<ItemNameInfo> GetItems(
             uint startPosition = 0, 
@@ -107,7 +107,7 @@ namespace maplestory.io.Services.MapleStory
                 matchesFilter &= minLevelFilter == null || minLevelFilter <= item.RequiredLevel;
                 matchesFilter &= maxLevelFilter == null || maxLevelFilter >= item.RequiredLevel;
                 matchesFilter &= genderFilter == null || item.RequiredGender == genderFilter;
-                matchesFilter &= searchFor == null || (item.Name?.Contains(searchFor) ?? false) || (item.Desc?.Contains(searchFor) ?? false);
+                matchesFilter &= searchFor == null || (item.Name?.ToLower().Contains(searchFor.ToLower()) ?? false) || (item.Desc?.ToLower().Contains(searchFor.ToLower()) ?? false);
 
                 return matchesFilter;
             })
