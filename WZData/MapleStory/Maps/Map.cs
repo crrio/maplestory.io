@@ -55,8 +55,18 @@ namespace WZData.MapleStory.Maps
             }
 
             WZProperty mapEntry = collection.Resolve($"Map/Map/Map{result.Id.ToString("D8")[0]}/{result.Id.ToString("D8")}.img");
-            // This is news to me, but apparently some maps are D9 instead of D8
             mapEntry = mapEntry ?? collection.Resolve($"Map/Map/Map{result.Id.ToString("D9")[0]}/{result.Id.ToString("D9")}.img");
+
+            Parse(mapEntry, result);
+
+            watch.Stop();
+            Package.Logging($"Map Parse took {watch.ElapsedMilliseconds}");
+
+            return result;
+        }
+
+        public static Map Parse(WZProperty mapEntry, Map result)
+        {
             if (mapEntry == null) return null;
             WZProperty mapInfo = mapEntry.Resolve("info");
 
@@ -65,8 +75,6 @@ namespace WZData.MapleStory.Maps
             ParseLife(result, mapEntry);
             ParseGraphics(result, mapEntry);
 
-            watch.Stop();
-            Package.Logging($"Map Parse took {watch.ElapsedMilliseconds}");
             return result;
         }
 

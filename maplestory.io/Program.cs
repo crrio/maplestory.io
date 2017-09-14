@@ -12,6 +12,7 @@ using System.Diagnostics;
 using WZData.MapleStory.Characters;
 using ImageSharp;
 using System.Threading;
+using WZData.MapleStory.Maps;
 
 namespace maplestory.io
 {

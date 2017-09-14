@@ -69,7 +69,9 @@ namespace WZData
                     new Tuple<string, int, int>("One-Handed Sword", 1300000, 1310000),
                     new Tuple<string, int, int>("Wand", 1370000, 1380000),
                     new Tuple<string, int, int>("Test Weapon", 1690000, 1690100),
-                    new Tuple<string, int, int>("Cash", 1701000, 1703000)
+                    new Tuple<string, int, int>("Cash", 1701000, 1703000),
+                    new Tuple<string, int, int>("Chain", 1272000, 1273000),
+                    new Tuple<string, int, int>("Gauntlet", 1282000, 1283000)
                 }
             },
             {"Secondary Weapon",
