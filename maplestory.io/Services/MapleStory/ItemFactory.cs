@@ -118,7 +118,7 @@ namespace maplestory.io.Services.MapleStory
         }
 
         ILookup<int, int> GenerateDroppedByLookup(WZProperty prop) {
-            return prop.ResolveOutlink("String/MonsterBook")
+            return prop.ResolveOutlink("String/MonsterBook")?
                 .Children.Values
                 .SelectMany(c =>
                     c.Resolve("reward").Children.Values
@@ -131,7 +131,7 @@ namespace maplestory.io.Services.MapleStory
 
         public MapleItem search(int id) {
             if (DroppedLookups.ContainsKey(wz.WZRegion) && DroppedLookups[wz.WZRegion].ContainsKey(wz.BasePackage.VersionId))
-                return search(id, (i) => DroppedLookups[wz.WZRegion][wz.BasePackage.VersionId][i]?.ToArray());
+                return search(id, (i) => DroppedLookups[wz.WZRegion][wz.BasePackage.VersionId]?[i]?.ToArray());
             else {
                 if (!DroppedLookups.ContainsKey(wz.WZRegion))
                     DroppedLookups.Add(wz.WZRegion, new Dictionary<decimal, ILookup<int, int>>());
@@ -148,31 +148,36 @@ namespace maplestory.io.Services.MapleStory
             string idString = id.ToString();
             MapleItem result = null;
 
-            WZProperty item = stringWz.Resolve("Eqp/Eqp").Children.Values.FirstOrDefault(c => c.Children.ContainsKey(idString))?.Resolve(idString);
+            WZProperty item = (stringWz.Resolve("Eqp/Eqp") ?? stringWz.Resolve("Item/Eqp")).Children.Values.FirstOrDefault(c => c.Children.ContainsKey(idString))?.Resolve(idString);
             if (item != null) result = Equip.Parse(item);
 
-            if (result == null) {
-                item = stringWz.Resolve($"Etc/Etc/{idString}");
+            if (result == null)
+            {
+                item = (stringWz.Resolve("Etc/Etc") ?? stringWz.Resolve("Item/Etc")).Resolve(idString);
                 if (item != null) result = Etc.Parse(item);
             }
 
-            if (result == null) {
-                item = stringWz.Resolve($"Ins/{idString}");
+            if (result == null)
+            {
+                item = (stringWz.Resolve("Ins") ?? stringWz.Resolve("Item/Ins")).Resolve(idString);
                 if (item != null) result = Install.Parse(item);
             }
 
-            if (result == null) {
-                item = stringWz.Resolve("Cash/{idString}");
+            if (result == null)
+            {
+                item = (stringWz.Resolve("Cash") ?? stringWz.Resolve("Item/Cash")).Resolve(idString);
                 if (item != null) result = Cash.Parse(item);
             }
 
-            if (result == null) {
-                item = stringWz.Resolve($"Consume/{idString}");
+            if (result == null)
+            {
+                item = (stringWz.Resolve("Consume") ?? stringWz.Resolve("Item/Con")).Resolve(idString);
                 if (item != null) result = Consume.Parse(item);
             }
 
-            if (result == null) {
-                item = stringWz.Resolve($"Pet/{idString}");
+            if (result == null)
+            {
+                item = (stringWz.Resolve("Pet") ?? stringWz.Resolve("Item/Pet")).Resolve(idString);
                 if (item != null) result = Pet.Parse(item);
             }
 

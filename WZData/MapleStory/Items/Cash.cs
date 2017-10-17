@@ -23,7 +23,7 @@ namespace WZData.MapleStory.Items
 
             if (itemWz != null) {
                 item.MetaInfo = ItemInfo.Parse(itemWz);
-                item.effect = CashEffect.Parse(itemWz?.Resolve("effect"));
+                item.effect = CashEffect.Parse((itemWz?.Resolve("effect") ?? itemWz));
             }
             item.Description = ItemDescription.Parse(stringWz, id);
 

@@ -10,7 +10,7 @@ namespace WZData.MapleStory.Items
     public class CashEffect
     {
         public static List<string> unknownEffects = new List<string>();
-        public Dictionary<string, IEnumerable<FrameBook>> framebooks;
+        public Dictionary<string, IEnumerable<FrameBook>> framebooks = new Dictionary<string, IEnumerable<FrameBook>>();
 
         public bool isFollow;
 
@@ -22,7 +22,7 @@ namespace WZData.MapleStory.Items
 
             effect.isFollow = wZProperty.ResolveFor<bool>("follow") ?? false;
 
-            foreach (WZProperty obj in wZProperty.Children.Where(c => c.Key != "follow").Select(c => c.Value))
+            foreach (WZProperty obj in wZProperty.Children.Where(c => c.Key != "follow" && c.Key != "info").Select(c => c.Value))
             {
                 int frameTest = 0;
                 if (isOnlyDefault = (obj.Type == PropertyType.Canvas || int.TryParse(obj.Name, out frameTest))) break;

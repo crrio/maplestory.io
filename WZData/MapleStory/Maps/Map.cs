@@ -73,7 +73,7 @@ namespace WZData.MapleStory.Maps
             ParseInfo(result, mapEntry, mapInfo);
             ParseFootholds(result, mapEntry);
             ParseLife(result, mapEntry);
-            //ParseGraphics(result, mapEntry);
+            ParseGraphics(result, mapEntry);
 
             return result;
         }
@@ -322,6 +322,6 @@ namespace WZData.MapleStory.Maps
         }
 
         public int YAtX(int x) // If (x - x1) = 0 || (x2-x1) = 0 then by extension ((x2 - x1) * (x - x1)) = 0, and y1 should equal y2 so we can just return y1
-            => (x == x1 || x2 == x1 || y2 == y1) ? y1 : (y1 + ((y2 - y1) / ((x2 - x1) * (x - x1))));
+            => (x == x1 || x2 == x1 || y2 == y1) ? y1 : (int)(y1 + ((y2 - y1) * ((x - x1) / ((x2 * 1.0f) - x1))));
     }
 }
