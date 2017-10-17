@@ -20,9 +20,9 @@ namespace WZData.MapleStory.Maps
         public string BackgroundMusic;
         public bool? IsReturnMap;
         public int? ReturnMap;
-        public IEnumerable<Portal> portals;
-        public IEnumerable<MapLife> Npcs;
-        public IEnumerable<MapLife> Mobs;
+        public CachedEnumerable<Portal> portals;
+        public CachedEnumerable<MapLife> Npcs;
+        public CachedEnumerable<MapLife> Mobs;
         public double? MobRate;
         public bool? IsTown;
         public bool? IsSwim;
@@ -30,11 +30,11 @@ namespace WZData.MapleStory.Maps
         public MiniMap MiniMap;
         public int? LinksTo;
         [JsonIgnore]
-        public IEnumerable<GraphicsSet> Graphics;
+        public CachedEnumerable<GraphicsSet> Graphics;
         [JsonIgnore]
-        public IEnumerable<MapBackground> Backgrounds;
+        public CachedEnumerable<MapBackground> Backgrounds;
         [JsonIgnore]
-        private IEnumerable<MapLife> Life;
+        private CachedEnumerable<MapLife> Life;
         public Dictionary<int, Foothold> Footholds;
         public int? MinimumStarForce;
         public int? MinimumArcaneForce;
@@ -73,7 +73,7 @@ namespace WZData.MapleStory.Maps
             ParseInfo(result, mapEntry, mapInfo);
             ParseFootholds(result, mapEntry);
             ParseLife(result, mapEntry);
-            ParseGraphics(result, mapEntry);
+            //ParseGraphics(result, mapEntry);
 
             return result;
         }
@@ -84,8 +84,8 @@ namespace WZData.MapleStory.Maps
             result.Graphics = mapEntry.Children.Keys
                 .Where(c => int.TryParse(c, out int blah))
                 .AsParallel()
-                .Select((c, i) => GraphicsSet.Parse(mapEntry.Children[c], i));
-            result.Backgrounds = mapEntry.Resolve("back")?.Children.Values.AsParallel().Select(c => MapBackground.Parse(c));
+                .Select((c, i) => GraphicsSet.Parse(mapEntry.Children[c], i)).ToCachedEnumerable();
+            result.Backgrounds = mapEntry.Resolve("back")?.Children.Values.AsParallel().Select(c => MapBackground.Parse(c)).ToCachedEnumerable();
             watch.Stop();
             Package.Logging($"Map ParseGraphics took {watch.ElapsedMilliseconds}");
         }
@@ -98,10 +98,9 @@ namespace WZData.MapleStory.Maps
                 .GroupBy(c => c.ResolveFor<int>("id"))
                 .AsParallel()
                 .Select(grouping => grouping.Select(c => MapLife.Parse(c, result.Footholds, lifeTemplateCache)).ToArray())
-                .SelectMany(c => c)
-                .ToArray();
-            result.Npcs = result.Life?.Where(c => c.Type == LifeType.NPC).ToArray();
-            result.Mobs = result.Life?.Where(c => c.Type == LifeType.Monster).ToArray();
+                .SelectMany(c => c).ToCachedEnumerable();
+            result.Npcs = result.Life?.Where(c => c.Type == LifeType.NPC).ToCachedEnumerable();
+            result.Mobs = result.Life?.Where(c => c.Type == LifeType.Monster).ToCachedEnumerable();
             watch.Stop();
             Package.Logging($"Map ParseLife took {watch.ElapsedMilliseconds}");
         }
@@ -143,7 +142,7 @@ namespace WZData.MapleStory.Maps
             float top = mapInfo.ResolveFor<float>("VRTop") ?? 0, right = mapInfo.ResolveFor<float>("VRRight") ?? 0, bottom = mapInfo.ResolveFor<float>("VRBottom") ?? 0, left = mapInfo.ResolveFor<float>("VRLeft") ?? 0;
 
             result.VRBounds = new RectangleF(left, top, right - left, bottom - top);
-            result.portals = mapEntry.Resolve("portal")?.Children.Values.Select(Portal.Parse);
+            result.portals = mapEntry.Resolve("portal")?.Children.Values.Select(Portal.Parse).ToCachedEnumerable();
             result.MiniMap = result.MiniMap = MiniMap.Parse(mapEntry.Resolve("miniMap"));
             watch.Stop();
             Package.Logging($"Map ParseInfo took {watch.ElapsedMilliseconds}");

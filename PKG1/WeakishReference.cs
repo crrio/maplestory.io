@@ -9,11 +9,10 @@ namespace PKG1 {
     {
         static ConcurrentBag<Action> weakishChecks;
         public static Timer Watcher;
-        readonly WeakReference<K> weakReference;
+        //readonly WeakReference<K> weakReference;
         K strongReference;
-        readonly EventWaitHandle wait;
+        EventWaitHandle wait;
         readonly Func<K> refresh;
-        Action resetStrongReference;
         DateTime lastAccess;
         int loading = 0;
 
@@ -32,55 +31,58 @@ namespace PKG1 {
 
         public WeakishReference(K initialValue, Func<K> refreshData)
         {
-            wait = new EventWaitHandle(false, EventResetMode.ManualReset);
-            weakReference = new WeakReference<K>(initialValue);
+            //wait = new EventWaitHandle(false, EventResetMode.ManualReset);
+            //weakReference = new WeakReference<K>(initialValue);
             refresh = refreshData;
         }
 
-        void ResetWatcher() {
-            if (resetStrongReference != null)
-                return;
+        void ResetWatcher() => weakishChecks.Add(ResetCallback);
 
-            Action t = null;
-            t = () => {
-                if ((DateTime.Now - lastAccess) > TimeSpan.FromSeconds(5)) {
-                    strongReference = null;
-                    resetStrongReference = null;
-                } else if (resetStrongReference == t)
-                    weakishChecks.Add(t);
-            };
-
-            if (Interlocked.CompareExchange(ref resetStrongReference, t, null) == null && resetStrongReference == t)
-                weakishChecks.Add(t);
+        void ResetCallback()
+        {
+            if ((DateTime.Now - lastAccess) > TimeSpan.FromSeconds(5))
+                strongReference = null;
+            else weakishChecks.Add(ResetCallback);
         }
 
         public K GetValue() {
             lastAccess = DateTime.Now;
             K value = strongReference;
             if (value != null) return value;
-            weakReference.TryGetTarget(out value);
+            //weakReference.TryGetTarget(out value);
             if (value == null) {
+                EventWaitHandle waiter = wait;
+                if (waiter == null)
+                {
+                    EventWaitHandle result = Interlocked.CompareExchange(ref wait, waiter = new EventWaitHandle(false, EventResetMode.ManualReset), null);
+                    if (result != null) waiter = result;
+                }
                 if (Interlocked.CompareExchange(ref loading, 1, 0) != 0) {
-                    wait.WaitOne(500);
+                    waiter.WaitOne(500);
                     return GetValue();
                 }
 
-                if (strongReference != null) {
+                if (strongReference != null)
+                {
                     loading = 0;
                     return strongReference;
                 }
 
-                wait.Reset();
-
-                try {
+                try
+                {
                     strongReference = value = refresh();
-                    weakReference.SetTarget(strongReference);
+                    //weakReference.SetTarget(strongReference);
                     ResetWatcher();
-                } catch (Exception) {
+                }
+                catch (Exception)
+                {
+                    // Report Exception somewhere?
+                }
+                finally
+                {
                     loading = 0;
-                } finally {
-                    wait.Set();
-                    loading = 0;
+                    waiter.Set();
+                    wait = null;
                 }
             }
             lastAccess = DateTime.Now;
@@ -94,12 +96,7 @@ namespace PKG1 {
         {
             if (!disposedValue)
             {
-                if (disposing)
-                {
-                    wait.Dispose();
-                    resetStrongReference = null;
-                }
-
+                strongReference = null;
                 // TODO: free unmanaged resources (unmanaged objects) and override a finalizer below.
                 // TODO: set large fields to null.
 

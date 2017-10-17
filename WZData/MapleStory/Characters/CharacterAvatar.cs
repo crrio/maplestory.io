@@ -187,7 +187,7 @@ namespace WZData.MapleStory.Characters {
             IEnumerable<WZProperty> item = wz.Resolve("Character/").Children.Values
                 .Where(c => c.Type != PropertyType.Image)
                 .SelectMany(c => c.Children.Values)
-                .ToArray();
+                .ToArray().ToCachedEnumerable();
 
             // Gather all of the equips (including body parts) and get their nodes
             equipped = (new []{

@@ -199,7 +199,6 @@ namespace PKG1 {
         }
 
         public WZProperty Audio(WZReader reader, WZProperty self) {
-            //reader.BaseStream.Seek(1, SeekOrigin.Current);
             byte unk = reader.ReadByte();
             int length = reader.ReadWZInt();
             int duration = reader.ReadWZInt();
@@ -208,7 +207,7 @@ namespace PKG1 {
                 () => {
                     Package.Logging($"{self.Path} (Audio) - {unk}");
                     using(reader = self.FileContainer.GetContentReader(null, self)) {
-                        reader.BaseStream.Seek(self.Offset + 9 + 84, SeekOrigin.Begin);
+                        reader.BaseStream.Seek(self.Offset + 9, SeekOrigin.Begin);
                         return reader.ReadBytes(length);
                     }
                 }, self

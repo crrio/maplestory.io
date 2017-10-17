@@ -57,12 +57,12 @@ namespace WZData.MapleStory.Items
                 itemNames = (IEnumerable<ItemNameInfo>)itemNamesCached;
             else
             {
-                IEnumerable<WZProperty> eqp = stringFile.Resolve("Eqp/Eqp").Children.Values.SelectMany(c => c.Children.Values);
-                IEnumerable<WZProperty> etc = stringFile.Resolve("Etc/Etc").Children.Values;
-                IEnumerable<WZProperty> ins = stringFile.Resolve("Ins").Children.Values;
-                IEnumerable<WZProperty> cash = stringFile.Resolve("Cash").Children.Values;
-                IEnumerable<WZProperty> consume = stringFile.Resolve("Consume").Children.Values;
-                IEnumerable<WZProperty> pet = stringFile.Resolve("Pet").Children.Values;
+                IEnumerable<WZProperty> eqp = (stringFile.Resolve("Eqp/Eqp") ?? stringFile.Resolve("Item/Eqp")).Children.Values.SelectMany(c => c.Children.Values);
+                IEnumerable<WZProperty> etc = (stringFile.Resolve("Etc/Etc") ?? stringFile.Resolve("Item/Etc")).Children.Values;
+                IEnumerable<WZProperty> ins = (stringFile.Resolve("Ins") ?? stringFile.Resolve("Item/Ins")).Children.Values;
+                IEnumerable<WZProperty> cash = (stringFile.Resolve("Cash") ?? stringFile.Resolve("Item/Cash")).Children.Values;
+                IEnumerable<WZProperty> consume = (stringFile.Resolve("Consume") ?? stringFile.Resolve("Item/Con")).Children.Values;
+                IEnumerable<WZProperty> pet = (stringFile.Resolve("Pet") ?? stringFile.Resolve("Item/Pet")).Children.Values;
 
                 IEnumerable<WZProperty> allItems = eqp.Concat(etc).Concat(ins).Concat(cash).Concat(consume).Concat(pet);
                 itemNames = allItems.Select(ItemNameInfo.Parse);
@@ -80,19 +80,18 @@ namespace WZData.MapleStory.Items
                 itemNameLookup = (ILookup<int, ItemNameInfo>)itemNameLookupCached;
             else
             {
-                itemNameLookup = stringFile
-                    .Resolve("Eqp.img/Eqp").Children
+                itemNameLookup = (stringFile.Resolve("Eqp.img/Eqp") ?? stringFile.Resolve("Item/Eqp")).Children
                     .SelectMany(c => c.Value.Children)
                 //Etc
-                .Concat(stringFile.Resolve("Etc.img/Etc").Children)
+                .Concat((stringFile.Resolve("Etc.img/Etc") ?? stringFile.Resolve("Item.img/Etc")).Children)
                 //Cash
-                .Concat(stringFile.Resolve("Cash.img").Children)
+                .Concat((stringFile.Resolve("Cash.img") ?? stringFile.Resolve("Item.img/Cash")).Children)
                 //Ins
-                .Concat(stringFile.Resolve("Ins.img").Children)
+                .Concat((stringFile.Resolve("Ins.img") ?? stringFile.Resolve("Item.img/Ins")).Children)
                 //Consume
-                .Concat(stringFile.Resolve("Consume.img").Children)
+                .Concat((stringFile.Resolve("Consume.img") ?? stringFile.Resolve("Item.img/Con")).Children)
                 //Pet
-                .Concat(stringFile.Resolve("Pet.img").Children)
+                .Concat((stringFile.Resolve("Pet.img") ?? stringFile.Resolve("Item.img/Pet")).Children)
                 .ToLookup(c => int.Parse(c.Key), c => ItemNameInfo.Parse(c.Value));
                 stringFile.FileContainer.Collection.VersionCache.AddOrUpdate("itemNameLookup", itemNameLookup, (a, b) => b);
             }

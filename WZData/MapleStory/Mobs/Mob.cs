@@ -25,6 +25,8 @@ namespace WZData.MapleStory.Mobs
         public Dictionary<string, int> Framebooks;
         public MapName[] FoundAt;
         public ItemName[] Drops;
+        [JsonIgnore]
+        public Drop[] RealDrops;
 
         public static Mob Parse(WZProperty stringWz, bool followLink = true)
         {
@@ -50,7 +52,7 @@ namespace WZData.MapleStory.Mobs
             result.Description = familiarEntry?.ResolveForOrNull<string>("episode");
 
             ILookup<int, MapName> lookup = MapName.GetMapNameLookup(stringWz);
-            result.FoundAt = stringWz.ResolveOutlink($"Etc/MobLocation/{id}")
+            result.FoundAt = stringWz.ResolveOutlink($"Etc/MobLocation/{id}")?
                 .Children.Values.Concat(familiarEntry?.Resolve("map")?.Children.Values ?? (new Dictionary<string, WZProperty>()).Values)
                 .Select(c => c.ResolveFor<int>() ?? -1).Distinct()
                 .Select(c => lookup[c]?.FirstOrDefault() ?? new MapName() { Name = "Unknown", StreetName = "Unknown", Id = c })
@@ -95,8 +97,8 @@ namespace WZData.MapleStory.Mobs
             string linksTo = npcImg.ResolveForOrNull<string>("info/link");
             if (linksTo != null)
                 return GetFirstFrame(anyWz, linksTo);
-            return FrameBook.Parse(npcImg.Children.Where(c => c.Key != "info").Select(c => c.Value).FirstOrDefault())
-                    .FirstOrDefault().frames.FirstOrDefault();
+            return FrameBook.Parse(npcImg.Children.Where(c => c.Key != "info").Select(c => c.Value)?.FirstOrDefault())?
+                    .FirstOrDefault()?.frames.FirstOrDefault();
         }
 
         public static string GetName(WZProperty anyWz, int id)

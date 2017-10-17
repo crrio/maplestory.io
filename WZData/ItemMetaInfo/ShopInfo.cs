@@ -9,7 +9,7 @@ namespace WZData.ItemMetaInfo
     public class ShopInfo
     {
         readonly static string[] mustContainOne = new []{
-            "child",
+            "price",
             "notSale",
             "monsterBook"
         };

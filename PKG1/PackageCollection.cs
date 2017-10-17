@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace PKG1
 {
@@ -17,6 +18,13 @@ namespace PKG1
         public PropertyResolvers Resolver;
         public Region WZRegion;
         public ConcurrentDictionary<string, object> VersionCache;
+
+        public PackageCollection()
+        {
+            this.Resolver = new PropertyResolvers(this);
+            VersionCache = new ConcurrentDictionary<string, object>();
+            Packages = new Dictionary<string, Package>();
+        }
 
         public PackageCollection(string baseFilePath, ushort versionId = ushort.MinValue, Region region = Region.GMS) {
             Stopwatch watchGlobal = Stopwatch.StartNew();
@@ -43,10 +51,17 @@ namespace PKG1
             }
 
             Packages = BasePackage.MainDirectory.Children
-                .Where(c => c.Value.Type == PropertyType.Directory)
+                .Where(c => c.Value.Type == PropertyType.Directory || c.Value.Type == PropertyType.Image)
                 .AsParallel()
-                .Select(c => new Package(this, Path.Combine(Folder, $"{c.Key}.wz"), BasePackage.VersionId))
-                .ToDictionary(c => c.FileName, c => c);
+                .Select(c => {
+                    if (c.Value.Type == PropertyType.Directory && c.Value.Size < 50) // I don't know the exact size off hand, I'm assuming it's less than 50 bytes.
+                        return new Package(this, Path.Combine(Folder, $"{c.Key}.wz"), BasePackage.VersionId);
+                    else return new Package(this) // Create a "ghost" package where the MainDirectory is just the Img
+                    {
+                         MainDirectory = c.Value
+                    };
+                })
+                .ToDictionary(c => c.FileName ?? c.MainDirectory.Name, c => c);
 
             Packages.Add(BasePackage.FileName, BasePackage);
 

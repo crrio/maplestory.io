@@ -25,6 +25,7 @@ namespace WZData
         public IconInfo Icon;
         public MobInfo[] DroppedBy;
         public ItemSet Set;
+        public Dictionary<string, string> ConsumeSpec;
 
         public  static ItemInfo Parse(WZProperty characterItem)
         {
@@ -39,6 +40,7 @@ namespace WZData
             results.Chair = ChairInfo.Parse(info);
             results.Icon = IconInfo.Parse(info);
             results.Set = ItemSet.ParseItemInfo(info);
+            results.ConsumeSpec = characterItem?.Resolve("spec")?.Children.ToDictionary(c => c.Key, c => c.Value.ResolveForOrNull<string>());
 
             return results;
         }

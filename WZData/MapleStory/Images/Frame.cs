@@ -10,7 +10,8 @@ namespace WZData
 {
     public class Frame : IFrame
     {
-        public Image<Rgba32> Image { get; set; }
+        Lazy<Image<Rgba32>> LazyImage;
+        public Image<Rgba32> Image { get => LazyImage.Value; set { LazyImage = new Lazy<Image<Rgba32>>(() => value); } }
         public int? delay;
         public Point? Origin { get; set; }
         public Point OriginOrZero { get => Origin ?? Point.Empty; }
@@ -22,7 +23,7 @@ namespace WZData
             if (value == null) return null;
             Frame animationFrame = new Frame();
 
-            animationFrame.Image = value.ResolveForOrNull<Image<Rgba32>>();
+            animationFrame.LazyImage = new Lazy<Image<Rgba32>>(() => value.ResolveForOrNull<Image<Rgba32>>());
             animationFrame.delay = value.ResolveFor<int>("delay") ?? value.Resolve().ResolveFor<int>("delay");
             animationFrame.Origin = value.ResolveFor<Point>("origin") ?? value.Resolve()?.ResolveFor<Point>("origin") ?? new Point(animationFrame.Image?.Width / 2 ?? 0, animationFrame.Image?.Height / 2 ?? 0);
             animationFrame.Position = value.ResolveForOrNull<string>("z") ?? value.ResolveForOrNull<string>("../z") ?? value.Resolve().ResolveForOrNull<string>("z") ?? value.Resolve().ResolveForOrNull<string>("../z");

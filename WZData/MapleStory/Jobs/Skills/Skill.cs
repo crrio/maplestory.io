@@ -25,6 +25,9 @@ namespace WZData
         public int id;
         public string soundPath { get => $"Skill.img/{id}"; }
         public SkillDescription description;
+        public Dictionary<int, int> RequiredSkillLevels;
+
+        public Dictionary<string, string>[] LevelProperties;
 
         public static Skill Parse(WZProperty skill, Func<int, SkillDescription> skillDescriptions)
         {
@@ -38,7 +41,17 @@ namespace WZData
             skillEntry.description = skillDescriptions(skillId);
 
             skillEntry.affectedByCombatOrders = skill.ResolveFor<bool>("combatOrders");
-            skillEntry.masterLevel = skill.ResolveFor<int>("masterLevel");
+            skillEntry.masterLevel = skill.ResolveFor<int>("masterLevel") ?? skill.Resolve("level")?.Children.Keys.Select(c =>
+            {
+                if (int.TryParse(c, out int skillLevel)) return new Nullable<int>(skillLevel);
+                else return null;
+            }).Where(c => c != null).Select(c => c.Value).Max();
+            skillEntry.RequiredSkillLevels = skill.Resolve("req")?.Children
+                .Where(c => int.TryParse(c.Key, out int blah) && c.Value.Type == PropertyType.Int32)
+                .ToDictionary(c => int.Parse(c.Key), c => c.Value.ResolveFor<int>() ?? 1);
+            skillEntry.LevelProperties = skill.Resolve("level")?.Children
+                .Select(c => c.Value.Children.ToDictionary(b => b.Key, b => b.Value.ResolveForOrNull<string>()))
+                .ToArray();
             skillEntry.invisible = skill.ResolveFor<bool>("invisible");
             skillEntry.hyper = skill.ResolveFor<bool>("hyper");
             skillEntry.actions = skill.Resolve("action")?.Children.Select(c => ((IWZPropertyVal)c.Value).GetValue().ToString());
@@ -48,7 +61,7 @@ namespace WZData
                 .Where((c) => c.Key.StartsWith("weapon", StringComparison.CurrentCultureIgnoreCase))
                 .Select(c => Convert.ToInt32(((IWZPropertyVal)c.Value).GetValue()));
 
-            skillEntry.properties = skill.Resolve("common").Children.ToDictionary(c => c.Key, c => ((IWZPropertyVal)c.Value).GetValue().ToString());
+            skillEntry.properties = skill.Resolve("common")?.Children?.ToDictionary(c => c.Key, c => ((IWZPropertyVal)c.Value).GetValue()?.ToString() ?? "");
 
             skillEntry.Icon = skill.ResolveForOrNull<Image<Rgba32>>("icon");
             skillEntry.IconDisabled = skill.ResolveForOrNull<Image<Rgba32>>("iconDisabled");

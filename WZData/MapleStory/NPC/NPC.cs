@@ -60,7 +60,7 @@ namespace WZData.MapleStory.NPC
                 result.ComponentSkin = result.npcImg.ResolveFor<int>("info/component/skin") + 2000;
             }
 
-            result.FoundAt = result.npcImg.ResolveOutlink($"Etc/NpcLocation/{id}")
+            result.FoundAt = result.npcImg.ResolveOutlink($"Etc/NpcLocation/{id}")?
                 .Children.Keys.Where(c => int.TryParse(c, out int blah))
                 .Select(c => MapName.GetMapNameLookup(result.npcImg)[int.Parse(c)].FirstOrDefault())
                 .Where(c => c != null).ToArray();

@@ -26,28 +26,43 @@ namespace PKG1
         public bool VersionMatches;
         public WZProperty MainDirectory;
 
-        public Package(PackageCollection parent, string fileLocation, ushort version = ushort.MinValue) {
+        public Package(PackageCollection parent)
+        {
+            Collection = parent;
+        }
+
+        public Package(PackageCollection parent, string fileLocation, ushort version = ushort.MinValue, bool? isImg = null) {
             Collection = parent;
             FilePath = fileLocation;
             FileName = Path.GetFileNameWithoutExtension(FilePath);
-            streamFactory = new StreamFactory(() => File.Open(FilePath, FileMode.OpenOrCreate, FileAccess.Read, FileShare.ReadWrite));
+            streamFactory = new StreamFactory(() => File.Open(FilePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite));
+            isImg = isImg ?? fileLocation.EndsWith(".img");
 
             using(WZReader file = GetRawReader()) {
-                if (!file.ReadString(4).Equals("PKG1", StringComparison.CurrentCultureIgnoreCase)) throw new InvalidOperationException("Can not run on non-PKG1 files.");
-                FileSize = file.ReadInt64();
-                ContentsStartLocation = file.ReadUInt32();
-                FileDescription = file.ReadNULTerminatedString(100);
-                Logging($"Loaded package {this.FileName} ({this.FileSize}, {this.ContentsStartLocation}) with Description: {this.FileDescription}");
-                MainDirectory = new WZProperty(FileName, FileName, this, PropertyType.Directory, null, (uint)FileSize, -1, (uint)ContentsStartLocation + 2);
+                if (!isImg.Value)
+                {
+                    if (!file.ReadString(4).Equals("PKG1", StringComparison.CurrentCultureIgnoreCase)) throw new InvalidOperationException("Can not run on non-PKG1 files.");
+                    FileSize = file.ReadInt64();
+                    ContentsStartLocation = file.ReadUInt32();
+                    FileDescription = file.ReadNULTerminatedString(100);
+                    Logging($"Loaded package {this.FileName} ({this.FileSize}, {this.ContentsStartLocation}) with Description: {this.FileDescription}");
+                }
+                MainDirectory = new WZProperty(FileName, FileName, this, isImg.Value ? PropertyType.Image : PropertyType.Directory, null, (uint)FileSize, -1, (uint)ContentsStartLocation + (uint)(isImg.Value ? 0 : 2));
 
                 file.BaseStream.Seek(ContentsStartLocation, SeekOrigin.Begin);
 
-                this.VersionHash = (byte)file.ReadUInt16();
-                Logging($"{this.FileName} - Version Hash: {this.VersionHash}");
-                if (UpdateVersion(version)){
-                    Parse();
-                } else {
-                    Logging("Warning: Not automatically parsing as version is wrong.");
+                if (!isImg.Value)
+                {
+                    this.VersionHash = (byte)file.ReadUInt16();
+                    Logging($"{this.FileName} - Version Hash: {this.VersionHash}");
+                    if (UpdateVersion(version))
+                    {
+                        Parse();
+                    }
+                    else
+                    {
+                        Logging("Warning: Not automatically parsing as version is wrong.");
+                    }
                 }
             }
         }
