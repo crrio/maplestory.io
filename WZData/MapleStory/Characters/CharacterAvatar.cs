@@ -51,7 +51,8 @@ namespace WZData.MapleStory.Characters {
         }
 
         public Image<Rgba32> Render() {
-            RankedFrame[] partsData = GetAnimationParts().OrderBy(c => c.ranking).ToArray();
+            List<KeyValuePair<string, Point>[]> offsets = new List<KeyValuePair<string, Point>[]>();
+            RankedFrame[] partsData = GetAnimationParts(offsets).OrderBy(c => c.ranking).ToArray();
             Frame[] partsFrames = partsData.Select(c => c.frame).ToArray();
 
             Dictionary<string, Point> anchorPositions = new Dictionary<string, Point>() { { "navel", new Point(0, 0) } };
@@ -73,11 +74,11 @@ namespace WZData.MapleStory.Characters {
                 }
             }
 
-            List<KeyValuePair<string, Point>[]> offsets = partsFrames
-                .Where(c => c.MapOffset != null)
-                .Select(c => c.MapOffset.Where(k => !k.Key.Equals("zero")).ToArray())
-                .Where(c => c.Length > 0)
-                .ToList();
+            //List<KeyValuePair<string, Point>[]> offsets = partsFrames
+            //    .Where(c => c.MapOffset != null)
+            //    .Select(c => c.MapOffset.Where(k => !k.Key.Equals("zero")).ToArray())
+            //    .Where(c => c.Length > 0)
+            //    .ToList();
             while (offsets.Count > 0) {
                 KeyValuePair<string, Point>[] offsetPairing = offsets.FirstOrDefault(c => c.Any(b => anchorPositions.ContainsKey(b.Key)));
                 if (offsetPairing == null) break;
@@ -103,6 +104,7 @@ namespace WZData.MapleStory.Characters {
                         fromAnchorPoint = new Point(-navelOffsetBody.X, -navelOffsetBody.Y);
                     } else { // Default positioning based off of offsets
                         KeyValuePair<string, Point> anchorPointEntry = (c.MapOffset ?? new Dictionary<string, Point>()).Where(b => b.Key != null && anchorPositions.ContainsKey(b.Key)).DefaultIfEmpty(new KeyValuePair<string, Point>(null, Point.Empty)).First();
+                        if (anchorPointEntry.Key == null) return null;
                         Point anchorPoint = anchorPoint = anchorPositions[anchorPointEntry.Key];
                         Point vectorFromPoint = anchorPointEntry.Value;
                         fromAnchorPoint = new Point(anchorPoint.X - vectorFromPoint.X, anchorPoint.Y - vectorFromPoint.Y);
@@ -238,7 +240,7 @@ namespace WZData.MapleStory.Characters {
             this.preloaded = true;
         }
 
-        public IEnumerable<RankedFrame> GetAnimationParts() {
+        public IEnumerable<RankedFrame> GetAnimationParts(List<KeyValuePair<string, Point>[]> offsets) {
             Preload();
 
             bool hasFace = (body.Resolve(AnimationName) ?? body.Resolve("default")).ResolveFor<bool>($"{FrameNumber}/face") ?? true;
@@ -267,6 +269,8 @@ namespace WZData.MapleStory.Characters {
                     // Ensure we're only getting the parts, not the meta attributes that are in the frames
                     WZProperty framePartNode = framePart.Value.Resolve();
                     if (framePartNode == null || framePartNode.Type != PropertyType.Canvas) return false;
+
+                    offsets.Add(framePartNode.Resolve("map").Children.Select(mapOffset => new KeyValuePair<string, Point>(mapOffset.Key, mapOffset.Value.ResolveFor<Point>() ?? Point.Empty)).ToArray());
 
                     if(!ElfEars && framePart.Key.Equals("ear", StringComparison.CurrentCultureIgnoreCase)) return false;
 
