@@ -79,6 +79,7 @@ namespace WZData.MapleStory.Characters {
             //    .Select(c => c.MapOffset.Where(k => !k.Key.Equals("zero")).ToArray())
             //    .Where(c => c.Length > 0)
             //    .ToList();
+            offsets.RemoveAll(c => c == null);
             while (offsets.Count > 0) {
                 KeyValuePair<string, Point>[] offsetPairing = offsets.FirstOrDefault(c => c.Any(b => anchorPositions.ContainsKey(b.Key)));
                 if (offsetPairing == null) break;
@@ -270,7 +271,7 @@ namespace WZData.MapleStory.Characters {
                     WZProperty framePartNode = framePart.Value.Resolve();
                     if (framePartNode == null || framePartNode.Type != PropertyType.Canvas) return false;
 
-                    offsets.Add(framePartNode.Resolve("map").Children.Select(mapOffset => new KeyValuePair<string, Point>(mapOffset.Key, mapOffset.Value.ResolveFor<Point>() ?? Point.Empty)).ToArray());
+                    offsets.Add(framePartNode.Resolve("map")?.Children.Select(mapOffset => new KeyValuePair<string, Point>(mapOffset.Key, mapOffset.Value.ResolveFor<Point>() ?? Point.Empty)).ToArray());
 
                     if(!ElfEars && framePart.Key.Equals("ear", StringComparison.CurrentCultureIgnoreCase)) return false;
 
