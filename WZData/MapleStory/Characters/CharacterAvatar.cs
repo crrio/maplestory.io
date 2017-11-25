@@ -146,7 +146,7 @@ namespace WZData.MapleStory.Characters {
             if (Mode == RenderMode.Compact)
             {
                 Size bodyShouldBe = new Size(36, 55);
-                Point cropOrigin = Point.Subtract(body.Item2, bodyShouldBe);
+                Point cropOrigin = Point.Subtract(Point.Subtract(body.Item2, bodyShouldBe), new Size((int)minX, (int)minY));
                 Rectangle cropArea = new Rectangle((int)Math.Max(cropOrigin.X, 0), (int)Math.Max(cropOrigin.Y, 0), 96, 96);
                 Point cropOffsetFromOrigin = new Point(cropArea.X - cropOrigin.X, cropArea.Y - cropOrigin.Y);
 
