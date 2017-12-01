@@ -11,8 +11,10 @@ using System.Threading;
 using SixLabors.Primitives;
 using System.IO;
 
-namespace WZData.MapleStory.Characters {
-    public class CharacterAvatar {
+namespace WZData.MapleStory.Characters
+{
+    public class CharacterAvatar
+    {
         public int SkinId;
         public EquipSelection[] Equips;
         public RenderMode Mode;
@@ -21,6 +23,7 @@ namespace WZData.MapleStory.Characters {
         private readonly PackageCollection wz;
         public int Padding;
         public bool ElfEars;
+        public bool LefEars;
         private int weaponType;
         private Dictionary<string, string> smap;
         private Dictionary<string, int> exclusiveLocks;
@@ -29,10 +32,12 @@ namespace WZData.MapleStory.Characters {
         private bool preloaded;
         private WZProperty body;
 
-        public CharacterAvatar(PackageCollection wz) {
+        public CharacterAvatar(PackageCollection wz)
+        {
             this.wz = wz;
         }
-        public CharacterAvatar(CharacterAvatar old) {
+        public CharacterAvatar(CharacterAvatar old)
+        {
             this.body = old.body;
             this.SkinId = old.SkinId;
             this.Equips = old.Equips;
@@ -42,6 +47,7 @@ namespace WZData.MapleStory.Characters {
             this.wz = old.wz;
             this.Padding = old.Padding;
             this.ElfEars = old.ElfEars;
+            this.LefEars = old.LefEars;
             this.weaponType = old.weaponType;
             this.smap = old.smap;
             this.exclusiveLocks = old.exclusiveLocks;
@@ -50,7 +56,8 @@ namespace WZData.MapleStory.Characters {
             this.preloaded = old.preloaded;
         }
 
-        public Image<Rgba32> Render() {
+        public Image<Rgba32> Render()
+        {
             List<KeyValuePair<string, Point>[]> offsets = new List<KeyValuePair<string, Point>[]>();
             RankedFrame[] partsData = GetAnimationParts(offsets).OrderBy(c => c.ranking).ToArray();
             Frame[] partsFrames = partsData.Select(c => c.frame).ToArray();
@@ -60,8 +67,10 @@ namespace WZData.MapleStory.Characters {
             Point neckOffsetBody = bodyFrame.frame.MapOffset["neck"];
             Point navelOffsetBody = bodyFrame.frame.MapOffset["navel"];
 
-            if (AnimationName.Equals("alert", StringComparison.CurrentCultureIgnoreCase)) {
-                switch (FrameNumber % 3) {
+            if (AnimationName.Equals("alert", StringComparison.CurrentCultureIgnoreCase))
+            {
+                switch (FrameNumber % 3)
+                {
                     case 0:
                         anchorPositions.Add("handMove", new Point(-8, -2));
                         break;
@@ -80,7 +89,8 @@ namespace WZData.MapleStory.Characters {
             //    .Where(c => c.Length > 0)
             //    .ToList();
             offsets.RemoveAll(c => c == null);
-            while (offsets.Count > 0) {
+            while (offsets.Count > 0)
+            {
                 KeyValuePair<string, Point>[] offsetPairing = offsets.FirstOrDefault(c => c.Any(b => anchorPositions.ContainsKey(b.Key)));
                 if (offsetPairing == null) break;
                 KeyValuePair<string, Point> anchorPointEntry = offsetPairing.Where(c => anchorPositions.ContainsKey(c.Key)).FirstOrDefault();
@@ -96,14 +106,19 @@ namespace WZData.MapleStory.Characters {
                 offsets.Remove(offsetPairing);
             }
 
-            Tuple<Frame, Point>[] positionedFrames = partsFrames.Select(c => {
+            Tuple<Frame, Point>[] positionedFrames = partsFrames.Select(c =>
+            {
                 // Some effects are centered off of the neck
                 Point fromAnchorPoint = neckOffsetBody;
-                if (c.MapOffset != null) {
+                if (c.MapOffset != null)
+                {
                     // Some effects are centered on the origin (0,0)
-                    if (c.MapOffset.All(b => b.Key.Equals("zero"))) {
+                    if (c.MapOffset.All(b => b.Key.Equals("zero")))
+                    {
                         fromAnchorPoint = new Point(-navelOffsetBody.X, -navelOffsetBody.Y);
-                    } else { // Default positioning based off of offsets
+                    }
+                    else
+                    { // Default positioning based off of offsets
                         KeyValuePair<string, Point> anchorPointEntry = (c.MapOffset ?? new Dictionary<string, Point>()).Where(b => b.Key != null && anchorPositions.ContainsKey(b.Key)).DefaultIfEmpty(new KeyValuePair<string, Point>(null, Point.Empty)).First();
                         if (anchorPointEntry.Key == null) return null;
                         Point anchorPoint = anchorPoint = anchorPositions[anchorPointEntry.Key];
@@ -162,7 +177,8 @@ namespace WZData.MapleStory.Characters {
                 );
 
                 return compact;
-            } else if (Mode == RenderMode.Centered)
+            }
+            else if (Mode == RenderMode.Centered)
             {
                 Size bodyCenter = Size.Add(new Size((int)(body.Item2.X - minX), (int)(body.Item2.Y - minY)), new Size((int)(body.Item1.Image.Width / 2f), 0));
                 Point imageCenter = new Point(destination.Width / 2, destination.Height / 2);
@@ -178,7 +194,8 @@ namespace WZData.MapleStory.Characters {
             return destination;
         }
 
-        public void Preload() {
+        public void Preload()
+        {
             if (this.preloaded) return;
 
             string bodyId = SkinId.ToString("D8");
@@ -193,7 +210,7 @@ namespace WZData.MapleStory.Characters {
                 .ToArray();
 
             // Gather all of the equips (including body parts) and get their nodes
-            equipped = (new []{
+            equipped = (new[]{
                 new Tuple<WZProperty, EquipSelection>(body, new EquipSelection()),
                 new Tuple<WZProperty, EquipSelection>(head, new EquipSelection())
             })
@@ -212,14 +229,14 @@ namespace WZData.MapleStory.Characters {
 
             // Build a sorted list of defined exclusive locks from items
             IEnumerable<Tuple<int, string[]>> exclusiveLockItems = equipped
-                .OrderBy(c =>  zmap.IndexOf(c.Item1.ResolveForOrNull<string>("info/islot")?.Substring(0, 2)))
+                .OrderBy(c => zmap.IndexOf(c.Item1.ResolveForOrNull<string>("info/islot")?.Substring(0, 2)))
                 .Select(c => new Tuple<int, string>(c.Item2.ItemId, c.Item1.ResolveForOrNull<string>("info/vslot") ?? "")) // Override item specific vslots here
                 .Select(c => new Tuple<int, string[]>(c.Item1, Enumerable.Range(0, c.Item2.Length / 2).Select((b, i) => c.Item2.Substring(i * 2, 2)).ToArray()));
 
             // Build a dictionary between what is locked and what is locking it
             exclusiveLocks = new Dictionary<string, int>();
-            foreach(Tuple<int, string[]> exclusiveLock in exclusiveLockItems)
-                foreach(string locking in exclusiveLock.Item2)
+            foreach (Tuple<int, string[]> exclusiveLock in exclusiveLockItems)
+                foreach (string locking in exclusiveLock.Item2)
                     if (exclusiveLocks.ContainsKey(locking))
                         exclusiveLocks[locking] = exclusiveLock.Item1;
                     else
@@ -234,21 +251,23 @@ namespace WZData.MapleStory.Characters {
             // Certain items require the weapon type to determine what kind of animation will be displayed
             Tuple<WZProperty, EquipSelection> weaponEntry = equipped.FirstOrDefault(c => c.Item1.Parent.Name.Equals("Weapon"));
             // Default to weapon type `30`
-            weaponType = weaponEntry?.Item1 != null && weaponEntry?.Item2 != null ? (int)((weaponEntry.Item2.ItemId  - 1000000) / 10000d) : 30;
+            weaponType = weaponEntry?.Item1 != null && weaponEntry?.Item2 != null ? (int)((weaponEntry.Item2.ItemId - 1000000) / 10000d) : 30;
             // WeaponTypes of 70 are cash items, go back to 30.
             if (weaponType == 70) weaponType = 30;
 
             this.preloaded = true;
         }
 
-        public IEnumerable<RankedFrame> GetAnimationParts(List<KeyValuePair<string, Point>[]> offsets) {
+        public IEnumerable<RankedFrame> GetAnimationParts(List<KeyValuePair<string, Point>[]> offsets)
+        {
             Preload();
 
             bool hasFace = (body.Resolve(AnimationName) ?? body.Resolve("default")).ResolveFor<bool>($"{FrameNumber}/face") ?? true;
 
             Dictionary<string, int> exclusiveLocksRender = new Dictionary<string, int>(exclusiveLocks);
             // Resolve to action nodes and then to frame nodes
-            IEnumerable<WZProperty> frameParts = equipped.Select(c => {
+            IEnumerable<WZProperty> frameParts = equipped.Select(c =>
+            {
                 WZProperty itemNode = c.Item1;
                 WZProperty node = itemNode; // Resolve all items and body parts to their correct nodes for the animation
                 if (node.Children.Keys.Where(name => name != "info").All(name => int.TryParse(name, out int blah)))
@@ -266,14 +285,16 @@ namespace WZData.MapleStory.Characters {
                 WZProperty frameNode = animationNode.Resolve(frameForEntry.ToString())?.Resolve() ?? (frameCount == 1 ? animationNode.Resolve() : null);
                 if (frameNode == null) return null;
                 // Resolve to only children parts that have appropriate locks
-                return frameNode.Children.Where(framePart => {
+                return frameNode.Children.Where(framePart =>
+                {
                     // Ensure we're only getting the parts, not the meta attributes that are in the frames
                     WZProperty framePartNode = framePart.Value.Resolve();
                     if (framePartNode == null || framePartNode.Type != PropertyType.Canvas) return false;
 
                     offsets.Add(framePartNode.Resolve("map")?.Children.Select(mapOffset => new KeyValuePair<string, Point>(mapOffset.Key, mapOffset.Value.ResolveFor<Point>() ?? Point.Empty)).ToArray());
 
-                    if(!ElfEars && framePart.Key.Equals("ear", StringComparison.CurrentCultureIgnoreCase)) return false;
+                    if (!ElfEars && framePart.Key.Equals("ear", StringComparison.CurrentCultureIgnoreCase)) return false;
+                    if (!LefEars && framePart.Key.Equals("lefEar", StringComparison.CurrentCultureIgnoreCase)) return false;
 
                     // If the z-position is equal to the equipCategory, the required locks are the vslot
                     // This seems to resolve the caps only requiring the locks of vslot, not the full `cap` in smap
@@ -289,7 +310,8 @@ namespace WZData.MapleStory.Characters {
 
                     // If we don't have the lock and we're assuming we're using the parent's vslot, try using the smap.
                     // This seems to resolve the `hair` z using the more exclusive vslot
-                    if (sameZAsContainer && !hasLocks) {
+                    if (sameZAsContainer && !hasLocks)
+                    {
                         requiredLockFull = smap.ContainsKey(framePart.Key) ? smap[framePart.Key] : itemNode.ResolveForOrNull<string>("info/vslot");
                         requiredLocks = Enumerable.Range(0, requiredLockFull.Length / 2).Select(k => requiredLockFull.Substring(k * 2, 2)).ToArray();
                         // Determine if we have locks
@@ -297,7 +319,7 @@ namespace WZData.MapleStory.Characters {
                     }
 
                     if (hasLocks)
-                        foreach(string requiredLock in requiredLocks)
+                        foreach (string requiredLock in requiredLocks)
                             if (!exclusiveLocks.ContainsKey(requiredLock))
                                 exclusiveLocks.Add(requiredLock, c.Item2.ItemId);
                     return hasLocks;
@@ -305,7 +327,8 @@ namespace WZData.MapleStory.Characters {
             })
             .Where(c => c != null)
             .SelectMany(c => c)
-            .Concat(Equips.Select(c => { // Concat any effects for items equipped
+            .Concat(Equips.Select(c =>
+            { // Concat any effects for items equipped
                 WZProperty node = wz.Resolve($"Effect/ItemEff/{c.ItemId}/effect"); // Resolve the selected animation
                 if (node == null) return null;
                 WZProperty effectNode = node.Resolve(c.AnimationName ?? AnimationName) ?? node.Resolve("default");
@@ -318,7 +341,8 @@ namespace WZData.MapleStory.Characters {
 
             ConcurrentBag<RankedFrame> rankedFrames = new ConcurrentBag<RankedFrame>();
 
-            while(!Parallel.ForEach(frameParts, (c) => {
+            while (!Parallel.ForEach(frameParts, (c) =>
+            {
                 string zIndex = c.ResolveForOrNull<string>("../z") ?? c.Resolve().ResolveForOrNull<string>("z");
                 int zPosition = 0;
                 if (!int.TryParse(zIndex, out zPosition))
@@ -334,33 +358,39 @@ namespace WZData.MapleStory.Characters {
         }
     }
 
-    public class EquipSelection {
+    public class EquipSelection
+    {
         public int ItemId;
         public string AnimationName;
         public int? EquipFrame;
     }
 
-    public class RankedFrame {
+    public class RankedFrame
+    {
         public readonly Frame frame;
         public readonly int ranking;
 
-        public RankedFrame(Frame frame, int ranking) {
+        public RankedFrame(Frame frame, int ranking)
+        {
             this.frame = frame;
             this.ranking = ranking;
         }
     }
 
-    public class PositionedFrame {
+    public class PositionedFrame
+    {
         public readonly Frame frame;
         public readonly Point position;
 
-        public PositionedFrame(Frame frame, Point position) {
+        public PositionedFrame(Frame frame, Point position)
+        {
             this.frame = frame;
             this.position = position;
         }
     }
 
-    public enum RenderMode {
+    public enum RenderMode
+    {
         Full,
         Compact,
         Centered

@@ -67,8 +67,8 @@ namespace maplestory.io.Controllers
         [Route("{skinId}/{items?}/{animation?}/{frame?}")]
         [HttpGet]
         [Produces("image/png")]
-        public IActionResult GetCharacter(int skinId, string items = "1102039", string animation = null, int frame = 0, [FromQuery] RenderMode renderMode = RenderMode.Full, [FromQuery] bool showEars = false, [FromQuery] int padding = 2)
-            => File(_factory.GetWithWZ(region, version).GetCharacter(skinId, animation, frame, showEars, padding, renderMode, items
+        public IActionResult GetCharacter(int skinId, string items = "1102039", string animation = null, int frame = 0, [FromQuery] RenderMode renderMode = RenderMode.Full, [FromQuery] bool showEars = false, [FromQuery] bool showLefEars = false, [FromQuery] int padding = 2)
+            => File(_factory.GetWithWZ(region, version).GetCharacter(skinId, animation, frame, showEars, showLefEars, padding, renderMode, items
                     .Split(new string[] { "," }, StringSplitOptions.RemoveEmptyEntries)
                     .Select(c => c.Split(':'))
                     .Where(c => c.Length > 0 && int.TryParse(c[0], out int blah))
@@ -79,14 +79,14 @@ namespace maplestory.io.Controllers
         [Route("compact/{skinId}/{items?}/{animation?}/{frame?}")]
         [HttpGet]
         [Produces("image/png")]
-        public IActionResult GetCompactCharacter(int skinId, string items = "1102039", string animation = null, int frame = 0, [FromQuery] bool showEars = false, [FromQuery] int padding = 2)
-        => GetCharacter(skinId, items, animation, frame, RenderMode.Compact, showEars, padding);
+        public IActionResult GetCompactCharacter(int skinId, string items = "1102039", string animation = null, int frame = 0, [FromQuery] bool showEars = false, [FromQuery] bool showLefEars = false, [FromQuery] int padding = 2)
+        => GetCharacter(skinId, items, animation, frame, RenderMode.Compact, showEars, showLefEars, padding);
 
         [Route("center/{skinId}/{items?}/{animation?}/{frame?}")]
         [HttpGet]
         [Produces("image/png")]
-        public IActionResult GetCenteredCharacter(int skinId, string items = "1102039", string animation = null, int frame = 0, [FromQuery] bool showEars = false, [FromQuery] int padding = 2)
-            => GetCharacter(skinId, items, animation, frame, RenderMode.Centered, showEars, padding);
+        public IActionResult GetCenteredCharacter(int skinId, string items = "1102039", string animation = null, int frame = 0, [FromQuery] bool showEars = false, [FromQuery] bool showLefEars = false, [FromQuery] int padding = 2)
+            => GetCharacter(skinId, items, animation, frame, RenderMode.Centered, showEars, showLefEars, padding);
 
         [Route("actions/{items?}")]
         [HttpGet]
@@ -116,7 +116,7 @@ namespace maplestory.io.Controllers
 
             _logging.LogInformation("Generating random character with: {0}", string.Join(",", itemIds.Concat(new int[] { face, hair })));
 
-            return File(_factory.GetWithWZ(region, version).GetCharacter(skinSelected, null, 0, false, 2, RenderMode.Full,
+            return File(_factory.GetWithWZ(region, version).GetCharacter(skinSelected, null, 0, false, false, 2, RenderMode.Full,
                     itemIds.Concat(new int[] { face, hair })
                     .Select(c => new Tuple<int, string>(c, null))
                     .ToArray()
@@ -126,8 +126,8 @@ namespace maplestory.io.Controllers
         [Route("download/{skinId}/{items?}")]
         [HttpGet]
         [Produces("application/zip")]
-        public IActionResult GetSpritesheet(int skinId, string items = "1102039", [FromQuery] RenderMode renderMode = RenderMode.Full, [FromQuery] bool showEars = false, [FromQuery] int padding = 2)
-            => File(_factory.GetWithWZ(region, version).GetSpriteSheet(Request, skinId, showEars, padding, renderMode, items
+        public IActionResult GetSpritesheet(int skinId, string items = "1102039", [FromQuery] RenderMode renderMode = RenderMode.Full, [FromQuery] bool showEars = false, [FromQuery] bool showLefEars = false, [FromQuery] int padding = 2)
+            => File(_factory.GetWithWZ(region, version).GetSpriteSheet(Request, skinId, showEars, showLefEars, padding, renderMode, items
                 .Split(new string[] { "," }, StringSplitOptions.RemoveEmptyEntries)
                 .Select(c => int.Parse(c))
                 .ToArray()), "application/zip", "CharacterSpriteSheet.zip");

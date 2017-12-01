@@ -48,16 +48,16 @@ namespace maplestory.io.Services.MapleStory
         public int[] GetSkinIds()
             => CharacterSkin.Parse(wz.Resolve("Character")).Select(c => c.Id).ToArray();
 
-        public Image<Rgba32> GetBase(int id, string animation = null, int frame = 0, bool showEars = false, int padding = 2, RenderMode renderMode = RenderMode.Full)
-            => GetCharacter(id, animation, frame, showEars, padding, renderMode, new Tuple<int, string>[0]);
+        public Image<Rgba32> GetBase(int id, string animation = null, int frame = 0, bool showEars = false, bool showLefEars = false, int padding = 2, RenderMode renderMode = RenderMode.Full)
+            => GetCharacter(id, animation, frame, showEars, showLefEars, padding, renderMode, new Tuple<int, string>[0]);
 
-        public Image<Rgba32> GetBaseWithHair(int id, string animation = null, int frame = 0, bool showEars = false, int padding = 2, int faceId = 20305, int hairId = 37831, RenderMode renderMode = RenderMode.Full)
-            => GetCharacter(id, animation, frame, showEars, padding, renderMode, new Tuple<int, string>(faceId, null), new Tuple<int, string>(hairId, null));
+        public Image<Rgba32> GetBaseWithHair(int id, string animation = null, int frame = 0, bool showEars = false, bool showLefEars = false, int padding = 2, int faceId = 20305, int hairId = 37831, RenderMode renderMode = RenderMode.Full)
+            => GetCharacter(id, animation, frame, showEars, showLefEars, padding, renderMode, new Tuple<int, string>(faceId, null), new Tuple<int, string>(hairId, null));
 
-        public Image<Rgba32> GetCharacter(int id, string animation = null, int frame = 0, bool showEars = false, int padding = 2, RenderMode renderMode = RenderMode.Full, params Tuple<int, string>[] itemEntries)
-            => GetCharacter(id, animation, frame, showEars, padding, renderMode, itemEntries.Select(c => new Tuple<int, string, int?>(c.Item1, c.Item2, null)).ToArray());
+        public Image<Rgba32> GetCharacter(int id, string animation = null, int frame = 0, bool showEars = false, bool showLefEars = false, int padding = 2, RenderMode renderMode = RenderMode.Full, params Tuple<int, string>[] itemEntries)
+            => GetCharacter(id, animation, frame, showEars, showLefEars, padding, renderMode, itemEntries.Select(c => new Tuple<int, string, int?>(c.Item1, c.Item2, null)).ToArray());
 
-        public Image<Rgba32> GetCharacter(int id, string animation = null, int frame = 0, bool showEars = false, int padding = 2, RenderMode renderMode = RenderMode.Full, params Tuple<int, string, int?>[] itemEntries)
+        public Image<Rgba32> GetCharacter(int id, string animation = null, int frame = 0, bool showEars = false, bool showLefEars = false, int padding = 2, RenderMode renderMode = RenderMode.Full, params Tuple<int, string, int?>[] itemEntries)
         {
             Stopwatch watch = Stopwatch.StartNew();
             CharacterAvatar avatar = new CharacterAvatar(wz);
@@ -68,6 +68,7 @@ namespace maplestory.io.Services.MapleStory
             if (string.IsNullOrEmpty(avatar.AnimationName)) avatar.AnimationName = "stand1";
             avatar.FrameNumber = frame;
             avatar.ElfEars = showEars;
+            avatar.LefEars = showLefEars;
             avatar.Padding = padding;
             avatar.Mode = renderMode;
 
@@ -98,7 +99,7 @@ namespace maplestory.io.Services.MapleStory
             return skin.Animations.Where(c => c.Value.AnimationName.Equals(c.Key, StringComparison.CurrentCultureIgnoreCase)).Select(c => c.Key).Where(c => eqps.All(e => e.FrameBooks.ContainsKey(c))).ToArray();
         }
 
-        public byte[] GetSpriteSheet(HttpRequest request, int id, bool showEars = false, int padding = 2, RenderMode renderMode = RenderMode.Full, params int[] itemEntries)
+        public byte[] GetSpriteSheet(HttpRequest request, int id, bool showEars = false, bool showLefEars = false, int padding = 2, RenderMode renderMode = RenderMode.Full, params int[] itemEntries)
         {
             Stopwatch watch = Stopwatch.StartNew();
             Equip face = itemEntries.Where(c => c >= 20000 && c <= 25000).Select(c => (Equip)itemFactory.search(c)).FirstOrDefault();
@@ -112,6 +113,7 @@ namespace maplestory.io.Services.MapleStory
             avatar.AnimationName = "stand1";
             avatar.FrameNumber = 0;
             avatar.ElfEars = showEars;
+            avatar.LefEars = showLefEars;
             avatar.Padding = padding;
             avatar.Preload();
 
