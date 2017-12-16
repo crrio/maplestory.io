@@ -4,13 +4,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="imagesharp" Version="1.0.0-alpha9-00173" />
-    <PackageReference Include="imagesharp.drawing" Version="1.0.0-alpha9-00168" />
+    <PackageReference Include="imagesharp" Version="1.0.0-alpha9-00194" />
+    <PackageReference Include="imagesharp.drawing" Version="1.0.0-alpha9-00189" />
     <PackageReference Include="morelinq" Version="2.4.1" />
     <PackageReference Include="Newtonsoft.Json" Version="9.0.1" />
-    <PackageReference Include="sixlabors.core" Version="0.1.0-alpha0002" />
-    <PackageReference Include="sixlabors.fonts" Version="0.1.0-alpha0014" />
-    <PackageReference Include="sixlabors.shapes" Version="0.1.0-alpha0018" />
-    <PackageReference Include="sixlabors.shapes.text" Version="0.1.0-alpha0018" />
   </ItemGroup>
 </Project>

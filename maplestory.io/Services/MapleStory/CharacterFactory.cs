@@ -102,7 +102,7 @@ namespace maplestory.io.Services.MapleStory
         public byte[] GetSpriteSheet(HttpRequest request, int id, bool showEars = false, bool showLefEars = false, int padding = 2, RenderMode renderMode = RenderMode.Full, params int[] itemEntries)
         {
             Stopwatch watch = Stopwatch.StartNew();
-            Equip face = itemEntries.Where(c => c >= 20000 && c <= 25000).Select(c => (Equip)itemFactory.search(c)).FirstOrDefault();
+            Equip face = itemEntries.Where(c => c >= 20000 && c <= 29999).Select(c => (Equip)itemFactory.search(c)).FirstOrDefault();
 
             CharacterSkin skin = GetSkin(id);
             CharacterAvatar avatar = new CharacterAvatar(wz);
