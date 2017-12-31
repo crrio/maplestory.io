@@ -3,8 +3,10 @@ variables:
 
 before_script:
     - cd /builds/maplestory/maplestory.io/PKG1
+    - git checkout master
     - git pull origin master
     - cd /builds/maplestory/maplestory.io/WZData
+    - git checkout master
     - git pull origin master
 
 stages:
