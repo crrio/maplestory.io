@@ -1,0 +1,6 @@
+[submodule "WZData"]
+	path = WZData
+	url = https://labs.crr.io/maplestory/WZData.git
+[submodule "PKG1"]
+	path = PKG1
+	url = https://labs.crr.io/maplestory/PKG1.git
