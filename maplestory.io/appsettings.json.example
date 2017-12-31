@@ -13,6 +13,12 @@
     "Password": "password"
   },
   "WZ": {
-    "WZPath": "C:\\Nexon\\Library\\maplestory\\appdata"
+    "versions": [
+      {
+        "path": "C:\\Nexon\\Library\\maplestory\\appdata\\Base.wz",
+        "version": "latest",
+        "region": 0
+      }
+    ]
   }
 }
