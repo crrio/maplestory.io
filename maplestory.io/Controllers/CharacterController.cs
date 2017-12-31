@@ -10,6 +10,7 @@ using PKG1;
 using WZData.MapleStory.Characters;
 using WZData;
 using SixLabors.Primitives;
+using WZData.MapleStory.Images;
 
 namespace maplestory.io.Controllers
 {

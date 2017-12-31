@@ -7,6 +7,7 @@ using maplestory.io.Services.MapleStory;
 using WZData.MapleStory.Mobs;
 using WZData;
 using PKG1;
+using WZData.MapleStory.Images;
 
 namespace maplestory.io.Controllers
 {

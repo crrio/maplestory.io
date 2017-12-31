@@ -8,6 +8,7 @@ using PKG1;
 using Microsoft.AspNetCore.Http;
 using WZData;
 using SixLabors.Primitives;
+using WZData.MapleStory.Images;
 
 namespace maplestory.io.Services.MapleStory
 {

@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using PKG1;
 using WZData;
 using WZData.MapleStory.Mobs;
+using WZData.MapleStory.Images;
 
 namespace maplestory.io.Services.MapleStory
 {

@@ -2,6 +2,7 @@
 using PKG1;
 using WZData;
 using WZData.MapleStory.NPC;
+using WZData.MapleStory.Images;
 
 namespace maplestory.io.Services.MapleStory
 {

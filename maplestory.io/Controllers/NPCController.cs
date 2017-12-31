@@ -9,6 +9,7 @@ using WZData.MapleStory.NPC;
 using WZData;
 using ImageSharp;
 using PKG1;
+using WZData.MapleStory.Images;
 
 namespace maplestory.io.Controllers
 {

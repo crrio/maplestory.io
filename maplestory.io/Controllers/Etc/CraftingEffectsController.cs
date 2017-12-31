@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using maplestory.io.Services.MapleStory;
 using WZData;
 using PKG1;
+using WZData.MapleStory.Images;
 
 namespace maplestory.io.Controllers.Etc
 {
