@@ -8,6 +8,8 @@ using maplestory.io.Services.MapleStory;
 using Microsoft.Extensions.Logging;
 using PKG1;
 using WZData.MapleStory.Characters;
+using WZData;
+using SixLabors.Primitives;
 
 namespace maplestory.io.Controllers
 {
@@ -82,6 +84,16 @@ namespace maplestory.io.Controllers
         public IActionResult GetCompactCharacter(int skinId, string items = "1102039", string animation = null, int frame = 0, [FromQuery] bool showEars = false, [FromQuery] bool showLefEars = false, [FromQuery] int padding = 2)
         => GetCharacter(skinId, items, animation, frame, RenderMode.Compact, showEars, showLefEars, padding);
 
+        [Route("json/{skinId}/{items?}/{animation?}/{frame?}")]
+        [HttpGet]
+        [ProducesResponseType(typeof(Tuple<Frame, Point>[]), 200)]
+        public IActionResult GetJsonCharacter(int skinId, string items = "1102039", string animation = null, int frame = 0, [FromQuery] bool showEars = false, [FromQuery] bool showLefEars = false, [FromQuery] int padding = 2)
+            => Json(_factory.GetWithWZ(region, version).GetJsonCharacter(skinId, animation, frame, showEars, showLefEars, padding, items
+                    .Split(new string[] { "," }, StringSplitOptions.RemoveEmptyEntries)
+                    .Select(c => c.Split(':'))
+                    .Where(c => c.Length > 0 && int.TryParse(c[0], out int blah))
+                    .Select(c => new Tuple<int, string>(int.Parse(c[0]), c.Length > 1 ? c[1] : animation))
+                    .ToArray()));
         [Route("center/{skinId}/{items?}/{animation?}/{frame?}")]
         [HttpGet]
         [Produces("image/png")]

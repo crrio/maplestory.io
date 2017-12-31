@@ -15,6 +15,7 @@ using Microsoft.Extensions.Logging;
 using PKG1;
 using System.Collections.Concurrent;
 using Microsoft.AspNetCore.Http;
+using SixLabors.Primitives;
 
 namespace maplestory.io.Services.MapleStory
 {
@@ -56,6 +57,24 @@ namespace maplestory.io.Services.MapleStory
 
         public Image<Rgba32> GetCharacter(int id, string animation = null, int frame = 0, bool showEars = false, bool showLefEars = false, int padding = 2, RenderMode renderMode = RenderMode.Full, params Tuple<int, string>[] itemEntries)
             => GetCharacter(id, animation, frame, showEars, showLefEars, padding, renderMode, itemEntries.Select(c => new Tuple<int, string, int?>(c.Item1, c.Item2, null)).ToArray());
+
+        public IEnumerable<Tuple<Frame, Point>> GetJsonCharacter(int id, string animation = null, int frame = 0, bool showEars = false, bool showLefEars = false, int padding = 2, params Tuple<int, string>[] itemEntries)
+        {
+            Stopwatch watch = Stopwatch.StartNew();
+            CharacterAvatar avatar = new CharacterAvatar(wz);
+            avatar.Equips = itemEntries.Select(c => new EquipSelection() { ItemId = c.Item1, AnimationName = c.Item2 }).ToArray();
+
+            avatar.SkinId = id;
+            avatar.AnimationName = animation;
+            if (string.IsNullOrEmpty(avatar.AnimationName)) avatar.AnimationName = "stand1";
+            avatar.FrameNumber = frame;
+            avatar.ElfEars = showEars;
+            avatar.LefEars = showLefEars;
+            avatar.Padding = padding;
+
+            var result = avatar.GetFrameParts();
+            return result;
+        }
 
         public Image<Rgba32> GetCharacter(int id, string animation = null, int frame = 0, bool showEars = false, bool showLefEars = false, int padding = 2, RenderMode renderMode = RenderMode.Full, params Tuple<int, string, int?>[] itemEntries)
         {

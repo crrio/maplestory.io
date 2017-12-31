@@ -12,6 +12,7 @@ namespace maplestory.io.Controllers
     public class NXFSController : Controller
     {
         [Route("about")]
+        [HttpGet]
         public async Task<IActionResult> About()
         {
             using (HttpClient client = new HttpClient())
@@ -27,6 +28,7 @@ namespace maplestory.io.Controllers
         }
 
         [Route("banners")]
+        [HttpGet]
         public async Task<IActionResult> Banners()
         {
             using (HttpClient client = new HttpClient())
