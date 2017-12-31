@@ -14,6 +14,7 @@ using Microsoft.AspNetCore.Hosting;
 using WZData.MapleStory.Images;
 using PKG1;
 using ImageSharp;
+using WZData.ItemMetaInfo;
 
 namespace maplestory.io.Services.MapleStory
 {
@@ -239,5 +240,20 @@ namespace maplestory.io.Services.MapleStory
 
         public bool DoesItemExist(int itemId)
             => GetItemNode(itemId) != null;
+
+        public Tuple<int, IconInfo, ItemNameInfo>[] BulkItemInfo(int[] itemIds)
+        {
+            WZProperty stringWz = wz.Resolve("String");
+            ILookup<int,ItemNameInfo> nameLookup = ItemNameInfo.GetNameLookup(stringWz);
+            return itemIds.Select(c =>
+            {
+                ItemNameInfo name = nameLookup[c].FirstOrDefault();
+                if (name != null)
+                    return new Tuple<int, ItemNameInfo>(c, name);
+                return null;
+            }).Where(c => c != null)
+            .Select(c => new Tuple<int, IconInfo, ItemNameInfo>(c.Item1, IconInfo.Parse(GetItemNode(c.Item1).Resolve("info")), c.Item2))
+            .ToArray();
+        }
     }
 }

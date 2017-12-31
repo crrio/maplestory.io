@@ -8,6 +8,7 @@ using WZData.MapleStory.Images;
 using ImageSharp;
 using System;
 using PKG1;
+using WZData.ItemMetaInfo;
 
 namespace maplestory.io.Controllers
 {
@@ -68,6 +69,20 @@ namespace maplestory.io.Controllers
         [ProducesResponseType(typeof(ItemNameInfo), 200)]
         public IActionResult ListByCategory(string overallCategory)
             => Json(itemFactory.GetWithWZ(region, version).GetItems().Where(c => c.TypeInfo.OverallCategory.Equals(overallCategory, StringComparison.CurrentCultureIgnoreCase)), serializerSettings);
+
+        [Route("bulk/{ids}")]
+        [HttpGet]
+        [ProducesResponseType(typeof(Tuple<int, IconInfo, ItemNameInfo>[]), 200)]
+        public IActionResult GetItemIconName(string ids)
+        {
+            int[] itemIds = ids
+                .Split(new string[] { "," }, StringSplitOptions.RemoveEmptyEntries)
+                .Where(c => int.TryParse(c, out int blah))
+                .Select(c => int.Parse(c))
+                .ToArray();
+
+            return Json(itemFactory.GetWithWZ(region, version).BulkItemInfo(itemIds));
+        }
 
         [Route("{itemId}")]
         [HttpGet]
