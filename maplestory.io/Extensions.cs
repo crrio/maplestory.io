@@ -1,10 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using ImageSharp;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using Microsoft.AspNetCore.Http;
+using SixLabors.ImageSharp;
 using System.IO;
-using Microsoft.AspNetCore.Http;
 
 namespace maplestory.io
 {
@@ -18,12 +14,12 @@ namespace maplestory.io
                 decimal resizeAmount = decimal.Parse(userResizeAmount);
                 if (resizeAmount != 1 && (img.Height * resizeAmount) < 50000 && (img.Width * resizeAmount) < 50000)
                 {
-                    img = (new Image<Rgba32>(img)).Resize(new ImageSharp.Processing.ResizeOptions()
+                    img = img.Clone(c => c.Resize(new SixLabors.ImageSharp.Processing.ResizeOptions()
                     {
-                        Mode = ImageSharp.Processing.ResizeMode.Stretch,
-                        Sampler = new ImageSharp.Processing.NearestNeighborResampler(),
+                        Mode = SixLabors.ImageSharp.Processing.ResizeMode.Stretch,
+                        Sampler = new SixLabors.ImageSharp.Processing.NearestNeighborResampler(),
                         Size = new SixLabors.Primitives.Size((int)(img.Width * resizeAmount), (int)(img.Height * resizeAmount))
-                    });
+                    }));
                 }
             }
 

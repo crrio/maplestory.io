@@ -1,14 +1,9 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using maplestory.io.Services.Rethink;
-using RethinkDb.Driver;
 using maplestory.io.Models.Server;
-using RethinkDb.Driver.Net;
-using ImageSharp;
+using maplestory.io.Services.Rethink;
+using Microsoft.AspNetCore.Mvc;
+using RethinkDb.Driver;
+using System;
+using System.Threading.Tasks;
 
 namespace maplestory.io.Controllers
 {
