@@ -42,10 +42,10 @@ namespace maplestory.io.Models
                 try
                 {
                     using (HttpClient client = new HttpClient())
-                        rankingResponse = await client.GetStringAsync($"http://maplestory.nexon.net/rankings/{rankingMode}-ranking/{rankAttribute}?pageIndex=1&character_name={characterName}&search=true");
+                        rankingResponse = await client.GetStringAsync($"http://maplestory.nexon.net/rankings/{rankingMode}-ranking/{rankAttribute}?pageIndex=1&character_name={characterName.Replace("#", "%23")}&search=true");
                     break;
                 }
-                catch (HttpRequestException requestException) 
+                catch (HttpRequestException requestException)
                 {
                     if (requestException.InnerException != null && requestException.InnerException.Message.Contains("terminated abnormally") && retryCount++ < 5)
                         continue;
@@ -86,7 +86,7 @@ namespace maplestory.io.Models
                     Level = int.Parse(captures[10].Value),
                     Exp = long.Parse(captures[11].Value),
                     RankDirection = captures[12].Value,
-                    RankMovement = long.Parse(captures[13].Value),
+                    RankMovement = captures[13].Value != "-" ? long.Parse(captures[13].Value) : 0,
                     Got = got
                 };
 
@@ -124,6 +124,13 @@ namespace maplestory.io.Models
                 avatarData = avatarDataResponse;
                 return avatarDataResponse;
             }
+        }
+
+        public CharacterLook GetAvatarLook()
+        {
+            int lastSlash = this.realAvatarUrl.LastIndexOf("/") + 1;
+            int length = this.realAvatarUrl.LastIndexOf(".") - lastSlash;
+            return new CharacterLook(this.realAvatarUrl.Substring(lastSlash, length));
         }
 
         public override string ToString() => $"{Name} the level {Level} {Job}";
