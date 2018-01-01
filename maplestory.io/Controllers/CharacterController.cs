@@ -1,4 +1,6 @@
-using System;
+
+using MoreLinq;
+    using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -76,6 +78,7 @@ namespace maplestory.io.Controllers
                     .Select(c => c.Split(':'))
                     .Where(c => c.Length > 0 && int.TryParse(c[0], out int blah))
                     .Select(c => new Tuple<int, string>(int.Parse(c[0]), c.Length > 1 ? c[1] : animation))
+                    .OrderBy(c => c.Item1, OrderByDirection.Descending)
                     .ToArray()
                 ).ImageToByte(Request), "image/png");
 
@@ -94,6 +97,7 @@ namespace maplestory.io.Controllers
                     .Select(c => c.Split(':'))
                     .Where(c => c.Length > 0 && int.TryParse(c[0], out int blah))
                     .Select(c => new Tuple<int, string>(int.Parse(c[0]), c.Length > 1 ? c[1] : animation))
+                    .OrderBy(c => c.Item1, OrderByDirection.Descending)
                     .ToArray()));
         [Route("center/{skinId}/{items?}/{animation?}/{frame?}")]
         [HttpGet]
