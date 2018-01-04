@@ -182,7 +182,7 @@ namespace maplestory.io.Services.MapleStory
             MobFactory mobs = new MobFactory(_factory, region, version);
 
             if (result != null && result.MetaInfo != null)
-                result.MetaInfo.DroppedBy = getDroppedBy(id)?.Where(c => c != null).Join(mobs.GetMobs().Where(c => c != null), c => c, c => c.Id, (a,b) => b)?.ToArray();
+                result.MetaInfo.DroppedBy = getDroppedBy(id)?.Join(mobs.GetMobs().Where(c => c != null), c => c, c => c.Id, (a,b) => b)?.ToArray();
 
             return result;
         }
