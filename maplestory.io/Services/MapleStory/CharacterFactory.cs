@@ -133,6 +133,7 @@ namespace maplestory.io.Services.MapleStory
             avatar.ElfEars = showEars;
             avatar.LefEars = showLefEars;
             avatar.Padding = padding;
+            avatar.Mode = renderMode;
             avatar.Preload();
 
             string[] actions = GetActions(itemEntries);
