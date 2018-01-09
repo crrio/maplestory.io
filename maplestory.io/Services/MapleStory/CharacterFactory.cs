@@ -168,7 +168,8 @@ namespace maplestory.io.Services.MapleStory
                                         new EquipSelection(){
                                             ItemId = o.Item2.ItemId,
                                             AnimationName = o.Item2?.ItemId == face?.id ? emotion : o.Item2.AnimationName,
-                                            EquipFrame = o.Item2?.ItemId == face?.id ? emotionFrame : o.Item2.EquipFrame
+                                            EquipFrame = o.Item2?.ItemId == face?.id ? emotionFrame : o.Item2.EquipFrame,
+                                            Hue = o.Item2.Hue
                                         })
                                     ).ToArray();
                                     var res = new Tuple<string, byte[]>(
