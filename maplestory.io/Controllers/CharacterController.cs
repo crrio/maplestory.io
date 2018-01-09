@@ -77,7 +77,7 @@ namespace maplestory.io.Controllers
                     .Split(new string[] { "," }, StringSplitOptions.RemoveEmptyEntries)
                     .Select(c => c.Split(':', ';'))
                     .Where(c => c.Length > 0 && int.TryParse(c[0], out int blah))
-                    .Select(c => new Tuple<int, string, float?>(int.Parse(c[0]), c.Length > 1 && !float.TryParse(c[1], out float blah) ? c[1] : animation, c.Length > 2 ? (float?)float.Parse(c[2]) : (c.Length > 1 ? (float?)float.Parse(c[1]) : null)))
+                    .Select(c => new Tuple<int, string, float?>(int.Parse(c[0]), c.Length > 1 && !float.TryParse(c[1], out float blah) ? c[1] : animation, c.Length > 2 && float.TryParse(c[2], out float huehuehue) ? (float?)huehuehue : (c.Length > 1 && float.TryParse(c[1], out huehuehue) ? (float?)huehuehue : null)))
                     .OrderBy(c => c.Item1, OrderByDirection.Descending)
                     .ToArray()
                 ).ImageToByte(Request), "image/png");
@@ -96,7 +96,7 @@ namespace maplestory.io.Controllers
                     .Split(new string[] { "," }, StringSplitOptions.RemoveEmptyEntries)
                     .Select(c => c.Split(':', ';'))
                     .Where(c => c.Length > 0 && int.TryParse(c[0], out int blah))
-                    .Select(c => new Tuple<int, string, float?>(int.Parse(c[0]), c.Length > 1 ? c[1] : animation, c.Length > 2 ? (float?)float.Parse(c[2]) : (c.Length > 1 ? (float?)float.Parse(c[1]) : null)))
+                    .Select(c => new Tuple<int, string, float?>(int.Parse(c[0]), c.Length > 1 && !float.TryParse(c[1], out float blah) ? c[1] : animation, c.Length > 2 && float.TryParse(c[2], out float huehuehue) ? (float?)huehuehue : (c.Length > 1 && float.TryParse(c[1], out huehuehue) ? (float?)huehuehue : null)))
                     .OrderBy(c => c.Item1, OrderByDirection.Descending)
                     .ToArray()));
         [Route("center/{skinId}/{items?}/{animation?}/{frame?}")]
@@ -147,7 +147,7 @@ namespace maplestory.io.Controllers
             => File(_factory.GetWithWZ(region, version).GetSpriteSheet(Request, skinId, showEars, showLefEars, padding, renderMode, format, items
                 .Split(new string[] { "," }, StringSplitOptions.RemoveEmptyEntries)
                 .Select(c => c.Split(';'))
-                .Select(c => new Tuple<int, float?>(int.Parse(c[0]), c.Length > 1 ? (float?)float.Parse(c[1]) : null))
+                .Select(c => new Tuple<int, float?>(int.Parse(c[0]), c.Length > 1 && float.TryParse(c[1], out float huehuehue) ? (float?)huehuehue : null))
                 .ToArray()), "application/zip", "CharacterSpriteSheet.zip");
     }
 }
