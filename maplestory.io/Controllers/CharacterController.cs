@@ -75,9 +75,9 @@ namespace maplestory.io.Controllers
         public IActionResult GetCharacter(int skinId, string items = "1102039", string animation = null, int frame = 0, [FromQuery] RenderMode renderMode = RenderMode.Full, [FromQuery] bool showEars = false, [FromQuery] bool showLefEars = false, [FromQuery] int padding = 2)
             => File(_factory.GetWithWZ(region, version).GetCharacter(skinId, animation, frame, showEars, showLefEars, padding, renderMode, items
                     .Split(new string[] { "," }, StringSplitOptions.RemoveEmptyEntries)
-                    .Select(c => c.Split(':'))
+                    .Select(c => c.Split(':', ';'))
                     .Where(c => c.Length > 0 && int.TryParse(c[0], out int blah))
-                    .Select(c => new Tuple<int, string>(int.Parse(c[0]), c.Length > 1 ? c[1] : animation))
+                    .Select(c => new Tuple<int, string, float?>(int.Parse(c[0]), c.Length > 1 && !float.TryParse(c[1], out float blah) ? c[1] : animation, c.Length > 2 ? (float?)float.Parse(c[2]) : (c.Length > 1 ? (float?)float.Parse(c[1]) : null)))
                     .OrderBy(c => c.Item1, OrderByDirection.Descending)
                     .ToArray()
                 ).ImageToByte(Request), "image/png");
@@ -94,9 +94,9 @@ namespace maplestory.io.Controllers
         public IActionResult GetJsonCharacter(int skinId, string items = "1102039", string animation = null, int frame = 0, [FromQuery] bool showEars = false, [FromQuery] bool showLefEars = false, [FromQuery] int padding = 2)
             => Json(_factory.GetWithWZ(region, version).GetJsonCharacter(skinId, animation, frame, showEars, showLefEars, padding, items
                     .Split(new string[] { "," }, StringSplitOptions.RemoveEmptyEntries)
-                    .Select(c => c.Split(':'))
+                    .Select(c => c.Split(':', ';'))
                     .Where(c => c.Length > 0 && int.TryParse(c[0], out int blah))
-                    .Select(c => new Tuple<int, string>(int.Parse(c[0]), c.Length > 1 ? c[1] : animation))
+                    .Select(c => new Tuple<int, string, float?>(int.Parse(c[0]), c.Length > 1 ? c[1] : animation, c.Length > 2 ? (float?)float.Parse(c[2]) : (c.Length > 1 ? (float?)float.Parse(c[1]) : null)))
                     .OrderBy(c => c.Item1, OrderByDirection.Descending)
                     .ToArray()));
         [Route("center/{skinId}/{items?}/{animation?}/{frame?}")]
@@ -135,7 +135,7 @@ namespace maplestory.io.Controllers
 
             return File(_factory.GetWithWZ(region, version).GetCharacter(skinSelected, null, 0, false, false, 2, RenderMode.Full,
                     itemIds.Concat(new int[] { face, hair })
-                    .Select(c => new Tuple<int, string>(c, null))
+                    .Select(c => new Tuple<int, string, float?>(c, null, null))
                     .ToArray()
                 ).ImageToByte(Request), "image/png");
         }
@@ -146,7 +146,8 @@ namespace maplestory.io.Controllers
         public IActionResult GetSpritesheet(int skinId, string items = "1102039", [FromQuery] RenderMode renderMode = RenderMode.Full, [FromQuery] bool showEars = false, [FromQuery] bool showLefEars = false, [FromQuery] int padding = 2, [FromQuery] SpriteSheetFormat format = SpriteSheetFormat.Plain)
             => File(_factory.GetWithWZ(region, version).GetSpriteSheet(Request, skinId, showEars, showLefEars, padding, renderMode, format, items
                 .Split(new string[] { "," }, StringSplitOptions.RemoveEmptyEntries)
-                .Select(c => int.Parse(c))
+                .Select(c => c.Split(';'))
+                .Select(c => new Tuple<int, float?>(int.Parse(c[0]), c.Length > 1 ? (float?)float.Parse(c[1]) : null))
                 .ToArray()), "application/zip", "CharacterSpriteSheet.zip");
     }
 }

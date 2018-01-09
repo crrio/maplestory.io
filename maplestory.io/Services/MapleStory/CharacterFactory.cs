@@ -49,19 +49,19 @@ namespace maplestory.io.Services.MapleStory
             => CharacterSkin.Parse(wz.Resolve("Character")).Select(c => c.Id).ToArray();
 
         public Image<Rgba32> GetBase(int id, string animation = null, int frame = 0, bool showEars = false, bool showLefEars = false, int padding = 2, RenderMode renderMode = RenderMode.Full)
-            => GetCharacter(id, animation, frame, showEars, showLefEars, padding, renderMode, new Tuple<int, string>[0]);
+            => GetCharacter(id, animation, frame, showEars, showLefEars, padding, renderMode, new Tuple<int, string, float?>[0]);
 
         public Image<Rgba32> GetBaseWithHair(int id, string animation = null, int frame = 0, bool showEars = false, bool showLefEars = false, int padding = 2, int faceId = 20305, int hairId = 37831, RenderMode renderMode = RenderMode.Full)
-            => GetCharacter(id, animation, frame, showEars, showLefEars, padding, renderMode, new Tuple<int, string>(faceId, null), new Tuple<int, string>(hairId, null));
+            => GetCharacter(id, animation, frame, showEars, showLefEars, padding, renderMode, new Tuple<int, string, float?>(faceId, null, null), new Tuple<int, string, float?>(hairId, null, null));
 
-        public Image<Rgba32> GetCharacter(int id, string animation = null, int frame = 0, bool showEars = false, bool showLefEars = false, int padding = 2, RenderMode renderMode = RenderMode.Full, params Tuple<int, string>[] itemEntries)
-            => GetCharacter(id, animation, frame, showEars, showLefEars, padding, renderMode, itemEntries.Select(c => new Tuple<int, string, int?>(c.Item1, c.Item2, null)).ToArray());
+        public Image<Rgba32> GetCharacter(int id, string animation = null, int frame = 0, bool showEars = false, bool showLefEars = false, int padding = 2, RenderMode renderMode = RenderMode.Full, params Tuple<int, string, float?>[] itemEntries)
+            => GetCharacter(id, animation, frame, showEars, showLefEars, padding, renderMode, itemEntries.Select(c => new Tuple<int, string, int?, float?>(c.Item1, c.Item2, null, c.Item3)).ToArray());
 
-        public IEnumerable<Tuple<Frame, Point>> GetJsonCharacter(int id, string animation = null, int frame = 0, bool showEars = false, bool showLefEars = false, int padding = 2, params Tuple<int, string>[] itemEntries)
+        public IEnumerable<Tuple<Frame, Point, float?>> GetJsonCharacter(int id, string animation = null, int frame = 0, bool showEars = false, bool showLefEars = false, int padding = 2, params Tuple<int, string, float?>[] itemEntries)
         {
             Stopwatch watch = Stopwatch.StartNew();
             CharacterAvatar avatar = new CharacterAvatar(wz);
-            avatar.Equips = itemEntries.Select(c => new EquipSelection() { ItemId = c.Item1, AnimationName = c.Item2 }).ToArray();
+            avatar.Equips = itemEntries.Select(c => new EquipSelection() { ItemId = c.Item1, AnimationName = c.Item2, Hue = c.Item3 }).ToArray();
 
             avatar.SkinId = id;
             avatar.AnimationName = animation;
@@ -75,11 +75,11 @@ namespace maplestory.io.Services.MapleStory
             return result;
         }
 
-        public Image<Rgba32> GetCharacter(int id, string animation = null, int frame = 0, bool showEars = false, bool showLefEars = false, int padding = 2, RenderMode renderMode = RenderMode.Full, params Tuple<int, string, int?>[] itemEntries)
+        public Image<Rgba32> GetCharacter(int id, string animation = null, int frame = 0, bool showEars = false, bool showLefEars = false, int padding = 2, RenderMode renderMode = RenderMode.Full, params Tuple<int, string, int?, float?>[] itemEntries)
         {
             Stopwatch watch = Stopwatch.StartNew();
             CharacterAvatar avatar = new CharacterAvatar(wz);
-            avatar.Equips = itemEntries.Select(c => new EquipSelection(){ ItemId = c.Item1, AnimationName = c.Item2 }).ToArray();
+            avatar.Equips = itemEntries.Select(c => new EquipSelection(){ ItemId = c.Item1, AnimationName = c.Item2, Hue = c.Item4 }).ToArray();
 
             avatar.SkinId = id;
             avatar.AnimationName = animation;
@@ -117,15 +117,15 @@ namespace maplestory.io.Services.MapleStory
             return skin.Animations.Where(c => c.Value.AnimationName.Equals(c.Key, StringComparison.CurrentCultureIgnoreCase)).Select(c => c.Key).Where(c => eqps.All(e => e.FrameBooks.ContainsKey(c))).ToArray();
         }
 
-        public byte[] GetSpriteSheet(HttpRequest request, int id, bool showEars = false, bool showLefEars = false, int padding = 2, RenderMode renderMode = RenderMode.Full, SpriteSheetFormat format = SpriteSheetFormat.Plain, params int[] itemEntries)
+        public byte[] GetSpriteSheet(HttpRequest request, int id, bool showEars = false, bool showLefEars = false, int padding = 2, RenderMode renderMode = RenderMode.Full, SpriteSheetFormat format = SpriteSheetFormat.Plain, params Tuple<int, float?>[] itemEntries)
         {
             Stopwatch watch = Stopwatch.StartNew();
-            Equip face = itemEntries.Where(c => c >= 20000 && c <= 29999).Select(c => (Equip)itemFactory.search(c)).FirstOrDefault();
+            Equip face = itemEntries.Where(c => c.Item1 >= 20000 && c.Item1 <= 29999).Select(c => (Equip)itemFactory.search(c.Item1)).FirstOrDefault();
 
             CharacterSkin skin = GetSkin(id);
             CharacterAvatar avatar = new CharacterAvatar(wz);
 
-            avatar.Equips = itemEntries.Select(c => new EquipSelection(){ ItemId = c }).ToArray();
+            avatar.Equips = itemEntries.Select(c => new EquipSelection(){ ItemId = c.Item1, Hue = c.Item2 }).ToArray();
 
             avatar.SkinId = id;
             avatar.AnimationName = "stand1";
@@ -139,7 +139,7 @@ namespace maplestory.io.Services.MapleStory
             string fileExtension = "png";
             if (format == SpriteSheetFormat.PDNZip) fileExtension = "zip";
 
-            string[] actions = GetActions(itemEntries);
+            string[] actions = GetActions(itemEntries.Select(c => c.Item1).ToArray());
 
             List<Func<Tuple<string, byte[]>>> allImages = new List<Func<Tuple<string, byte[]>>>();
 
@@ -156,7 +156,7 @@ namespace maplestory.io.Services.MapleStory
                             if (watch.ElapsedMilliseconds > 120000) return null;
                             allImages.Add(() => {
                                 Tuple<int, string, int?>[] items = itemEntries
-                                    .Select(c => new Tuple<int, string, int?>(c, (c == face?.id) ? emotion : null, (c == face?.id) ? (int?)emotionFrame : null))
+                                    .Select(c => new Tuple<int, string, int?>(c.Item1, (c.Item1 == face?.id) ? emotion : null, (c.Item1 == face?.id) ? (int?)emotionFrame : null))
                                     .ToArray();
                                 string path = $"{emotion}/{emotionFrame}/{animation}_{frame}.{fileExtension}";
                                 try {
