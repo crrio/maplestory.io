@@ -117,7 +117,7 @@ namespace maplestory.io.Services.MapleStory
             return skin.Animations.Where(c => c.Value.AnimationName.Equals(c.Key, StringComparison.CurrentCultureIgnoreCase)).Select(c => c.Key).Where(c => eqps.All(e => e.FrameBooks.ContainsKey(c))).ToArray();
         }
 
-        public byte[] GetSpriteSheet(HttpRequest request, int id, bool showEars = false, bool showLefEars = false, int padding = 2, RenderMode renderMode = RenderMode.Full, params int[] itemEntries)
+        public byte[] GetSpriteSheet(HttpRequest request, int id, bool showEars = false, bool showLefEars = false, int padding = 2, RenderMode renderMode = RenderMode.Full, SpriteSheetFormat format = SpriteSheetFormat.Plain, params int[] itemEntries)
         {
             Stopwatch watch = Stopwatch.StartNew();
             Equip face = itemEntries.Where(c => c >= 20000 && c <= 29999).Select(c => (Equip)itemFactory.search(c)).FirstOrDefault();
@@ -136,9 +136,12 @@ namespace maplestory.io.Services.MapleStory
             avatar.Mode = renderMode;
             avatar.Preload();
 
+            string fileExtension = "png";
+            if (format == SpriteSheetFormat.PDNZip) fileExtension = "zip";
+
             string[] actions = GetActions(itemEntries);
 
-            List<Func<Tuple<string, Image<Rgba32>>>> allImages = new List<Func<Tuple<string, Image<Rgba32>>>>();
+            List<Func<Tuple<string, byte[]>>> allImages = new List<Func<Tuple<string, byte[]>>>();
 
             foreach (string emotion in face?.FrameBooks?.Keys?.ToArray() ?? new[] { "default" })
             {
@@ -155,7 +158,7 @@ namespace maplestory.io.Services.MapleStory
                                 Tuple<int, string, int?>[] items = itemEntries
                                     .Select(c => new Tuple<int, string, int?>(c, (c == face?.id) ? emotion : null, (c == face?.id) ? (int?)emotionFrame : null))
                                     .ToArray();
-                                string path = $"{emotion}/{emotionFrame}/{animation}_{frame}.png";
+                                string path = $"{emotion}/{emotionFrame}/{animation}_{frame}.{fileExtension}";
                                 try {
                                     CharacterAvatar frameAvatar = new CharacterAvatar(avatar);
                                     frameAvatar.AnimationName = animation;
@@ -168,9 +171,9 @@ namespace maplestory.io.Services.MapleStory
                                             EquipFrame = o.Item2?.ItemId == face?.id ? emotionFrame : o.Item2.EquipFrame
                                         })
                                     ).ToArray();
-                                    var res = new Tuple<string, Image<Rgba32>>(
+                                    var res = new Tuple<string, byte[]>(
                                         path,
-                                        frameAvatar.Render()
+                                        frameAvatar.Render(format, img => img.ImageToByte(request))
                                     );
                                     return res;
                                 } catch (Exception) {
@@ -190,7 +193,7 @@ namespace maplestory.io.Services.MapleStory
                     Parallel.ForEach(allImages, (a) => {
                         var b = a();
                         if (b == null) return;
-                        bag.Add(new Tuple<string, byte[]>(b.Item1, b.Item2.ImageToByte(request)));
+                        bag.Add(new Tuple<string, byte[]>(b.Item1, b.Item2));
                     });
 
                     foreach(Tuple<string, byte[]> frameData in bag) {

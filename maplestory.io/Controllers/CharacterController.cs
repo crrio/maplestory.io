@@ -143,8 +143,8 @@ namespace maplestory.io.Controllers
         [Route("download/{skinId}/{items?}")]
         [HttpGet]
         [Produces("application/zip")]
-        public IActionResult GetSpritesheet(int skinId, string items = "1102039", [FromQuery] RenderMode renderMode = RenderMode.Full, [FromQuery] bool showEars = false, [FromQuery] bool showLefEars = false, [FromQuery] int padding = 2)
-            => File(_factory.GetWithWZ(region, version).GetSpriteSheet(Request, skinId, showEars, showLefEars, padding, renderMode, items
+        public IActionResult GetSpritesheet(int skinId, string items = "1102039", [FromQuery] RenderMode renderMode = RenderMode.Full, [FromQuery] bool showEars = false, [FromQuery] bool showLefEars = false, [FromQuery] int padding = 2, [FromQuery] SpriteSheetFormat format = SpriteSheetFormat.Plain)
+            => File(_factory.GetWithWZ(region, version).GetSpriteSheet(Request, skinId, showEars, showLefEars, padding, renderMode, format, items
                 .Split(new string[] { "," }, StringSplitOptions.RemoveEmptyEntries)
                 .Select(c => int.Parse(c))
                 .ToArray()), "application/zip", "CharacterSpriteSheet.zip");
