@@ -114,6 +114,8 @@ namespace maplestory.io.Services.MapleStory
             CharacterSkin skin = GetSkin(2000);
             eqps = eqps.Where(c => c.FrameBooks.ContainsKey("stand1") || c.FrameBooks.ContainsKey("stand2")).ToArray();
 
+            if (eqps.Any(c => c.id >= 1902000 && c.id <= 1993000)) eqps = eqps.Where(c => c.id >= 1902000 && c.id <= 1993000).ToArray();
+
             return skin.Animations.Where(c => c.Value.AnimationName.Equals(c.Key, StringComparison.CurrentCultureIgnoreCase)).Select(c => c.Key).Where(c => eqps.All(e => e.FrameBooks.ContainsKey(c))).ToArray();
         }
 
