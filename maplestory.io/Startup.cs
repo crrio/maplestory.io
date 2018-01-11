@@ -59,6 +59,7 @@ namespace maplestory.io
             services.AddSingleton<ICharacterFactory, CharacterFactory>();
             services.AddSingleton<ICraftingEffectFactory, CraftingEffectFactory>();
             services.AddSingleton<IAndroidFactory, AndroidFactory>();
+            services.AddSingleton<IPetFactory, PetFactory>();
 
             services.AddSwaggerGen(c =>
             {
