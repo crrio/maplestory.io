@@ -46,7 +46,7 @@ namespace maplestory.io.Controllers
         public IActionResult GetPetActions(int petId)
         {
             Pet eq = _factory.GetWithWZ(region, version).GetPet(petId);
-            return Json(eq.frameBooks.ToDictionary(c => c.Key, c => c.Value.FirstOrDefault()?.frames?.Count() ?? 0));
+            return Json(eq.frameBooks.Where(c => c.Value.FirstOrDefault()?.frames?.Count() > 0).ToDictionary(c => c.Key, c => c.Value.FirstOrDefault()?.frames?.Count() ?? 0));
         }
 
         [Route("{petId}/{animation}/{frame?}/{petEquip?}")]
