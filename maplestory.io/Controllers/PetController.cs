@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using PKG1;
+using System.Collections.Generic;
 using System.Linq;
 using WZData;
 using WZData.MapleStory.Items;
@@ -24,6 +25,11 @@ namespace maplestory.io.Controllers
         {
             _factory = factory;
         }
+
+        [Route("")]
+        [HttpGet]
+        [ProducesResponseType(typeof(Dictionary<int, string>), 200)]
+        public IActionResult GetAllPets() => Json(_factory.GetWithWZ(region, version).GetPets());
 
         [Route("{petId}")]
         [HttpGet]

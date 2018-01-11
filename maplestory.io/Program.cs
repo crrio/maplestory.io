@@ -14,6 +14,8 @@ namespace maplestory.io
     {
         public static void Main(string[] args)
         {
+            Console.WriteLine($"Console Arguments: {string.Join(",", args)}");
+
             Stopwatch watch = Stopwatch.StartNew();
             dynamic obj = Newtonsoft.Json.JsonConvert.DeserializeObject(File.ReadAllText("./appsettings.json"));
             WZOptions wzPath = Newtonsoft.Json.JsonConvert.DeserializeObject<WZOptions>(obj.WZ.ToString());

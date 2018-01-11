@@ -18,6 +18,12 @@ namespace maplestory.io.Services.MapleStory
         public PetFactory(IWZFactory factory) : base(factory) { }
         public PetFactory(IWZFactory _factory, Region region, string version) : base(_factory, region, version) { }
 
+        public Dictionary<int, string> GetPets()
+        {
+            WZProperty pets = wz.Resolve("String/Pet") ?? wz.Resolve("String/Item/Pet");
+            return pets.Children.ToDictionary(c => int.Parse(c.Key), c => c.Value.ResolveForOrNull<string>("name"));
+        }
+
         public Pet GetPet(int petId)
         {
             if (!cache.ContainsKey(petId))
