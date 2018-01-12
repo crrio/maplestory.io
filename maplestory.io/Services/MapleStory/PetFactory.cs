@@ -29,7 +29,12 @@ namespace maplestory.io.Services.MapleStory
             if (!cache.ContainsKey(petId))
             {
                 WZProperty item = (wz.Resolve("String/Pet") ?? wz.Resolve("String/Item/Pet")).Resolve(petId.ToString());
-                cache.Add(petId, Pet.Parse(item));
+                try
+                {
+                    if (!cache.ContainsKey(petId))
+                        cache.Add(petId, Pet.Parse(item));
+                }
+                catch (Exception) { } // Usually happens when multi threaded caching something
             }
             return cache[petId];
         }
