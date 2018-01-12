@@ -122,14 +122,17 @@ namespace maplestory.io.Controllers
         [HttpGet]
         [Produces(typeof(Tuple<Image<Rgba32>, Dictionary<string, Point>>))]
         public IActionResult GetCharacterDetails(int skinId, string items, string animation, int frame, RenderMode renderMode, bool showEars, bool showLefEars, int padding)
-            => Json(_factory.GetWithWZ(region, version).GetDetailedCharacter(skinId, animation, frame, showEars, showLefEars, padding, renderMode, items
-                    .Split(new string[] { "," }, StringSplitOptions.RemoveEmptyEntries)
-                    .Select(c => c.Split(':', ';'))
-                    .Where(c => c.Length > 0 && int.TryParse(c[0], out int blah))
-                    .Select(c => new Tuple<int, string, float?>(int.Parse(c[0]), c.Length > 1 && !float.TryParse(c[1], out float blah) ? c[1] : animation, c.Length > 2 && float.TryParse(c[2], out float huehuehue) ? (float?)huehuehue : (c.Length > 1 && float.TryParse(c[1], out huehuehue) ? (float?)huehuehue : null)))
-                    .OrderBy(c => c.Item1, OrderByDirection.Descending)
-                    .ToArray()
-                ));
+        {
+            Tuple<Image<Rgba32>, Dictionary<string, Point>> detailed = _factory.GetWithWZ(region, version).GetDetailedCharacter(skinId, animation, frame, showEars, showLefEars, padding, renderMode, items
+                .Split(new string[] { "," }, StringSplitOptions.RemoveEmptyEntries)
+                .Select(c => c.Split(':', ';'))
+                .Where(c => c.Length > 0 && int.TryParse(c[0], out int blah))
+                .Select(c => new Tuple<int, string, float?>(int.Parse(c[0]), c.Length > 1 && !float.TryParse(c[1], out float blah) ? c[1] : animation, c.Length > 2 && float.TryParse(c[2], out float huehuehue) ? (float?)huehuehue : (c.Length > 1 && float.TryParse(c[1], out huehuehue) ? (float?)huehuehue : null)))
+                .OrderBy(c => c.Item1, OrderByDirection.Descending)
+                .ToArray()
+            );
+            return Json(new Tuple<byte[], Dictionary<string, Point>>(detailed.Item1.ImageToByte(Request), detailed.Item2));
+        }
 
         [Route("actions/{items?}")]
         [HttpGet]
