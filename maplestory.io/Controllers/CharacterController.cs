@@ -105,6 +105,18 @@ namespace maplestory.io.Controllers
         public IActionResult GetCenteredCharacter(int skinId, string items = "1102039", string animation = null, int frame = 0, [FromQuery] bool showEars = false, [FromQuery] bool showLefEars = false, [FromQuery] int padding = 2)
             => GetCharacter(skinId, items, animation, frame, RenderMode.Centered, showEars, showLefEars, padding);
 
+        [Route("navelCenter/{skinId}/{items?}/{animation?}/{frame?}")]
+        [HttpGet]
+        [Produces("image/png")]
+        public IActionResult GetNavelCenteredCharacter(int skinId, string items = "1102039", string animation = null, int frame = 0, [FromQuery] bool showEars = false, [FromQuery] bool showLefEars = false, [FromQuery] int padding = 2)
+            => GetCharacter(skinId, items, animation, frame, RenderMode.NavelCenter, showEars, showLefEars, padding);
+
+        [Route("feetCenter/{skinId}/{items?}/{animation?}/{frame?}")]
+        [HttpGet]
+        [Produces("image/png")]
+        public IActionResult GetFeetCenteredCharacter(int skinId, string items = "1102039", string animation = null, int frame = 0, [FromQuery] bool showEars = false, [FromQuery] bool showLefEars = false, [FromQuery] int padding = 2)
+            => GetCharacter(skinId, items, animation, frame, RenderMode.FeetCenter, showEars, showLefEars, padding);
+
         [Route("actions/{items?}")]
         [HttpGet]
         [ProducesResponseType(typeof(string[]), 200)]
