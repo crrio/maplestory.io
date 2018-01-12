@@ -18,5 +18,6 @@ namespace maplestory.io.Services.MapleStory
         string[] GetActions(params int[] itemEntries);
         byte[] GetSpriteSheet(HttpRequest request, int id, bool showEars = false, bool showLefEars = false, int padding = 2, RenderMode renderMode = RenderMode.Full, SpriteSheetFormat format = SpriteSheetFormat.Plain, params Tuple<int, float?>[] itemEntries);
         IEnumerable<Tuple<Frame, Point, float?>> GetJsonCharacter(int id, string animation = null, int frame = 0, bool showEars = false, bool showLefEars = false, int padding = 2, params Tuple<int, string, float?>[] items);
+        Tuple<Image<Rgba32>, Dictionary<string, Point>> GetDetailedCharacter(int id, string animation = null, int frame = 0, bool showEars = false, bool showLefEars = false, int padding = 2, RenderMode renderMode = RenderMode.Full, params Tuple<int, string, float?>[] items);
     }
 }

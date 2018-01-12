@@ -27,7 +27,7 @@ namespace maplestory.io.Services.MapleStory
         private readonly IZMapFactory _zmapFactory;
 
         public CharacterFactory(IWZFactory factory, IItemFactory itemFactory, IZMapFactory zMapFactory, ILogger<CharacterFactory> logger, Region region, string version)
-            : base (factory, region, version) {
+            : base(factory, region, version) {
             _logger = logger;
             _zmapFactory = zMapFactory;
             zmap = _zmapFactory.GetZMap();
@@ -54,12 +54,8 @@ namespace maplestory.io.Services.MapleStory
         public Image<Rgba32> GetBaseWithHair(int id, string animation = null, int frame = 0, bool showEars = false, bool showLefEars = false, int padding = 2, int faceId = 20305, int hairId = 37831, RenderMode renderMode = RenderMode.Full)
             => GetCharacter(id, animation, frame, showEars, showLefEars, padding, renderMode, new Tuple<int, string, float?>(faceId, null, null), new Tuple<int, string, float?>(hairId, null, null));
 
-        public Image<Rgba32> GetCharacter(int id, string animation = null, int frame = 0, bool showEars = false, bool showLefEars = false, int padding = 2, RenderMode renderMode = RenderMode.Full, params Tuple<int, string, float?>[] itemEntries)
-            => GetCharacter(id, animation, frame, showEars, showLefEars, padding, renderMode, itemEntries.Select(c => new Tuple<int, string, int?, float?>(c.Item1, c.Item2, null, c.Item3)).ToArray());
-
-        public IEnumerable<Tuple<Frame, Point, float?>> GetJsonCharacter(int id, string animation = null, int frame = 0, bool showEars = false, bool showLefEars = false, int padding = 2, params Tuple<int, string, float?>[] itemEntries)
+        CharacterAvatar getAvatar(int id, string animation = null, int frame = 0, bool showEars = false, bool showLefEars = false, int padding = 2, params Tuple<int, string, float?>[] itemEntries)
         {
-            Stopwatch watch = Stopwatch.StartNew();
             CharacterAvatar avatar = new CharacterAvatar(wz);
             avatar.Equips = itemEntries.Select(c => new EquipSelection() { ItemId = c.Item1, AnimationName = c.Item2, Hue = c.Item3 }).ToArray();
 
@@ -71,27 +67,26 @@ namespace maplestory.io.Services.MapleStory
             avatar.LefEars = showLefEars;
             avatar.Padding = padding;
 
-            var result = avatar.GetFrameParts();
-            return result;
+            return avatar;
         }
 
-        public Image<Rgba32> GetCharacter(int id, string animation = null, int frame = 0, bool showEars = false, bool showLefEars = false, int padding = 2, RenderMode renderMode = RenderMode.Full, params Tuple<int, string, int?, float?>[] itemEntries)
+        public Tuple<Image<Rgba32>, Dictionary<string, Point>> GetDetailedCharacter(int id, string animation = null, int frame = 0, bool showEars = false, bool showLefEars = false, int padding = 2, RenderMode renderMode = RenderMode.Full, params Tuple<int, string, float?>[] itemEntries)
         {
-            Stopwatch watch = Stopwatch.StartNew();
-            CharacterAvatar avatar = new CharacterAvatar(wz);
-            avatar.Equips = itemEntries.Select(c => new EquipSelection(){ ItemId = c.Item1, AnimationName = c.Item2, Hue = c.Item4 }).ToArray();
-
-            avatar.SkinId = id;
-            avatar.AnimationName = animation;
-            if (string.IsNullOrEmpty(avatar.AnimationName)) avatar.AnimationName = "stand1";
-            avatar.FrameNumber = frame;
-            avatar.ElfEars = showEars;
-            avatar.LefEars = showLefEars;
-            avatar.Padding = padding;
+            CharacterAvatar avatar = getAvatar(id, animation, frame, showEars, showLefEars, padding, itemEntries);
             avatar.Mode = renderMode;
+            return avatar.RenderWithDetails();
+        }
 
-            var result = avatar.Render();
-            return result;
+        public IEnumerable<Tuple<Frame, Point, float?>> GetJsonCharacter(int id, string animation = null, int frame = 0, bool showEars = false, bool showLefEars = false, int padding = 2, params Tuple<int, string, float?>[] itemEntries)
+        {
+            CharacterAvatar avatar = getAvatar(id, animation, frame, showEars, showLefEars, padding, itemEntries);
+            return avatar.GetFrameParts();
+        }
+
+        public Image<Rgba32> GetCharacter(int id, string animation = null, int frame = 0, bool showEars = false, bool showLefEars = false, int padding = 2, RenderMode renderMode = RenderMode.Full, params Tuple<int, string, float?>[] itemEntries)
+        {
+            CharacterAvatar avatar = getAvatar(id, animation, frame, showEars, showLefEars, padding, itemEntries);
+            return avatar.Render();
         }
 
         public string[] GetActions(params int[] itemEntries)

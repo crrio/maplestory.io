@@ -13,6 +13,7 @@ using WZData.MapleStory.Characters;
 using WZData;
 using SixLabors.Primitives;
 using WZData.MapleStory.Images;
+using SixLabors.ImageSharp;
 
 namespace maplestory.io.Controllers
 {
@@ -116,6 +117,19 @@ namespace maplestory.io.Controllers
         [Produces("image/png")]
         public IActionResult GetFeetCenteredCharacter(int skinId, string items = "1102039", string animation = null, int frame = 0, [FromQuery] bool showEars = false, [FromQuery] bool showLefEars = false, [FromQuery] int padding = 2)
             => GetCharacter(skinId, items, animation, frame, RenderMode.FeetCenter, showEars, showLefEars, padding);
+
+        [Route("detailed/{skinId}/{items?}/{animation?}/{frame?}")]
+        [HttpGet]
+        [Produces(typeof(Tuple<Image<Rgba32>, Dictionary<string, Point>>))]
+        public IActionResult GetCharacterDetails(int skinId, string items, string animation, int frame, RenderMode renderMode, bool showEars, bool showLefEars, int padding)
+            => Json(_factory.GetWithWZ(region, version).GetDetailedCharacter(skinId, animation, frame, showEars, showLefEars, padding, renderMode, items
+                    .Split(new string[] { "," }, StringSplitOptions.RemoveEmptyEntries)
+                    .Select(c => c.Split(':', ';'))
+                    .Where(c => c.Length > 0 && int.TryParse(c[0], out int blah))
+                    .Select(c => new Tuple<int, string, float?>(int.Parse(c[0]), c.Length > 1 && !float.TryParse(c[1], out float blah) ? c[1] : animation, c.Length > 2 && float.TryParse(c[2], out float huehuehue) ? (float?)huehuehue : (c.Length > 1 && float.TryParse(c[1], out huehuehue) ? (float?)huehuehue : null)))
+                    .OrderBy(c => c.Item1, OrderByDirection.Descending)
+                    .ToArray()
+                ));
 
         [Route("actions/{items?}")]
         [HttpGet]
