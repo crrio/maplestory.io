@@ -49,7 +49,6 @@ namespace maplestory.io
                 .UseKestrel(options =>
                 {
                     options.Limits.MaxRequestLineSize = 99999999;
-                    options.ThreadCount = 32;
                     options.Limits.MaxRequestBufferSize = int.MaxValue;
                     options.Limits.RequestHeadersTimeout = TimeSpan.FromSeconds(15);
                     options.Limits.KeepAliveTimeout = TimeSpan.FromSeconds(120);

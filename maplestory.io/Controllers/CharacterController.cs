@@ -73,8 +73,8 @@ namespace maplestory.io.Controllers
         [Route("{skinId}/{items?}/{animation?}/{frame?}")]
         [HttpGet]
         [Produces("image/png")]
-        public IActionResult GetCharacter(int skinId, string items = "1102039", string animation = null, int frame = 0, [FromQuery] RenderMode renderMode = RenderMode.Full, [FromQuery] bool showEars = false, [FromQuery] bool showLefEars = false, [FromQuery] int padding = 2)
-            => File(_factory.GetWithWZ(region, version).GetCharacter(skinId, animation, frame, showEars, showLefEars, padding, renderMode, items
+        public IActionResult GetCharacter(int skinId, string items = "1102039", string animation = null, int frame = 0, [FromQuery] RenderMode renderMode = RenderMode.Full, [FromQuery] bool showEars = false, [FromQuery] bool showLefEars = false, [FromQuery] int padding = 2, [FromQuery] string name = null)
+            => File(_factory.GetWithWZ(region, version).GetCharacter(skinId, animation, frame, showEars, showLefEars, padding, name, renderMode, items
                     .Split(new string[] { "," }, StringSplitOptions.RemoveEmptyEntries)
                     .Select(c => c.Split(':', ';'))
                     .Where(c => c.Length > 0 && int.TryParse(c[0], out int blah))
@@ -86,14 +86,14 @@ namespace maplestory.io.Controllers
         [Route("compact/{skinId}/{items?}/{animation?}/{frame?}")]
         [HttpGet]
         [Produces("image/png")]
-        public IActionResult GetCompactCharacter(int skinId, string items = "1102039", string animation = null, int frame = 0, [FromQuery] bool showEars = false, [FromQuery] bool showLefEars = false, [FromQuery] int padding = 2)
-        => GetCharacter(skinId, items, animation, frame, RenderMode.Compact, showEars, showLefEars, padding);
+        public IActionResult GetCompactCharacter(int skinId, string items = "1102039", string animation = null, int frame = 0, [FromQuery] bool showEars = false, [FromQuery] bool showLefEars = false, [FromQuery] int padding = 2, [FromQuery] string name = null)
+        => GetCharacter(skinId, items, animation, frame, RenderMode.Compact, showEars, showLefEars, padding, name);
 
         [Route("json/{skinId}/{items?}/{animation?}/{frame?}")]
         [HttpGet]
         [ProducesResponseType(typeof(Tuple<Frame, Point>[]), 200)]
-        public IActionResult GetJsonCharacter(int skinId, string items = "1102039", string animation = null, int frame = 0, [FromQuery] bool showEars = false, [FromQuery] bool showLefEars = false, [FromQuery] int padding = 2)
-            => Json(_factory.GetWithWZ(region, version).GetJsonCharacter(skinId, animation, frame, showEars, showLefEars, padding, items
+        public IActionResult GetJsonCharacter(int skinId, string items = "1102039", string animation = null, int frame = 0, [FromQuery] bool showEars = false, [FromQuery] bool showLefEars = false, [FromQuery] int padding = 2, [FromQuery] string name = null)
+            => Json(_factory.GetWithWZ(region, version).GetJsonCharacter(skinId, animation, frame, showEars, showLefEars, padding, name, items
                     .Split(new string[] { "," }, StringSplitOptions.RemoveEmptyEntries)
                     .Select(c => c.Split(':', ';'))
                     .Where(c => c.Length > 0 && int.TryParse(c[0], out int blah))
@@ -103,27 +103,27 @@ namespace maplestory.io.Controllers
         [Route("center/{skinId}/{items?}/{animation?}/{frame?}")]
         [HttpGet]
         [Produces("image/png")]
-        public IActionResult GetCenteredCharacter(int skinId, string items = "1102039", string animation = null, int frame = 0, [FromQuery] bool showEars = false, [FromQuery] bool showLefEars = false, [FromQuery] int padding = 2)
-            => GetCharacter(skinId, items, animation, frame, RenderMode.Centered, showEars, showLefEars, padding);
+        public IActionResult GetCenteredCharacter(int skinId, string items = "1102039", string animation = null, int frame = 0, [FromQuery] bool showEars = false, [FromQuery] bool showLefEars = false, [FromQuery] int padding = 2, [FromQuery] string name = null)
+            => GetCharacter(skinId, items, animation, frame, RenderMode.Centered, showEars, showLefEars, padding, name);
 
         [Route("navelCenter/{skinId}/{items?}/{animation?}/{frame?}")]
         [HttpGet]
         [Produces("image/png")]
-        public IActionResult GetNavelCenteredCharacter(int skinId, string items = "1102039", string animation = null, int frame = 0, [FromQuery] bool showEars = false, [FromQuery] bool showLefEars = false, [FromQuery] int padding = 2)
-            => GetCharacter(skinId, items, animation, frame, RenderMode.NavelCenter, showEars, showLefEars, padding);
+        public IActionResult GetNavelCenteredCharacter(int skinId, string items = "1102039", string animation = null, int frame = 0, [FromQuery] bool showEars = false, [FromQuery] bool showLefEars = false, [FromQuery] int padding = 2, [FromQuery] string name = null)
+            => GetCharacter(skinId, items, animation, frame, RenderMode.NavelCenter, showEars, showLefEars, padding, name);
 
         [Route("feetCenter/{skinId}/{items?}/{animation?}/{frame?}")]
         [HttpGet]
         [Produces("image/png")]
-        public IActionResult GetFeetCenteredCharacter(int skinId, string items = "1102039", string animation = null, int frame = 0, [FromQuery] bool showEars = false, [FromQuery] bool showLefEars = false, [FromQuery] int padding = 2)
-            => GetCharacter(skinId, items, animation, frame, RenderMode.FeetCenter, showEars, showLefEars, padding);
+        public IActionResult GetFeetCenteredCharacter(int skinId, string items = "1102039", string animation = null, int frame = 0, [FromQuery] bool showEars = false, [FromQuery] bool showLefEars = false, [FromQuery] int padding = 2, [FromQuery] string name = null)
+            => GetCharacter(skinId, items, animation, frame, RenderMode.FeetCenter, showEars, showLefEars, padding, name);
 
         [Route("detailed/{skinId}/{items?}/{animation?}/{frame?}")]
         [HttpGet]
         [Produces(typeof(Tuple<Image<Rgba32>, Dictionary<string, Point>>))]
-        public IActionResult GetCharacterDetails(int skinId, string items, string animation, int frame, RenderMode renderMode, bool showEars, bool showLefEars, int padding)
+        public IActionResult GetCharacterDetails(int skinId, string items, string animation, int frame, RenderMode renderMode, bool showEars, bool showLefEars, int padding, [FromQuery] string name = null)
         {
-            Tuple<Image<Rgba32>, Dictionary<string, Point>> detailed = _factory.GetWithWZ(region, version).GetDetailedCharacter(skinId, animation, frame, showEars, showLefEars, padding, renderMode, items
+            Tuple<Image<Rgba32>, Dictionary<string, Point>> detailed = _factory.GetWithWZ(region, version).GetDetailedCharacter(skinId, animation, frame, showEars, showLefEars, padding, name, renderMode, items
                 .Split(new string[] { "," }, StringSplitOptions.RemoveEmptyEntries)
                 .Select(c => c.Split(':', ';'))
                 .Where(c => c.Length > 0 && int.TryParse(c[0], out int blah))
@@ -162,7 +162,7 @@ namespace maplestory.io.Controllers
 
             _logging.LogInformation("Generating random character with: {0}", string.Join(",", itemIds.Concat(new int[] { face, hair })));
 
-            return File(_factory.GetWithWZ(region, version).GetCharacter(skinSelected, null, 0, false, false, 2, RenderMode.Full,
+            return File(_factory.GetWithWZ(region, version).GetCharacter(skinSelected, null, 0, false, false, 2, null, RenderMode.Full,
                     itemIds.Concat(new int[] { face, hair })
                     .Select(c => new Tuple<int, string, float?>(c, null, null))
                     .ToArray()
