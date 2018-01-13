@@ -6,9 +6,9 @@ namespace maplestory.io
 {
     public static class Extensions
     {
-        public static byte[] ImageToByte(this Image<Rgba32> img, HttpRequest context)
+        public static byte[] ImageToByte(this Image<Rgba32> img, HttpRequest context, bool autoResize = true)
         {
-            if (context.Query.ContainsKey("resize"))
+            if (context.Query.ContainsKey("resize") && autoResize)
             {
                 string userResizeAmount = context.Query["resize"];
                 decimal resizeAmount = decimal.Parse(userResizeAmount);

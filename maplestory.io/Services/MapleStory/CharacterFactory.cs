@@ -49,12 +49,12 @@ namespace maplestory.io.Services.MapleStory
             => CharacterSkin.Parse(wz.Resolve("Character")).Select(c => c.Id).ToArray();
 
         public Image<Rgba32> GetBase(int id, string animation = null, int frame = 0, bool showEars = false, bool showLefEars = false, int padding = 2, RenderMode renderMode = RenderMode.Full)
-            => GetCharacter(id, animation, frame, showEars, showLefEars, padding, null, renderMode, new Tuple<int, string, float?>[0]);
+            => GetCharacter(id, animation, frame, showEars, showLefEars, padding, null, 1, false, renderMode, new Tuple<int, string, float?>[0]);
 
         public Image<Rgba32> GetBaseWithHair(int id, string animation = null, int frame = 0, bool showEars = false, bool showLefEars = false, int padding = 2, int faceId = 20305, int hairId = 37831, RenderMode renderMode = RenderMode.Full)
-            => GetCharacter(id, animation, frame, showEars, showLefEars, padding, null, renderMode, new Tuple<int, string, float?>(faceId, null, null), new Tuple<int, string, float?>(hairId, null, null));
+            => GetCharacter(id, animation, frame, showEars, showLefEars, padding, null, 1, false, renderMode, new Tuple<int, string, float?>(faceId, null, null), new Tuple<int, string, float?>(hairId, null, null));
 
-        CharacterAvatar getAvatar(int id, string animation = null, int frame = 0, bool showEars = false, bool showLefEars = false, int padding = 2, string name = null, params Tuple<int, string, float?>[] itemEntries)
+        CharacterAvatar getAvatar(int id, string animation = null, int frame = 0, bool showEars = false, bool showLefEars = false, int padding = 2, string name = null, float zoom = 1, bool flipX = false, params Tuple<int, string, float?>[] itemEntries)
         {
             CharacterAvatar avatar = new CharacterAvatar(wz);
             avatar.Equips = itemEntries.Select(c => new EquipSelection() { ItemId = c.Item1, AnimationName = c.Item2, Hue = c.Item3 }).ToArray();
@@ -67,26 +67,28 @@ namespace maplestory.io.Services.MapleStory
             avatar.LefEars = showLefEars;
             avatar.Padding = padding;
             avatar.Name = name;
+            avatar.Zoom = zoom;
+            avatar.FlipX = flipX;
 
             return avatar;
         }
 
-        public Tuple<Image<Rgba32>, Dictionary<string, Point>> GetDetailedCharacter(int id, string animation = null, int frame = 0, bool showEars = false, bool showLefEars = false, int padding = 2, string name = null, RenderMode renderMode = RenderMode.Full, params Tuple<int, string, float?>[] itemEntries)
+        public Tuple<Image<Rgba32>, Dictionary<string, Point>> GetDetailedCharacter(int id, string animation = null, int frame = 0, bool showEars = false, bool showLefEars = false, int padding = 2, string name = null, float zoom = 1, bool flipX = false, RenderMode renderMode = RenderMode.Full,  params Tuple<int, string, float?>[] itemEntries)
         {
-            CharacterAvatar avatar = getAvatar(id, animation, frame, showEars, showLefEars, padding, name, itemEntries);
+            CharacterAvatar avatar = getAvatar(id, animation, frame, showEars, showLefEars, padding, name, zoom, flipX, itemEntries);
             avatar.Mode = renderMode;
             return avatar.RenderWithDetails();
         }
 
-        public IEnumerable<Tuple<Frame, Point, float?>> GetJsonCharacter(int id, string animation = null, int frame = 0, bool showEars = false, bool showLefEars = false, int padding = 2, string name = null, params Tuple<int, string, float?>[] itemEntries)
+        public IEnumerable<Tuple<Frame, Point, float?>> GetJsonCharacter(int id, string animation = null, int frame = 0, bool showEars = false, bool showLefEars = false, int padding = 2, string name = null, float zoom = 1, bool flipX = false, params Tuple<int, string, float?>[] itemEntries)
         {
-            CharacterAvatar avatar = getAvatar(id, animation, frame, showEars, showLefEars, padding, name, itemEntries);
+            CharacterAvatar avatar = getAvatar(id, animation, frame, showEars, showLefEars, padding, name, zoom, flipX, itemEntries);
             return avatar.GetFrameParts();
         }
 
-        public Image<Rgba32> GetCharacter(int id, string animation = null, int frame = 0, bool showEars = false, bool showLefEars = false, int padding = 2, string name = null, RenderMode renderMode = RenderMode.Full, params Tuple<int, string, float?>[] itemEntries)
+        public Image<Rgba32> GetCharacter(int id, string animation = null, int frame = 0, bool showEars = false, bool showLefEars = false, int padding = 2, string name = null, float zoom = 1, bool flipX = false, RenderMode renderMode = RenderMode.Full, params Tuple<int, string, float?>[] itemEntries)
         {
-            CharacterAvatar avatar = getAvatar(id, animation, frame, showEars, showLefEars, padding, name, itemEntries);
+            CharacterAvatar avatar = getAvatar(id, animation, frame, showEars, showLefEars, padding, name, zoom, flipX, itemEntries);
             return avatar.Render();
         }
 
