@@ -28,6 +28,16 @@ namespace maplestory.io.Services.MapleStory
         public IEnumerable<MapName> GetMapNames() {
             return wz.Resolve("String/Map").Children.Values
                 .SelectMany(c => c.Children)
+                .Where(c =>
+                {
+                    int mapId = 0;
+                    if (!int.TryParse(c.Key, out mapId)) return false;
+                    string eightDigitId = mapId.ToString("D8");
+                    string nineDigitId = mapId.ToString("D9");
+                    WZProperty eightDigits = wz.Resolve($"Map/Map/Map{eightDigitId[0]}");
+                    WZProperty nineDigits = wz.Resolve($"Map/Map/Map{nineDigitId[0]}");
+                    return eightDigits.Children.ContainsKey(eightDigitId) || eightDigits.Children.ContainsKey(nineDigitId) || nineDigits.Children.ContainsKey(eightDigitId) || nineDigits.Children.ContainsKey(nineDigitId);
+                })
                 .Select(c => MapName.Parse(c.Value));
         }
         public MapName GetMapName(int id) {
