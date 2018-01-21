@@ -73,7 +73,7 @@ namespace maplestory.io.Services.MapleStory
             return avatar;
         }
 
-        public Tuple<Image<Rgba32>, Dictionary<string, Point>> GetDetailedCharacter(int id, string animation = null, int frame = 0, bool showEars = false, bool showLefEars = false, int padding = 2, string name = null, float zoom = 1, bool flipX = false, RenderMode renderMode = RenderMode.Full,  params Tuple<int, string, float?>[] itemEntries)
+        public Tuple<Image<Rgba32>, Dictionary<string, Point>, Dictionary<string, int>> GetDetailedCharacter(int id, string animation = null, int frame = 0, bool showEars = false, bool showLefEars = false, int padding = 2, string name = null, float zoom = 1, bool flipX = false, RenderMode renderMode = RenderMode.Full,  params Tuple<int, string, float?>[] itemEntries)
         {
             CharacterAvatar avatar = getAvatar(id, animation, frame, showEars, showLefEars, padding, name, zoom, flipX, itemEntries);
             avatar.Mode = renderMode;
@@ -83,7 +83,7 @@ namespace maplestory.io.Services.MapleStory
         public IEnumerable<Tuple<Frame, Point, float?>> GetJsonCharacter(int id, string animation = null, int frame = 0, bool showEars = false, bool showLefEars = false, int padding = 2, string name = null, float zoom = 1, bool flipX = false, params Tuple<int, string, float?>[] itemEntries)
         {
             CharacterAvatar avatar = getAvatar(id, animation, frame, showEars, showLefEars, padding, name, zoom, flipX, itemEntries);
-            return avatar.GetFrameParts();
+            return avatar.GetFrameParts().Select(c => new Tuple<Frame, Point, float?>(c.Item1, c.Item2, c.Item3));
         }
 
         public Image<Rgba32> GetCharacter(int id, string animation = null, int frame = 0, bool showEars = false, bool showLefEars = false, int padding = 2, string name = null, float zoom = 1, bool flipX = false, RenderMode renderMode = RenderMode.Full, params Tuple<int, string, float?>[] itemEntries)
