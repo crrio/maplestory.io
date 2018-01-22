@@ -73,7 +73,7 @@ namespace maplestory.io.Services.MapleStory
             return avatar;
         }
 
-        public Tuple<Image<Rgba32>, Dictionary<string, Point>, Dictionary<string, int>> GetDetailedCharacter(int id, string animation = null, int frame = 0, bool showEars = false, bool showLefEars = false, int padding = 2, string name = null, float zoom = 1, bool flipX = false, RenderMode renderMode = RenderMode.Full,  params Tuple<int, string, float?>[] itemEntries)
+        public Tuple<Image<Rgba32>, Dictionary<string, Point>, Dictionary<string, int>, int> GetDetailedCharacter(int id, string animation = null, int frame = 0, bool showEars = false, bool showLefEars = false, int padding = 2, string name = null, float zoom = 1, bool flipX = false, RenderMode renderMode = RenderMode.Full,  params Tuple<int, string, float?>[] itemEntries)
         {
             CharacterAvatar avatar = getAvatar(id, animation, frame, showEars, showLefEars, padding, name, zoom, flipX, itemEntries);
             avatar.Mode = renderMode;

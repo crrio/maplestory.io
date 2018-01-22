@@ -131,7 +131,7 @@ namespace maplestory.io.Controllers
         [Produces(typeof(Tuple<Image<Rgba32>, Dictionary<string, Point>>))]
         public IActionResult GetCharacterDetails(int skinId, string items, string animation, int frame, RenderMode renderMode, bool showEars, bool showLefEars, int padding)
         {
-            Tuple<Image<Rgba32>, Dictionary<string, Point>, Dictionary<string, int>> detailed = _factory.GetWithWZ(region, version).GetDetailedCharacter(skinId, animation, frame, showEars, showLefEars, padding, name, resize, flipX, renderMode, items
+            Tuple<Image<Rgba32>, Dictionary<string, Point>, Dictionary<string, int>, int> detailed = _factory.GetWithWZ(region, version).GetDetailedCharacter(skinId, animation, frame, showEars, showLefEars, padding, name, resize, flipX, renderMode, items
                 .Split(new string[] { "," }, StringSplitOptions.RemoveEmptyEntries)
                 .Select(c => c.Split(':', ';'))
                 .Where(c => c.Length > 0 && int.TryParse(c[0], out int blah))
@@ -139,7 +139,7 @@ namespace maplestory.io.Controllers
                 .OrderBy(c => c.Item1, OrderByDirection.Descending)
                 .ToArray()
             );
-            return Json(new Tuple<byte[], Dictionary<string, Point>, Dictionary<string, int>>(detailed.Item1.ImageToByte(Request, false), detailed.Item2, detailed.Item3));
+            return Json(new Tuple<byte[], Dictionary<string, Point>, Dictionary<string, int>, int>(detailed.Item1.ImageToByte(Request, false), detailed.Item2, detailed.Item3, detailed.Item4));
         }
 
         [Route("actions/{items?}")]
