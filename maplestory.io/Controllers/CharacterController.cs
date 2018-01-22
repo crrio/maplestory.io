@@ -152,7 +152,7 @@ namespace maplestory.io.Controllers
             if (!string.IsNullOrEmpty(bgColor))
             {
                 string[] bgColorNumbers = bgColor.Split(',');
-                int[] rgb = bgColorNumbers.Take(3).Select(c => int.Parse(c)).ToArray();
+                float[] rgb = bgColorNumbers.Take(3).Select(c => byte.Parse(c) / (byte.MaxValue * 1f)).ToArray();
                 float alpha = float.Parse(bgColorNumbers[3]);
                 background = new Rgba32(rgb[0], rgb[1], rgb[2], alpha);
             }
