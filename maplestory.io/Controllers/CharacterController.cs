@@ -163,6 +163,11 @@ namespace maplestory.io.Controllers
             Tuple<Image<Rgba32>, Dictionary<string, Point>, Dictionary<string, int>, int>[] frames = new Tuple<Image<Rgba32>, Dictionary<string, Point>, Dictionary<string, int>, int>[animationFrames];
             frames[0] = firstFrame;
             for (int i = 1; i < animationFrames; ++i) frames[i] = factory.GetDetailedCharacter(skinId, animation, i, showEars, showLefEars, padding, name, resize, flipX, renderMode, itemData);
+
+            // Idle positions 
+            if (animation.Equals("alert", StringComparison.CurrentCultureIgnoreCase) || animation.StartsWith("stand", StringComparison.CurrentCultureIgnoreCase))
+                frames = frames.Concat(MoreEnumerable.SkipLast(frames.Reverse().Skip(1), 1)).ToArray();
+
             Image<Rgba32>[] frameImages = frames.Select(c => c.Item1).ToArray();
             Point maxFeetCenter = new Point(
                 frames.Select(c => c.Item2["feetCenter"].X).Max(),
