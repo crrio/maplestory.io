@@ -145,8 +145,18 @@ namespace maplestory.io.Controllers
         [Route("animated/{skinId}/{items?}/{animation?}/{frame?}")]
         [HttpGet]
         [Produces(typeof(Tuple<Image<Rgba32>, Dictionary<string, Point>>))]
-        public IActionResult GetCharacterAnimated(int skinId, string items, string animation, RenderMode renderMode, bool showEars, bool showLefEars, int padding)
+        public IActionResult GetCharacterAnimated(int skinId, string items, string animation, RenderMode renderMode, bool showEars, bool showLefEars, int padding, [FromQuery] string bgColor = "")
         {
+            Rgba32 background = Rgba32.Transparent;
+
+            if (!string.IsNullOrEmpty(bgColor))
+            {
+                string[] bgColorNumbers = bgColor.Split(',');
+                int[] rgb = bgColorNumbers.Take(3).Select(c => int.Parse(c)).ToArray();
+                float alpha = float.Parse(bgColorNumbers[3]);
+                background = new Rgba32(rgb[0], rgb[1], rgb[2], alpha);
+            }
+
             Tuple<int, string, float?>[] itemData = items
                 .Split(new string[] { "," }, StringSplitOptions.RemoveEmptyEntries)
                 .Select(c => c.Split(':', ';'))
@@ -157,7 +167,6 @@ namespace maplestory.io.Controllers
             ICharacterFactory factory = _factory.GetWithWZ(region, version);
 
             Tuple<Image<Rgba32>, Dictionary<string, Point>, Dictionary<string, int>, int> firstFrame = factory.GetDetailedCharacter(skinId, animation, 0, showEars, showLefEars, padding, name, resize, flipX, renderMode, itemData);
-
 
             int animationFrames = firstFrame.Item3[animation];
             Tuple<Image<Rgba32>, Dictionary<string, Point>, Dictionary<string, int>, int>[] frames = new Tuple<Image<Rgba32>, Dictionary<string, Point>, Dictionary<string, int>, int>[animationFrames];
@@ -199,6 +208,17 @@ namespace maplestory.io.Controllers
                 {
                     x.Crop(gif.Width, gif.Height);
                 });
+
+                if (background.A != 0)
+                {
+                    Image<Rgba32> frameWithBackground = new Image<Rgba32>(frameImage.Width, frameImage.Height);
+                    frameWithBackground.Mutate(x =>
+                    {
+                        x.Fill(background);
+                        x.DrawImage(frameImage, 1, new Size(frameImage.Width, frameImage.Height), Point.Empty);
+                    });
+                    frameImage = frameWithBackground;
+                }
 
                 ImageFrame<Rgba32> resultFrame = gif.Frames.AddFrame(frameImage.Frames.RootFrame);
                 resultFrame.MetaData.FrameDelay = frames[i].Item4 / 10;
