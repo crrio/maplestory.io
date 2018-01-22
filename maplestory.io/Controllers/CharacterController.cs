@@ -142,6 +142,68 @@ namespace maplestory.io.Controllers
             return Json(new Tuple<byte[], Dictionary<string, Point>, Dictionary<string, int>, int>(detailed.Item1.ImageToByte(Request, false), detailed.Item2, detailed.Item3, detailed.Item4));
         }
 
+        [Route("animated/{skinId}/{items?}/{animation?}/{frame?}")]
+        [HttpGet]
+        [Produces(typeof(Tuple<Image<Rgba32>, Dictionary<string, Point>>))]
+        public IActionResult GetCharacterAnimated(int skinId, string items, string animation, RenderMode renderMode, bool showEars, bool showLefEars, int padding)
+        {
+            Tuple<int, string, float?>[] itemData = items
+                .Split(new string[] { "," }, StringSplitOptions.RemoveEmptyEntries)
+                .Select(c => c.Split(':', ';'))
+                .Where(c => c.Length > 0 && int.TryParse(c[0], out int blah))
+                .Select(c => new Tuple<int, string, float?>(int.Parse(c[0]), c.Length > 1 && !float.TryParse(c[1], out float blah) ? c[1] : animation, c.Length > 2 && float.TryParse(c[2], out float huehuehue) ? (float?)huehuehue : (c.Length > 1 && float.TryParse(c[1], out huehuehue) ? (float?)huehuehue : null)))
+                .OrderBy(c => c.Item1, OrderByDirection.Descending)
+                .ToArray();
+            ICharacterFactory factory = _factory.GetWithWZ(region, version);
+
+            Tuple<Image<Rgba32>, Dictionary<string, Point>, Dictionary<string, int>, int> firstFrame = factory.GetDetailedCharacter(skinId, animation, 0, showEars, showLefEars, padding, name, resize, flipX, renderMode, itemData);
+
+
+            int animationFrames = firstFrame.Item3[animation];
+            Tuple<Image<Rgba32>, Dictionary<string, Point>, Dictionary<string, int>, int>[] frames = new Tuple<Image<Rgba32>, Dictionary<string, Point>, Dictionary<string, int>, int>[animationFrames];
+            frames[0] = firstFrame;
+            for (int i = 1; i < animationFrames; ++i) frames[i] = factory.GetDetailedCharacter(skinId, animation, i, showEars, showLefEars, padding, name, resize, flipX, renderMode, itemData);
+            Image<Rgba32>[] frameImages = frames.Select(c => c.Item1).ToArray();
+            Point maxFeetCenter = new Point(
+                frames.Select(c => c.Item2["feetCenter"].X).Max(),
+                frames.Select(c => c.Item2["feetCenter"].Y).Max()
+            );
+            Point maxDifference = new Point(
+                maxFeetCenter.X - frames.Select(c => c.Item2["feetCenter"].X).Min(),
+                maxFeetCenter.Y - frames.Select(c => c.Item2["feetCenter"].Y).Min()
+            );
+            Image<Rgba32> gif = new Image<Rgba32>(frameImages.Select(c => c.Width).Max() + maxDifference.X, frameImages.Select(c => c.Height).Max() + maxDifference.Y);
+
+            for (int i = 0; i < frames.Length; ++i)
+            {
+                Image<Rgba32> frameImage = frames[i].Item1;
+                Point feetCenter = frames[i].Item2["feetCenter"];
+                Point offset = new Point(0, maxFeetCenter.Y - feetCenter.Y);
+
+                if (offset.X != 0 || offset.Y != 0)
+                {
+                    Image<Rgba32> offsetFrameImage = new Image<Rgba32>(gif.Width, gif.Height);
+                    offsetFrameImage.Mutate(x =>
+                    {
+                        x.DrawImage(frameImage, 1, new Size(frameImage.Width, frameImage.Height), offset);
+                    });
+                    frameImage = offsetFrameImage;
+                }
+
+                if (frameImage.Width != gif.Width || frameImage.Height != gif.Height) frameImage.Mutate(x =>
+                {
+                    x.Crop(gif.Width, gif.Height);
+                });
+
+                ImageFrame<Rgba32> resultFrame = gif.Frames.AddFrame(frameImage.Frames.RootFrame);
+                resultFrame.MetaData.FrameDelay = frames[i].Item4 / 10;
+                resultFrame.MetaData.DisposalMethod = SixLabors.ImageSharp.Formats.Gif.DisposalMethod.RestoreToBackground;
+            }
+            gif.Frames.RemoveFrame(0);
+
+            return File(gif.ImageToByte(Request, false, ImageFormats.Gif), "image/gif");
+        }
+
         [Route("actions/{items?}")]
         [HttpGet]
         [ProducesResponseType(typeof(string[]), 200)]

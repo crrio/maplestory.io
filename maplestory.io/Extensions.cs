@@ -1,13 +1,15 @@
 ﻿using Microsoft.AspNetCore.Http;
 using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Formats;
 using System.IO;
 
 namespace maplestory.io
 {
     public static class Extensions
     {
-        public static byte[] ImageToByte(this Image<Rgba32> img, HttpRequest context, bool autoResize = true)
+        public static byte[] ImageToByte(this Image<Rgba32> img, HttpRequest context, bool autoResize = true, IImageFormat format = null)
         {
+            if (format == null) format = ImageFormats.Png;
             if (context.Query.ContainsKey("resize") && autoResize)
             {
                 string userResizeAmount = context.Query["resize"];
@@ -25,7 +27,7 @@ namespace maplestory.io
 
             using (MemoryStream mem = new MemoryStream())
             {
-                img.Save(mem, ImageFormats.Png);
+                img.Save(mem, format);
                 return mem.ToArray();
             }
         }
