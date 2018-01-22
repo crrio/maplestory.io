@@ -192,7 +192,7 @@ namespace maplestory.io.Controllers
             {
                 Image<Rgba32> frameImage = frames[i].Item1;
                 Point feetCenter = frames[i].Item2["feetCenter"];
-                Point offset = new Point(0, maxFeetCenter.Y - feetCenter.Y);
+                Point offset = new Point(maxFeetCenter.X - feetCenter.X, maxFeetCenter.Y - feetCenter.Y);
 
                 if (offset.X != 0 || offset.Y != 0)
                 {
