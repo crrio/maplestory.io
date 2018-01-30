@@ -238,7 +238,7 @@ namespace maplestory.io.Services.MapleStory
         public bool DoesItemExist(int itemId)
             => GetItemNode(itemId) != null;
 
-        public Tuple<int, IconInfo, ItemNameInfo>[] BulkItemInfo(int[] itemIds)
+        public Tuple<ItemNameInfo, IconInfo, EquipInfo>[] BulkItemInfo(int[] itemIds)
         {
             WZProperty stringWz = wz.Resolve("String");
             ILookup<int,ItemNameInfo> nameLookup = ItemNameInfo.GetNameLookup(stringWz);
@@ -249,7 +249,10 @@ namespace maplestory.io.Services.MapleStory
                     return new Tuple<int, ItemNameInfo>(c, name);
                 return null;
             }).Where(c => c != null)
-            .Select(c => new Tuple<int, IconInfo, ItemNameInfo>(c.Item1, IconInfo.Parse(GetItemNode(c.Item1).Resolve("info")), c.Item2))
+            .Select(c => {
+                WZProperty info = GetItemNode(c.Item1).Resolve("info");
+                return new Tuple<ItemNameInfo, IconInfo, EquipInfo>(c.Item2, IconInfo.Parse(info), EquipInfo.Parse(info));
+            })
             .ToArray();
         }
     }
