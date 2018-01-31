@@ -14,6 +14,11 @@ namespace maplestory.io.Services.MapleStory
 
         }
 
+        public Dictionary<string, string[]> GetAvailableRegionsAndVersions()
+        {
+            throw new NotImplementedException();
+        }
+
         public PackageCollection GetWZ(Region region, string version)
         {
             throw new NotImplementedException();

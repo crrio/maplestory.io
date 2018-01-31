@@ -31,12 +31,17 @@ namespace maplestory.io.Services.MapleStory
             versions.Add(version, new PackageCollection(basePath));
         }
         public PackageCollection GetWZ(Region region, string version) {
-            Dictionary<string, PackageCollection> regionVersions = regions[region];
+            if (regions.ContainsKey(region))
+            {
+                Dictionary<string, PackageCollection> regionVersions = regions[region];
 
-            if (regionVersions.ContainsKey(version))
-                return regionVersions[version];
+                if (regionVersions.ContainsKey(version))
+                    return regionVersions[version];
+            }
 
             return null;
         }
+
+        public Dictionary<string, string[]> GetAvailableRegionsAndVersions() => regions.ToDictionary(c => c.Key.ToString(), c => c.Value.Keys.ToArray());
     }
 }

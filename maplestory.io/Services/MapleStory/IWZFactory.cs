@@ -9,6 +9,7 @@ namespace maplestory.io.Services.MapleStory
     public interface IWZFactory
     {
         PackageCollection GetWZ(Region region, string version);
+        Dictionary<string, string[]> GetAvailableRegionsAndVersions();
     }
 
     public enum WZ {

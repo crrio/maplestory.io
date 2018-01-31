@@ -79,7 +79,7 @@ namespace maplestory.io.Controllers
         public IActionResult GetBGM(int mapId)
         {
             Map map = _factory.GetWithWZ(region, version).GetMap(mapId);
-            return File(_musicFactory.GetSong(map.BackgroundMusic), "audio/mpeg");
+            return File(_musicFactory.GetWithWZ(region, version).GetSong(map.BackgroundMusic), "audio/mpeg");
         }
     }
 }
