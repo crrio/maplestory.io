@@ -1,6 +1,7 @@
 ﻿using maplestory.io.Entities;
 using maplestory.io.Entities.Models;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using MySql.Data.MySqlClient;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -19,6 +20,7 @@ namespace maplestory.io.Models
 {
     public class MSPackageCollection : PackageCollection
     {
+        static ILogger<MSPackageCollection> logging;
         static ConcurrentDictionary<string, EventWaitHandle> wzLoading = new ConcurrentDictionary<string, EventWaitHandle>();
         public static Dictionary<int, string> JobNameLookup = new Dictionary<int, string>()
         {
@@ -41,9 +43,9 @@ namespace maplestory.io.Models
             this.MapleVersion = versionInfo;
 
             EventWaitHandle waitForWZ = new EventWaitHandle(false, EventResetMode.ManualReset);
-            bool isWaiting = false;
+            bool isInitial = wzLoading.TryAdd(versionInfo.Location, waitForWZ);
 
-            if (isWaiting = !wzLoading.TryAdd(versionInfo.Location, waitForWZ))
+            if (!isInitial)
                 wzLoading[versionInfo.Location].WaitOne();
 
             List<Task> loading = new List<Task>();
@@ -66,7 +68,11 @@ namespace maplestory.io.Models
             else loading.Add(CacheDropLookup(db, dropPath));
 
             Task.WaitAll(loading.ToArray());
-            if (!isWaiting) waitForWZ.Set();
+            if (isInitial)
+            {
+                logging.LogInformation("{0} has been loaded", versionInfo.Location);
+                waitForWZ.Set();
+            }
         }
 
         Task CacheCharacterFolders(ApplicationDbContext db, string characterFoldersPath)
