@@ -79,11 +79,12 @@ namespace maplestory.io.Models
         {
             return Task.Run(() =>
             {
-                Logger.LogInformation("Caching character folders for {0}", MapleVersion.Location);
-                categoryFolders = new Dictionary<int, string>();
-                MySqlConnection con = new MySqlConnection(ApplicationDbContext.GetConnectionString());
-                if (con.State == System.Data.ConnectionState.Closed) con.Open();
-                MySqlCommand com = new MySqlCommand(@"SELECT CONVERT(`categoryId`, UNSIGNED), ANY_VALUE(folder) FROM (SELECT 
+            Logger.LogInformation("Caching character folders for {0}", MapleVersion.Location);
+            categoryFolders = new Dictionary<int, string>();
+                using (MySqlConnection con = new MySqlConnection(ApplicationDbContext.GetConnectionString()))
+                {
+                    if (con.State == System.Data.ConnectionState.Closed) con.Open();
+                    MySqlCommand com = new MySqlCommand(@"SELECT CONVERT(`categoryId`, UNSIGNED), ANY_VALUE(folder) FROM (SELECT 
     *,
     @Num:= CONVERT(`ImgName`, UNSIGNED) as Num,
     floor(@Num / 100) categoryId,
@@ -97,10 +98,11 @@ AND `PackageName` = 'Character'
 WHERE `categoryId` IS NOT NULL
 GROUP BY `categoryId`
 ORDER BY ANY_VALUE(`folder`)", (MySqlConnection)con);
-                using (MySqlDataReader reader = com.ExecuteReader())
-                    while (reader.Read())
-                        categoryFolders.Add(Convert.ToInt32(reader[0]), (string)reader[1]);
-                File.WriteAllText(characterFoldersPath, JsonConvert.SerializeObject(categoryFolders));
+                    using (MySqlDataReader reader = com.ExecuteReader())
+                        while (reader.Read())
+                            categoryFolders.Add(Convert.ToInt32(reader[0]), (string)reader[1]);
+                    File.WriteAllText(characterFoldersPath, JsonConvert.SerializeObject(categoryFolders));
+                }
             });
         }
 
