@@ -5,7 +5,6 @@ before_script:
     - cd /builds/maplestory/maplestory.io/PKG1
     - git checkout master
     - git pull origin master
-    - rm -rf /builds/maplestory/maplestory.io/WZData
 
 stages:
     - build
