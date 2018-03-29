@@ -4,8 +4,6 @@ VisualStudioVersion = 15.0.26730.12
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "maplestory.io", "maplestory.io\maplestory.io.csproj", "{D16B4C8C-24CA-4D10-80CD-D020F2B0FF48}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WZData", "WZData\WZData.csproj", "{39DCC75F-54A2-4E8C-BC86-AFCAAF7665DC}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PKG1", "PKG1\PKG1.csproj", "{C3B772AB-3632-4F58-A64C-001F617A771C}"
 EndProject
 Global

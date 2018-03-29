@@ -1,11 +1,13 @@
-﻿using maplestory.io.Services.MapleStory;
+﻿using maplestory.io.Entities;
+using maplestory.io.Models;
+using maplestory.io.Services.Implementations.MapleStory;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Logging;
 using PKG1;
 using System;
 using System.Diagnostics;
 using System.IO;
-using System.Threading;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace maplestory.io
@@ -17,10 +19,37 @@ namespace maplestory.io
             Console.WriteLine($"Console Arguments: {string.Join(",", args)}");
 
             Stopwatch watch = Stopwatch.StartNew();
-            dynamic obj = Newtonsoft.Json.JsonConvert.DeserializeObject(File.ReadAllText("./appsettings.json"));
-            WZOptions wzPath = Newtonsoft.Json.JsonConvert.DeserializeObject<WZOptions>(obj.WZ.ToString());
+
             ILoggerFactory logging = (new LoggerFactory()).AddConsole(LogLevel.Trace);
-            WZFactory.Load(logging.CreateLogger<WZFactory>());
+            
+            WZProperty.SpecialUOL.Add("version", (uol, version) =>
+            {
+                string path = uol.Path;
+                MSPackageCollection wz = WZFactory.GetWZFromCache(uol.FileContainer.Collection.WZRegion, version);
+                if (wz != null) return wz.Resolve(path);
+
+                using (ApplicationDbContext dbCtx = new ApplicationDbContext())
+                {
+                    WZFactory wzFactory = new WZFactory(dbCtx);
+                    return wzFactory.GetWZ(uol.FileContainer.Collection.WZRegion, version).Resolve(path);
+                }
+            });
+
+            //WZProperty.ChildrenMutate = (i) =>
+            //{
+            //    return i.Select(c =>
+            //    {
+            //        if (c.Type != PropertyType.Lua) return c;
+
+            //        string luaVal = c.ResolveForOrNull<string>();
+            //        if (!luaVal.StartsWith("!")) return c;
+
+            //        string specialType = luaVal.Substring(1, luaVal.IndexOf(':') - 1);
+            //        if (WZProperty.SpecialUOL.ContainsKey(specialType))
+            //            return WZProperty.SpecialUOL[specialType](c, luaVal.Substring(specialType.Length + 2));
+            //        else throw new InvalidOperationException("Unable to follow Special UOL, as there is no defined route");
+            //    });
+            //};
 
             ILogger<Package> packageLogger = logging.CreateLogger<Package>();
             ILogger<PackageCollection> packageCollectionLogger = logging.CreateLogger<PackageCollection>();
@@ -34,12 +63,6 @@ namespace maplestory.io
             PackageCollection.Logging = (s) => packageCollectionLogger.LogInformation(s);
             VersionGuesser.Logging = (s) => versionGuesserLogger.LogInformation(s);
             Package.Logging = (s) => packageLogger.LogInformation(s);
-            Parallel.ForEach(wzPath.versions, (version) => WZFactory.AddWz(version.path, version.region, version.version));
-
-            readerLogging.LogDebug("Caching item requirements in background");
-            WZFactory wzFactory = new WZFactory();
-            // Background caching, because we don't /need/ the meta data to start the server
-            new Thread(() => ItemFactory.CacheEquipMeta(wzFactory, logging.CreateLogger<ItemFactory>())).Start();
 
             ILogger prog = logging.CreateLogger<Program>();
             watch.Stop();
