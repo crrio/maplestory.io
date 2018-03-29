@@ -70,6 +70,28 @@ namespace maplestory.io.Services.Implementations.MapleStory
             else return cache[region][version];
         }
 
+        internal static void LoadAllWZ()
+        {
+            MapleVersion[] versions;
+            using (ApplicationDbContext dbCtx = new ApplicationDbContext())
+                versions = dbCtx.MapleVersions.ToArray();
+
+            while (!Parallel.ForEach(versions, (ver) =>
+            {
+                Region region = (Region)ver.Region;
+                string version = ver.MapleVersionId;
+
+                if (!cache.ContainsKey(region)) cache.TryAdd(region, new ConcurrentDictionary<string, MSPackageCollection>());
+                else if (cache[region].ContainsKey(version))
+                    return;
+                using (ApplicationDbContext ctx = new ApplicationDbContext())
+                {
+                    MSPackageCollection collection = new MSPackageCollection(ctx, ver, null, region);
+                    cache[region].TryAdd(version, collection);
+                }
+            }).IsCompleted) Thread.Sleep(1);
+        }
+
         public Dictionary<string, string[]> GetAvailableRegionsAndVersions() => cache.ToDictionary(c => c.Key.ToString(), c => c.Value.Keys.ToArray());
 
         public static MSPackageCollection GetWZFromCache(Region region, string version)

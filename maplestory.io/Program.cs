@@ -45,6 +45,8 @@ namespace maplestory.io
                 }
             });
 
+            WZFactory.LoadAllWZ();
+
             //WZProperty.ChildrenMutate = (i) =>
             //{
             //    return i.Select(c =>
