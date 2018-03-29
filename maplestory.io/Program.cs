@@ -55,7 +55,7 @@ namespace maplestory.io
             ILogger<PackageCollection> packageCollectionLogger = logging.CreateLogger<PackageCollection>();
             ILogger<VersionGuesser> versionGuesserLogger = logging.CreateLogger<VersionGuesser>();
             ILogger<WZReader> readerLogging = logging.CreateLogger<WZReader>();
-            MSPackageCollection.Logging = logging.CreateLogger<MSPackageCollection>();
+            MSPackageCollection.Logger = logging.CreateLogger<MSPackageCollection>();
 
             readerLogging.LogDebug("Initializing Keys");
             WZReader.InitializeKeys();

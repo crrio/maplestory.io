@@ -20,7 +20,7 @@ namespace maplestory.io.Models
 {
     public class MSPackageCollection : PackageCollection
     {
-        static ILogger<MSPackageCollection> logging;
+        public static ILogger<MSPackageCollection> Logger;
         static ConcurrentDictionary<string, EventWaitHandle> wzLoading = new ConcurrentDictionary<string, EventWaitHandle>();
         public static Dictionary<int, string> JobNameLookup = new Dictionary<int, string>()
         {
@@ -70,7 +70,7 @@ namespace maplestory.io.Models
             Task.WaitAll(loading.ToArray());
             if (isInitial)
             {
-                logging.LogInformation("{0} has been loaded", versionInfo.Location);
+                logger.LogInformation("{0} has been loaded", versionInfo.Location);
                 waitForWZ.Set();
             }
         }
