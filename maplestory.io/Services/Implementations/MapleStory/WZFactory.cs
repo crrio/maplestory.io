@@ -63,7 +63,7 @@ namespace maplestory.io.Services.Implementations.MapleStory
                 wait.Set();
                 throw new KeyNotFoundException("That version or region could not be found");
             }
-            MSPackageCollection collection = new MSPackageCollection(_ctx, ver, null, region);
+            MSPackageCollection collection = new MSPackageCollection(ver, null, region);
             Logger.LogInformation($"Finished loading {region} - {version}");
             wait.Set();
             if (cache[region].TryAdd(version, collection)) return collection;
@@ -84,12 +84,9 @@ namespace maplestory.io.Services.Implementations.MapleStory
                 if (!cache.ContainsKey(region)) cache.TryAdd(region, new ConcurrentDictionary<string, MSPackageCollection>());
                 else if (cache[region].ContainsKey(version))
                     return;
-                using (ApplicationDbContext ctx = new ApplicationDbContext())
-                {
-                    MSPackageCollection collection = new MSPackageCollection(ctx, ver, null, region);
-                    cache[region].TryAdd(version, collection);
-                    Logger.LogInformation($"Finished loading {region} - {version}");
-                }
+                MSPackageCollection collection = new MSPackageCollection(ver, null, region);
+                cache[region].TryAdd(version, collection);
+                Logger.LogInformation($"Finished loading {region} - {version}");
             }).IsCompleted) Thread.Sleep(1);
         }
 

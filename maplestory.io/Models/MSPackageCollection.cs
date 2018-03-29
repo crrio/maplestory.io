@@ -37,7 +37,7 @@ namespace maplestory.io.Models
         public IDictionary<int, int[]> ItemDrops;
         public MSPackageCollection() { }
         public MSPackageCollection(string baseFilePath, ushort? versionId = null, Region region = Region.GMS) : base(baseFilePath, versionId, region) { }
-        public MSPackageCollection(ApplicationDbContext db, MapleVersion versionInfo, ushort? versionId = null, Region region = Region.GMS) 
+        public MSPackageCollection(MapleVersion versionInfo, ushort? versionId = null, Region region = Region.GMS) 
             : base(File.Exists(Path.Combine(versionInfo.Location, $"{versionInfo.BaseFile}.rebuilt.wz")) ? Path.Combine(versionInfo.Location, $"{versionInfo.BaseFile}.rebuilt.wz") : Path.Combine(versionInfo.Location, $"{versionInfo.BaseFile}.wz"), versionId, region)
         {
             this.MapleVersion = versionInfo;
@@ -54,18 +54,18 @@ namespace maplestory.io.Models
             if (File.Exists(characterFoldersPath))
                 categoryFolders = new Dictionary<int, string>(JsonConvert.DeserializeObject<Dictionary<int, string>>(File.ReadAllText(characterFoldersPath)));
             else
-                loading.Add(CacheCharacterFolders(db, characterFoldersPath));
+                loading.Add(CacheCharacterFolders(characterFoldersPath));
 
             string equipMetaPath = Path.Combine(versionInfo.Location, "equipMeta.json");
             if (File.Exists(equipMetaPath))
                 EquipMeta = new Dictionary<int, Tuple<string[], byte?, bool>>(JsonConvert.DeserializeObject<Dictionary<int, Tuple<string[], byte?, bool>>>(File.ReadAllText(equipMetaPath)));
             else
-                loading.Add(CacheEquipMeta(db, equipMetaPath));
+                loading.Add(CacheEquipMeta(equipMetaPath));
 
             string dropPath = Path.Combine(versionInfo.Location, "itemDrops.json");
             if (File.Exists(dropPath))
                 ItemDrops = JsonConvert.DeserializeObject<Dictionary<int, int[]>>(File.ReadAllText(dropPath));
-            else loading.Add(CacheDropLookup(db, dropPath));
+            else loading.Add(CacheDropLookup(dropPath));
 
             Task.WaitAll(loading.ToArray());
             if (isInitial)
@@ -81,7 +81,7 @@ namespace maplestory.io.Models
             {
                 Logger.LogInformation("Caching character folders for {0}", MapleVersion.Location);
                 categoryFolders = new Dictionary<int, string>();
-                DbConnection con = db.Database.GetDbConnection();
+                MySqlConnection con = new MySqlConnection(ApplicationDbContext.GetConnectionString());
                 if (con.State == System.Data.ConnectionState.Closed) con.Open();
                 MySqlCommand com = new MySqlCommand(@"SELECT CONVERT(`categoryId`, UNSIGNED), ANY_VALUE(folder) FROM (SELECT 
     *,
@@ -104,7 +104,7 @@ ORDER BY ANY_VALUE(`folder`)", (MySqlConnection)con);
             });
         }
 
-        Task CacheEquipMeta(ApplicationDbContext db, string equipMetaPath)
+        Task CacheEquipMeta(string equipMetaPath)
         {
             return Task.Run(() =>
             {
@@ -134,7 +134,7 @@ ORDER BY ANY_VALUE(`folder`)", (MySqlConnection)con);
             });
         }
 
-        Task CacheDropLookup(ApplicationDbContext db, string dropPath)
+        Task CacheDropLookup(string dropPath)
         {
             return Task.Run(() =>
             {

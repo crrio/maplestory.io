@@ -15,7 +15,7 @@ namespace maplestory.io.Entities
             optionsBuilder.UseMySql(GetConnectionString());
         }
 
-        private static string GetConnectionString()
+        internal static string GetConnectionString()
         {
             string databaseHost = Environment.GetEnvironmentVariable("MYSQL_DBHOST");
             string databaseName = Environment.GetEnvironmentVariable("MYSQL_DBNAME");
