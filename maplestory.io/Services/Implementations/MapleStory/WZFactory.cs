@@ -88,6 +88,7 @@ namespace maplestory.io.Services.Implementations.MapleStory
                 {
                     MSPackageCollection collection = new MSPackageCollection(ctx, ver, null, region);
                     cache[region].TryAdd(version, collection);
+                    Logger.LogInformation($"Finished loading {region} - {version}");
                 }
             }).IsCompleted) Thread.Sleep(1);
         }
