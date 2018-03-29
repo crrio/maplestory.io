@@ -56,7 +56,7 @@ namespace maplestory.io.Models
 
             string equipMetaPath = Path.Combine(versionInfo.Location, "equipMeta.json");
             if (File.Exists(equipMetaPath))
-                EquipMeta = new Dictionary<int, Tuple<string[], byte?, bool>>(JsonConvert.DeserializeObject<Dictionary<int, Tuple<string[], byte?, bool>>>(File.ReadAllText(characterFoldersPath)));
+                EquipMeta = new Dictionary<int, Tuple<string[], byte?, bool>>(JsonConvert.DeserializeObject<Dictionary<int, Tuple<string[], byte?, bool>>>(File.ReadAllText(equipMetaPath)));
             else
                 loading.Add(CacheEquipMeta(db, equipMetaPath));
 
