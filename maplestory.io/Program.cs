@@ -73,7 +73,9 @@ namespace maplestory.io
             var host = new WebHostBuilder()
                 .UseKestrel(options =>
                 {
-                    options.Limits.MaxRequestLineSize = 99999999;
+                    options.Limits.MaxConcurrentConnections = ushort.MaxValue;
+                    options.Limits.MaxConcurrentUpgradedConnections = ushort.MaxValue;
+                    options.Limits.MaxRequestLineSize = ushort.MaxValue;
                     options.Limits.MaxRequestBufferSize = int.MaxValue;
                     options.Limits.RequestHeadersTimeout = TimeSpan.FromSeconds(15);
                     options.Limits.KeepAliveTimeout = TimeSpan.FromSeconds(120);
