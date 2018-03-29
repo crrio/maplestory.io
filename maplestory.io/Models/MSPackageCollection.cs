@@ -79,6 +79,7 @@ namespace maplestory.io.Models
         {
             return Task.Run(() =>
             {
+                Logger.LogInformation("Caching character folders for {0}", MapleVersion.Location);
                 categoryFolders = new Dictionary<int, string>();
                 DbConnection con = db.Database.GetDbConnection();
                 if (con.State == System.Data.ConnectionState.Closed) con.Open();
@@ -107,6 +108,7 @@ ORDER BY ANY_VALUE(`folder`)", (MySqlConnection)con);
         {
             return Task.Run(() =>
             {
+                Logger.LogInformation("Caching equip meta for {0}", MapleVersion.Location);
                 ConcurrentDictionary<int, Tuple<string[], byte?, bool>> regionData = new ConcurrentDictionary<int, Tuple<string[], byte?, bool>>();
 
                 while (!Parallel.ForEach(
@@ -136,6 +138,7 @@ ORDER BY ANY_VALUE(`folder`)", (MySqlConnection)con);
         {
             return Task.Run(() =>
             {
+                Logger.LogInformation("Caching drops for {0}", MapleVersion.Location);
                 IDictionary<int, int[]> dropBy = Resolve("String/MonsterBook")?
                 .Children
                 .AsParallel()
