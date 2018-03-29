@@ -76,7 +76,7 @@ namespace maplestory.io.Models
                 categoryFolders = new Dictionary<int, string>();
                 DbConnection con = db.Database.GetDbConnection();
                 if (con.State == System.Data.ConnectionState.Closed) con.Open();
-                MySqlCommand com = new MySqlCommand(@"SELECT CONVERT(`categoryId`, UNSIGNED), folder FROM (SELECT 
+                MySqlCommand com = new MySqlCommand(@"SELECT CONVERT(`categoryId`, UNSIGNED), ANY_VALUE(folder) FROM (SELECT 
     *,
     @Num:= CONVERT(`ImgName`, UNSIGNED) as Num,
     floor(@Num / 100) categoryId,
@@ -89,7 +89,7 @@ AND `PackageName` = 'Character'
 ) a
 WHERE `categoryId` IS NOT NULL
 GROUP BY `categoryId`
-ORDER BY `folder`", (MySqlConnection)con);
+ORDER BY ANY_VALUE(`folder`)", (MySqlConnection)con);
                 using (MySqlDataReader reader = com.ExecuteReader())
                     while (reader.Read())
                         categoryFolders.Add(Convert.ToInt32(reader[0]), (string)reader[1]);
