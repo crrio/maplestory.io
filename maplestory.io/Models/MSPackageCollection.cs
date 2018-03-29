@@ -70,7 +70,7 @@ namespace maplestory.io.Models
             Task.WaitAll(loading.ToArray());
             if (isInitial)
             {
-                logger.LogInformation("{0} has been loaded", versionInfo.Location);
+                Logger.LogInformation("{0} has been loaded", versionInfo.Location);
                 waitForWZ.Set();
             }
         }
