@@ -75,7 +75,7 @@ namespace maplestory.io.Models
             }
         }
 
-        Task CacheCharacterFolders(ApplicationDbContext db, string characterFoldersPath)
+        Task CacheCharacterFolders(string characterFoldersPath)
         {
             return Task.Run(() =>
             {
