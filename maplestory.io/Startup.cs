@@ -1,16 +1,15 @@
-﻿using maplestory.io.Entities;
+﻿using maplestory.io.Data;
+using maplestory.io.Entities;
 using maplestory.io.Services.Implementations.MapleStory;
 using maplestory.io.Services.Interfaces.MapleStory;
 using maplestory.io.Services.Rethink;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.ResponseCompression;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Swashbuckle.AspNetCore.Swagger;
-using maplestory.io.Data;
 
 namespace maplestory.io
 {
@@ -103,7 +102,6 @@ namespace maplestory.io
             }
 
             app.UseStaticFiles();
-            app.UseResponseCompression();
 
             app.UseCors(builder => builder.AllowAnyOrigin().AllowAnyMethod());
 
