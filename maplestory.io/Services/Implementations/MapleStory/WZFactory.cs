@@ -76,7 +76,7 @@ namespace maplestory.io.Services.Implementations.MapleStory
             using (ApplicationDbContext dbCtx = new ApplicationDbContext())
                 versions = dbCtx.MapleVersions.ToArray();
 
-            while (!Parallel.ForEach(versions, (ver) =>
+            foreach (MapleVersion ver in versions)
             {
                 Region region = (Region)ver.Region;
                 string version = ver.MapleVersionId;
@@ -87,7 +87,7 @@ namespace maplestory.io.Services.Implementations.MapleStory
                 MSPackageCollection collection = new MSPackageCollection(ver, null, region);
                 cache[region].TryAdd(version, collection);
                 Logger.LogInformation($"Finished loading {region} - {version}");
-            }).IsCompleted) Thread.Sleep(1);
+            }
         }
 
         public Dictionary<string, string[]> GetAvailableRegionsAndVersions() => cache.ToDictionary(c => c.Key.ToString(), c => c.Value.Keys.ToArray());
