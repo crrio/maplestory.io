@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using RethinkDb.Driver;
 using RethinkDb.Driver.Ast;
 using Newtonsoft.Json;
-using WZData.ItemMetaInfo;
+using maplestory.io.Data.Items;
 
 namespace maplestory.io.Models.Market
 {

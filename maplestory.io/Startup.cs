@@ -1,14 +1,16 @@
-﻿using maplestory.io.Services.MapleStory;
+﻿using maplestory.io.Entities;
+using maplestory.io.Services.Implementations.MapleStory;
+using maplestory.io.Services.Interfaces.MapleStory;
 using maplestory.io.Services.Rethink;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.ResponseCompression;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Swashbuckle.AspNetCore.Swagger;
-using System.Threading.Tasks;
-using WZData;
+using maplestory.io.Data;
 
 namespace maplestory.io
 {
@@ -32,6 +34,22 @@ namespace maplestory.io
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            // ===== Add our DbContext ========
+            services.AddDbContext<ApplicationDbContext>();
+
+            // ===== Add Identity ========
+            services.AddIdentity<IdentityUser, IdentityRole>(options =>
+            {
+                options.Password.RequireDigit = false;
+                options.Password.RequiredLength = 1;
+                options.Password.RequiredUniqueChars = 1;
+                options.Password.RequireLowercase = false;
+                options.Password.RequireNonAlphanumeric = false;
+                options.Password.RequireUppercase = false;
+            })
+                .AddEntityFrameworkStores<ApplicationDbContext>()
+                .AddDefaultTokenProviders();
+
             // Add framework services.
             services.AddMvc()
                 .AddJsonOptions(options => {
@@ -46,20 +64,20 @@ namespace maplestory.io
             services.Configure<WZOptions>(Configuration.GetSection("WZ"));
             services.AddSingleton<IRethinkDbConnectionFactory, RethinkDbConnectionFactory>();
 
-            services.AddSingleton<IWZFactory, WZFactory>();
-            services.AddSingleton<IItemFactory, ItemFactory>();
-            services.AddSingleton<ISkillFactory, SkillFactory>();
-            services.AddSingleton<IMusicFactory, MusicFactory>();
-            services.AddSingleton<IMapFactory, MapFactory>();
-            services.AddSingleton<IMobFactory, MobFactory>();
-            services.AddSingleton<INPCFactory, NPCFactory>();
-            services.AddSingleton<IQuestFactory, QuestFactory>();
-            services.AddSingleton<ITipFactory, TipFactory>();
-            services.AddSingleton<IZMapFactory, ZMapFactory>();
-            services.AddSingleton<ICharacterFactory, CharacterFactory>();
-            services.AddSingleton<ICraftingEffectFactory, CraftingEffectFactory>();
-            services.AddSingleton<IAndroidFactory, AndroidFactory>();
-            services.AddSingleton<IPetFactory, PetFactory>();
+            services.AddTransient<IWZFactory, WZFactory>();
+            services.AddTransient<IItemFactory, ItemFactory>();
+            services.AddTransient<ISkillFactory, SkillFactory>();
+            services.AddTransient<IMusicFactory, MusicFactory>();
+            services.AddTransient<IMapFactory, MapFactory>();
+            services.AddTransient<IMobFactory, MobFactory>();
+            services.AddTransient<INPCFactory, NPCFactory>();
+            services.AddTransient<IQuestFactory, QuestFactory>();
+            services.AddTransient<ITipFactory, TipFactory>();
+            services.AddTransient<IZMapFactory, ZMapFactory>();
+            services.AddTransient<ICharacterFactory, CharacterFactory>();
+            services.AddTransient<ICraftingEffectFactory, CraftingEffectFactory>();
+            services.AddTransient<IAndroidFactory, AndroidFactory>();
+            services.AddTransient<IPetFactory, PetFactory>();
 
             services.AddSwaggerGen(c =>
             {

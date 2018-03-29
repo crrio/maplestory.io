@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Http;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Formats;
+using System.Collections.Generic;
 using System.IO;
 
 namespace maplestory.io
@@ -31,5 +32,15 @@ namespace maplestory.io
                 return mem.ToArray();
             }
         }
+
+        /// <summary>
+        /// Instantiates and returns a <see cref="CachedEnumerable{T}"/> for a given <paramref name="enumerable"/>.
+        /// Notice: The first item is always iterated through.
+        /// </summary>
+        public static CachedEnumerable<T> ToCachedEnumerable<T>(this IEnumerable<T> enumerable)
+        {
+            return CachedEnumerable<T>.Create(enumerable);
+        }
+
     }
 }
