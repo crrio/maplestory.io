@@ -21,7 +21,17 @@ namespace maplestory.io
             Stopwatch watch = Stopwatch.StartNew();
 
             ILoggerFactory logging = (new LoggerFactory()).AddConsole(LogLevel.Trace);
-            
+            ILogger<Package> packageLogger = logging.CreateLogger<Package>();
+            ILogger<PackageCollection> packageCollectionLogger = logging.CreateLogger<PackageCollection>();
+            ILogger<VersionGuesser> versionGuesserLogger = logging.CreateLogger<VersionGuesser>();
+            ILogger<WZReader> readerLogging = logging.CreateLogger<WZReader>();
+
+            MSPackageCollection.Logger = logging.CreateLogger<MSPackageCollection>();
+            WZFactory.Logger = logging.CreateLogger<WZFactory>();
+            PackageCollection.Logging = (s) => packageCollectionLogger.LogInformation(s);
+            VersionGuesser.Logging = (s) => versionGuesserLogger.LogInformation(s);
+            Package.Logging = (s) => packageLogger.LogInformation(s);
+
             WZProperty.SpecialUOL.Add("version", (uol, version) =>
             {
                 string path = uol.Path;
@@ -51,20 +61,9 @@ namespace maplestory.io
             //    });
             //};
 
-            ILogger<Package> packageLogger = logging.CreateLogger<Package>();
-            ILogger<PackageCollection> packageCollectionLogger = logging.CreateLogger<PackageCollection>();
-            ILogger<VersionGuesser> versionGuesserLogger = logging.CreateLogger<VersionGuesser>();
-            ILogger<WZReader> readerLogging = logging.CreateLogger<WZReader>();
-            MSPackageCollection.Logger = logging.CreateLogger<MSPackageCollection>();
-            WZFactory.Logger = logging.CreateLogger<WZFactory>();
-
             readerLogging.LogDebug("Initializing Keys");
             WZReader.InitializeKeys();
             readerLogging.LogDebug("Done");
-
-            PackageCollection.Logging = (s) => packageCollectionLogger.LogInformation(s);
-            VersionGuesser.Logging = (s) => versionGuesserLogger.LogInformation(s);
-            Package.Logging = (s) => packageLogger.LogInformation(s);
 
             ILogger prog = logging.CreateLogger<Program>();
             watch.Stop();
