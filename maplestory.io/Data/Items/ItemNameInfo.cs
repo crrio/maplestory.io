@@ -60,11 +60,12 @@ namespace maplestory.io.Data.Items
                 IEnumerable<WZProperty> eqp = (stringFile.Resolve("Eqp/Eqp") ?? stringFile.Resolve("Item/Eqp")).Children.SelectMany(c => c.Children);
                 IEnumerable<WZProperty> etc = (stringFile.Resolve("Etc/Etc") ?? stringFile.Resolve("Item/Etc")).Children;
                 IEnumerable<WZProperty> ins = (stringFile.Resolve("Ins") ?? stringFile.Resolve("Item/Ins")).Children;
-                IEnumerable<WZProperty> cash = (stringFile.Resolve("Cash") ?? stringFile.Resolve("Item/Cash")).Children;
+                IEnumerable<WZProperty> cash = (stringFile.Resolve("Cash") ?? stringFile.Resolve("Item/Cash"))?.Children;
                 IEnumerable<WZProperty> consume = (stringFile.Resolve("Consume") ?? stringFile.Resolve("Item/Con")).Children;
                 IEnumerable<WZProperty> pet = (stringFile.Resolve("Pet") ?? stringFile.Resolve("Item/Pet")).Children;
 
-                IEnumerable<WZProperty> allItems = eqp.Concat(etc).Concat(ins).Concat(cash).Concat(consume).Concat(pet);
+                IEnumerable<WZProperty> allItems = eqp.Concat(etc).Concat(ins).Concat(consume).Concat(pet);
+                if (cash != null) allItems = allItems.Concat(cash);
                 itemNames = allItems.Select(ItemNameInfo.Parse);
 
                 stringFile.FileContainer.Collection.VersionCache.AddOrUpdate("itemNames", itemNames, (a, b) => b);
