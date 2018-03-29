@@ -84,9 +84,16 @@ namespace maplestory.io.Services.Implementations.MapleStory
                 if (!cache.ContainsKey(region)) cache.TryAdd(region, new ConcurrentDictionary<string, MSPackageCollection>());
                 else if (cache[region].ContainsKey(version))
                     return;
-                MSPackageCollection collection = new MSPackageCollection(ver, null, region);
-                cache[region].TryAdd(version, collection);
-                Logger.LogInformation($"Finished loading {region} - {version}");
+                try
+                {
+                    MSPackageCollection collection = new MSPackageCollection(ver, null, region);
+                    cache[region].TryAdd(version, collection);
+                    Logger.LogInformation($"Finished loading {region} - {version}");
+                }
+                catch (Exception)
+                {
+                    Logger.LogWarning($"Couldn't load {region} - {version}");
+                }
             }
         }
 
