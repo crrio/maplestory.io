@@ -76,6 +76,13 @@ namespace maplestory.io.Services.Implementations.MapleStory
             using (ApplicationDbContext dbCtx = new ApplicationDbContext())
                 versions = dbCtx.MapleVersions.ToArray();
 
+            MapleVersion highest = versions.Select(c =>
+            {
+                if (int.TryParse(c.MapleVersionId, out int versionId))
+                    return new Tuple<int, MapleVersion>(versionId, c);
+                return null;
+            }).OrderBy(c => c.Item1).Where(c => c != null).Last().Item2;
+
             foreach (MapleVersion ver in versions)
             {
                 Region region = (Region)ver.Region;
@@ -88,6 +95,7 @@ namespace maplestory.io.Services.Implementations.MapleStory
                 {
                     MSPackageCollection collection = new MSPackageCollection(ver, null, region);
                     cache[region].TryAdd(version, collection);
+                    if (ver == highest) cache[region].TryAdd("latest", collection);
                     Logger.LogInformation($"Finished loading {region} - {version}");
                 }
                 catch (Exception)
