@@ -51,7 +51,9 @@ namespace maplestory.io.Services.Implementations.MapleStory
 
             if (!wzLoading.TryAdd(versionHash, wait))
             {
+                _logger.LogInformation($"Waiting for other thread to finish loading {region} - {version}");
                 wzLoading[versionHash].WaitOne();
+                _logger.LogInformation($"Finished waiting for {region} - {version}");
                 return GetWZ(region, version);
             }
 
@@ -66,6 +68,7 @@ namespace maplestory.io.Services.Implementations.MapleStory
                 throw new KeyNotFoundException("That version or region could not be found");
             }
             MSPackageCollection collection = new MSPackageCollection(_ctx, ver, null, region);
+            _logger.LogInformation($"Finished loading {region} - {version}");
             wait.Set();
             if (cache[region].TryAdd(version, collection)) return collection;
             else return cache[region][version];
