@@ -19,9 +19,9 @@ namespace maplestory.io.Data.Maps
         public string BackgroundMusic;
         public bool? IsReturnMap;
         public int? ReturnMap;
-        public CachedEnumerable<Portal> portals;
-        public CachedEnumerable<MapLife> Npcs;
-        public CachedEnumerable<MapLife> Mobs;
+        public IEnumerable<Portal> portals;
+        public IEnumerable<MapLife> Npcs;
+        public IEnumerable<MapLife> Mobs;
         public double? MobRate;
         public bool? IsTown;
         public bool? IsSwim;
@@ -29,11 +29,11 @@ namespace maplestory.io.Data.Maps
         public MiniMap MiniMap;
         public int? LinksTo;
         [JsonIgnore]
-        public CachedEnumerable<GraphicsSet> Graphics;
+        public IEnumerable<GraphicsSet> Graphics;
         [JsonIgnore]
-        public CachedEnumerable<MapBackground> Backgrounds;
+        public IEnumerable<MapBackground> Backgrounds;
         [JsonIgnore]
-        private CachedEnumerable<MapLife> Life;
+        private IEnumerable<MapLife> Life;
         public Dictionary<int, Foothold> Footholds;
         public int? MinimumStarForce;
         public int? MinimumArcaneForce;
@@ -97,8 +97,8 @@ namespace maplestory.io.Data.Maps
             result.Graphics = mapEntry.Children
                 .Where(c => int.TryParse(c.NameWithoutExtension, out int blah))
                 .AsParallel()
-                .Select((c, i) => GraphicsSet.Parse(c, i)).ToCachedEnumerable();
-            result.Backgrounds = mapEntry.Resolve("back")?.Children.AsParallel().Select(c => MapBackground.Parse(c)).ToCachedEnumerable();
+                .Select((c, i) => GraphicsSet.Parse(c, i)).ToArray();
+            result.Backgrounds = mapEntry.Resolve("back")?.Children.AsParallel().Select(c => MapBackground.Parse(c)).ToArray();
 
             IEnumerable<IEnumerable<IPositionedFrameContainer>> frameContainers = result.Graphics
                 .Select(g => g.Objects.Select(c => (IPositionedFrameContainer)c).Concat(g.Tiles).ToArray());
@@ -129,9 +129,9 @@ namespace maplestory.io.Data.Maps
                 .GroupBy(c => c.ResolveFor<int>("id"))
                 .AsParallel()
                 .Select(grouping => grouping.Select(c => MapLife.Parse(c, result.Footholds, lifeTemplateCache)).ToArray())
-                .SelectMany(c => c).ToCachedEnumerable();
-            result.Npcs = result.Life?.Where(c => c.Type == LifeType.NPC).ToCachedEnumerable();
-            result.Mobs = result.Life?.Where(c => c.Type == LifeType.Monster).ToCachedEnumerable();
+                .SelectMany(c => c).ToArray();
+            result.Npcs = result.Life?.Where(c => c.Type == LifeType.NPC).ToArray();
+            result.Mobs = result.Life?.Where(c => c.Type == LifeType.Monster).ToArray();
             watch.Stop();
             Package.Logging($"Map ParseLife took {watch.ElapsedMilliseconds}");
         }
@@ -173,7 +173,7 @@ namespace maplestory.io.Data.Maps
             float top = mapInfo.ResolveFor<float>("VRTop") ?? 0, right = mapInfo.ResolveFor<float>("VRRight") ?? 0, bottom = mapInfo.ResolveFor<float>("VRBottom") ?? 0, left = mapInfo.ResolveFor<float>("VRLeft") ?? 0;
 
             result.VRBounds = new RectangleF(left, top, right - left, bottom - top);
-            result.portals = mapEntry.Resolve("portal")?.Children.Select(Portal.Parse).ToCachedEnumerable();
+            result.portals = mapEntry.Resolve("portal")?.Children.Select(Portal.Parse).ToArray();
             result.MiniMap = result.MiniMap = MiniMap.Parse(mapEntry.Resolve("miniMap"));
             watch.Stop();
             Package.Logging($"Map ParseInfo took {watch.ElapsedMilliseconds}");
