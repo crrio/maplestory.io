@@ -105,7 +105,7 @@ ORDER BY ANY_VALUE(`folder`)", (MySqlConnection)con);
 
                 while (!Parallel.ForEach(
                     Resolve("Character").Children
-                        .SelectMany(c => c.Children),
+                        .SelectMany(c => c.Resolve().Children),
                     c =>
                     {
                         if (!int.TryParse(c.NameWithoutExtension, out int itemId)) return;
