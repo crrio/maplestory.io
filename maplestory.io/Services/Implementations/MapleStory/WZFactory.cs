@@ -12,12 +12,14 @@ using maplestory.io.Entities;
 using maplestory.io.Models;
 using maplestory.io.Entities.Models;
 using maplestory.io.Services.Interfaces.MapleStory;
+using System.Threading;
 
 namespace maplestory.io.Services.Implementations.MapleStory
 {
     public class WZFactory : IWZFactory
     {
         private static ILogger _logger;
+        static ConcurrentDictionary<string, EventWaitHandle> wzLoading = new ConcurrentDictionary<string, EventWaitHandle>();
 
         public static void Load(ILogger<WZFactory> logger)
         {
@@ -40,17 +42,31 @@ namespace maplestory.io.Services.Implementations.MapleStory
             int regionNum = (int)region;
             version = version.TrimStart('0');
 
+            EventWaitHandle wait = new EventWaitHandle(false, EventResetMode.ManualReset);
+            string versionHash = $"{region.ToString()}-{version}";
+
             if (!cache.ContainsKey(region)) cache.TryAdd(region, new ConcurrentDictionary<string, MSPackageCollection>());
             else if (cache[region].ContainsKey(version))
                 return cache[region][version];
+
+            if (!wzLoading.TryAdd(versionHash, wait))
+            {
+                wzLoading[versionHash].WaitOne();
+                return GetWZ(region, version);
+            }
 
             MapleVersion ver = null;
 
             if (version == "latest") ver = _ctx.MapleVersions.LastOrDefault(c => c.Region == regionNum);
             else ver = _ctx.MapleVersions.FirstOrDefault(c => c.Region == regionNum && c.MapleVersionId == version);
 
-            if (ver == null) throw new KeyNotFoundException("That version or region could not be found");
+            if (ver == null)
+            {
+                wait.Set();
+                throw new KeyNotFoundException("That version or region could not be found");
+            }
             MSPackageCollection collection = new MSPackageCollection(_ctx, ver, null, region);
+            wait.Set();
             if (cache[region].TryAdd(version, collection)) return collection;
             else return cache[region][version];
         }
