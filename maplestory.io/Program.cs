@@ -80,6 +80,10 @@ namespace maplestory.io
                     options.Limits.RequestHeadersTimeout = TimeSpan.FromSeconds(15);
                     options.Limits.KeepAliveTimeout = TimeSpan.FromSeconds(120);
                 })
+                .UseLibuv(o =>
+                {
+                    o.ThreadCount = 32;
+                })
                 .UseContentRoot(Directory.GetCurrentDirectory())
                 .UseUrls("http://*:5000")
                 .UseIISIntegration()
