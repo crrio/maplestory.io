@@ -590,6 +590,7 @@ namespace maplestory.io.Data.Characters
                     node = node.Resolve($"{weaponType.ToString()}"); // If their selected animation doesn't exist, try ours, and then go to default as a fail-safe
 
                 if (node == null) return null;
+                if (node.Type == PropertyType.Lua) node = node.Resolve();
 
                 Dictionary<string, WZProperty> children = node.Children.ToDictionary(b => b.NameWithoutExtension, b => b);
 
