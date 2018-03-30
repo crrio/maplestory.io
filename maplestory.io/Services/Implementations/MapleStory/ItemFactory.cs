@@ -82,7 +82,7 @@ namespace maplestory.io.Services.Implementations.MapleStory
         }
 
         public Task<MapleItem> SearchAsync(int id) => new Task<MapleItem>(() => Search(id));
-        public MapleItem Search(int id) => Search(id, (i) => WZ.ItemDrops?[i]?.ToArray());
+        public MapleItem Search(int id) => Search(id, (i) => (WZ.ItemDrops?.ContainsKey(i) ?? false) ? WZ.ItemDrops[i].ToArray() : new int[0]);
 
         public Task<MapleItem> SearchAsync(int id, Func<int, int[]> getDroppedBy) => new Task<MapleItem>(() => Search(id, getDroppedBy));
         public MapleItem Search(int id, Func<int, int[]> getDroppedBy) {

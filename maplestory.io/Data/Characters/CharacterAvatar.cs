@@ -601,6 +601,8 @@ namespace maplestory.io.Data.Characters
                         animationNode = children[(MustSit && (c.Item2.ItemId < 1902000 || c.Item2.ItemId > 1993000)) ? "sit" : action];
                     else if (children.ContainsKey(MustSit ? (c.Item2.AnimationName ?? action) : "default"))
                         animationNode = children[MustSit ? (c.Item2.AnimationName ?? action) : "default"];
+                    else if (children.ContainsKey((c.Item2.AnimationName ?? action)))
+                        animationNode = children[(c.Item2.AnimationName ?? action)];
                     else animationNode = children["default"] ?? node.Resolve();
 
                     if (animationNode == null && !(c.Item2.ItemId >= 1902000 && c.Item2.ItemId <= 1993000 && (animationNode = node.Resolve("sit")) != null))
