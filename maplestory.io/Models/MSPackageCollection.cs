@@ -21,7 +21,6 @@ namespace maplestory.io.Models
     public class MSPackageCollection : PackageCollection
     {
         public static ILogger<MSPackageCollection> Logger;
-        static ConcurrentDictionary<string, EventWaitHandle> wzLoading = new ConcurrentDictionary<string, EventWaitHandle>();
         public static Dictionary<int, string> JobNameLookup = new Dictionary<int, string>()
         {
             { 0, "Beginner" },
@@ -42,12 +41,6 @@ namespace maplestory.io.Models
         {
             this.MapleVersion = versionInfo;
 
-            EventWaitHandle waitForWZ = new EventWaitHandle(false, EventResetMode.ManualReset);
-            bool isInitial = wzLoading.TryAdd(versionInfo.Location, waitForWZ);
-
-            if (!isInitial)
-                wzLoading[versionInfo.Location].WaitOne();
-
             List<Task> loading = new List<Task>();
 
             string characterFoldersPath = Path.Combine(versionInfo.Location, "characterFolders.json");
@@ -67,12 +60,7 @@ namespace maplestory.io.Models
                 ItemDrops = JsonConvert.DeserializeObject<Dictionary<int, int[]>>(File.ReadAllText(dropPath));
             else loading.Add(CacheDropLookup(dropPath));
 
-            Task.WaitAll(loading.ToArray());
-            if (isInitial)
-            {
-                Logger.LogInformation("{0} has been loaded", versionInfo.Location);
-                waitForWZ.Set();
-            }
+            if (loading.Count > 0) Task.WaitAll(loading.ToArray());
         }
 
         Task CacheCharacterFolders(string characterFoldersPath)

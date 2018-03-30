@@ -618,7 +618,7 @@ namespace maplestory.io.Data.Characters
                     }
                     return new Tuple<string, int, int>(action, c.Item2.ItemId, frameCount);
                 }).ToArray();
-            }).ToArray();
+            }).Where(c => c != null).ToArray();
             watch.Stop();
             times.Add(watch.ElapsedMilliseconds);
             watch.Restart();

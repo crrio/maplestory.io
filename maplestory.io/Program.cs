@@ -45,8 +45,6 @@ namespace maplestory.io
                 }
             });
 
-            WZFactory.LoadAllWZ();
-
             //WZProperty.ChildrenMutate = (i) =>
             //{
             //    return i.Select(c =>
@@ -66,6 +64,8 @@ namespace maplestory.io
             readerLogging.LogDebug("Initializing Keys");
             WZReader.InitializeKeys();
             readerLogging.LogDebug("Done");
+
+            WZFactory.LoadAllWZ();
 
             ILogger prog = logging.CreateLogger<Program>();
             watch.Stop();

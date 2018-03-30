@@ -124,7 +124,7 @@ namespace maplestory.io.Controllers.API
         [Produces(typeof(Tuple<Image<Rgba32>, Dictionary<string, Point>>))]
         public IActionResult GetCharacterDetails(int skinId, string items, string animation, int frame, RenderMode renderMode, bool showEars, bool showLefEars, int padding)
         {
-            Tuple<Image<Rgba32>, Dictionary<string, Point>, Dictionary<string, int>, int> detailed = CharacterFactory.GetDetailedCharacter(skinId, animation, frame, showEars, showLefEars, padding, name, resize, flipX, renderMode, items
+            Tuple<Image<Rgba32>, Dictionary<string, Point>, Dictionary<string, int>, int> detailed = CharacterFactory.GetDetailedCharacter(skinId, animation, frame, showEars, showLefEars, padding, name, resize, flipX, renderMode, items?
                 .Split(new string[] { "," }, StringSplitOptions.RemoveEmptyEntries)
                 .Select(c => c.Split(':', ';'))
                 .Where(c => c.Length > 0 && int.TryParse(c[0], out int blah))

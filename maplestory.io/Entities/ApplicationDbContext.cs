@@ -26,7 +26,7 @@ namespace maplestory.io.Entities
                    $"database={databaseName};" +
                    $"uid={databaseUser};" +
                    $"pwd={databasePass};" +
-                   $"pooling=true;";
+                   $"pooling=true;Allow User Variables=True";
         }
     }
 }
