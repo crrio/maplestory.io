@@ -603,7 +603,10 @@ namespace maplestory.io.Data.Characters
                         animationNode = children[MustSit ? (c.Item2.AnimationName ?? action) : "default"];
                     else if (children.ContainsKey((c.Item2.AnimationName ?? action)))
                         animationNode = children[(c.Item2.AnimationName ?? action)];
-                    else animationNode = children["default"] ?? node.Resolve();
+                    else if (children.ContainsKey("default"))
+                        animationNode = children["default"] ?? node.Resolve();
+                    else
+                        return null;
 
                     if (animationNode == null && !(c.Item2.ItemId >= 1902000 && c.Item2.ItemId <= 1993000 && (animationNode = node.Resolve("sit")) != null))
                             return null;
@@ -619,7 +622,7 @@ namespace maplestory.io.Data.Characters
                         if (frameNode != null) Delay = frameNode.ResolveFor<int>("delay") ?? 0;
                     }
                     return new Tuple<string, int, int>(action, c.Item2.ItemId, frameCount);
-                }).ToArray();
+                }).Where(b => b != null).ToArray();
             }).Where(c => c != null).ToArray();
             watch.Stop();
             times.Add(watch.ElapsedMilliseconds);
@@ -640,7 +643,7 @@ namespace maplestory.io.Data.Characters
                         return new Tuple<string, int, int>(action, c.Item2.ItemId, frameCount);
                     });
                 }).ToArray();
-            }).Where(c => c != null).SelectMany(c => c).ToArray();
+            }).Where(c => c != null).SelectMany(c => c).Where(b => b != null).ToArray();
             watch.Stop();
             times.Add(watch.ElapsedMilliseconds);
             watch.Restart();
@@ -768,7 +771,7 @@ namespace maplestory.io.Data.Characters
                 string folder = wz.categoryFolders[c.Key];
                 WZProperty characterFolder = character.Resolve(folder);
                 return characterFolder.Children.Where(b => names.Contains(b.NameWithoutExtension));
-            }).SelectMany(c => c).Select(c => c.Resolve()).ToArray();
+            }).Where(c => c != null).SelectMany(c => c).Select(c => c.Resolve()).ToArray();
 
             string[] firstItemAnimations = itemNodes.Where(c => c.NameWithoutExtension.Equals("01040002")).First().Children.Select(c => c.NameWithoutExtension).ToArray();
 
