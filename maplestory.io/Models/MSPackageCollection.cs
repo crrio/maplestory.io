@@ -77,7 +77,8 @@ namespace maplestory.io.Models
     @Num:= CONVERT(`ImgName`, UNSIGNED) as Num,
     floor(@Num / 100) categoryId,
     substr(`Path`, 10),
-    substr(`Path`, 11, locate('\\', `PATH`, 11) - 11) folder
+    @NoDataStart:= if(`Path` like 'Data%', substr(`Path`, 6), `Path`),
+    substr(@NoDataStart, 11, locate('/', @NoDataStart, 11) - 11) folder
 FROM 
 	`maplestory.io`.`VersionPathHashes`
 WHERE `MapleVersionId` = " + MapleVersion.Id + @"
