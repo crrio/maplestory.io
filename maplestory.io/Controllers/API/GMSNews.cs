@@ -6,13 +6,11 @@ using System.Threading.Tasks;
 
 namespace maplestory.io.Controllers.API
 {
-    [Produces("application/json")]
     [Route("api/gms/latest/news")]
     public class GMSNews : Controller
     {
         [Route("article/{id}")]
         [HttpGet]
-        [Produces("application/json")]
         public async Task<IActionResult> GetArticle(int id)
         {
             using (HttpClient client = new HttpClient())
@@ -29,7 +27,6 @@ namespace maplestory.io.Controllers.API
 
         [Route("{type?}")]
         [HttpGet]
-        [Produces("application/json")]
         public async Task<IActionResult> GetNews(string type = "all")
         {
             using (HttpClient client = new HttpClient())

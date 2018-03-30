@@ -9,7 +9,6 @@ namespace maplestory.io.Controllers
     {
         [Route("")]
         [HttpGet]
-        [ProducesResponseType(typeof(Dictionary<string, string[]>), 200)]
         public IActionResult Index() => Json(WZFactory.GetAvailableRegionsAndVersions());
     }
 }

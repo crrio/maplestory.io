@@ -1,17 +1,13 @@
+using maplestory.io.Models.Market;
+using maplestory.io.Services.Rethink;
+using Microsoft.AspNetCore.Mvc;
+using RethinkDb.Driver.Net;
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using maplestory.io.Services.Rethink;
-using RethinkDb.Driver;
-using maplestory.io.Models.Market;
-using RethinkDb.Driver.Net;
 
 namespace maplestory.io.Controllers.API
 {
-    [Produces("application/json")]
     [Route("api/server")]
     public class MarketController : APIController
     {
@@ -24,7 +20,6 @@ namespace maplestory.io.Controllers.API
 
         [Route("{serverId}/market/legacy")]
         [HttpGet]
-        [ProducesResponseType(typeof(LegacyItem), 200)]
         public async Task<IActionResult> GetLegacyMarketData(int serverId)
         {
             DateTime mostRecentTimestamp = DateTime.MinValue;
@@ -58,7 +53,6 @@ namespace maplestory.io.Controllers.API
 
         [Route("{serverId}/market/itemCount")]
         [HttpGet]
-        [ProducesResponseType(typeof(int), 200)]
         public async Task<IActionResult> ItemCount(int serverId)
         {
             using (var con = this.connectionFactory.CreateConnection())
@@ -68,7 +62,6 @@ namespace maplestory.io.Controllers.API
 
         [Route("{serverId}/market/rooms")]
         [HttpGet]
-        [ProducesResponseType(typeof(FMRoom[]), 200)]
         public async Task<IActionResult> GetRooms(int serverId)
         {
             using (var con = this.connectionFactory.CreateConnection())
@@ -78,7 +71,6 @@ namespace maplestory.io.Controllers.API
 
         [Route("{serverId}/market/items")]
         [HttpGet]
-        [ProducesResponseType(typeof(WorldItem[][]), 200)]
         public async Task<IActionResult> GetRoomItems(int serverId)
         {
             using (var con = this.connectionFactory.CreateConnection())
@@ -100,7 +92,6 @@ namespace maplestory.io.Controllers.API
 
         [Route("{serverId}/market/room/{roomId}")]
         [HttpGet]
-        [ProducesResponseType(typeof(FMRoom[]), 200)]
         public async Task<IActionResult> GetRoom(int serverId, int roomId)
         {
             using (var con = this.connectionFactory.CreateConnection())
@@ -109,7 +100,6 @@ namespace maplestory.io.Controllers.API
 
         [Route("{serverId}/market/room/{roomId}/items")]
         [HttpGet]
-        [ProducesResponseType(typeof(ShopItem[]), 200)]
         public async Task<IActionResult> GetRoomItems(int serverId, int roomId)
         {
             using (var con = this.connectionFactory.CreateConnection())

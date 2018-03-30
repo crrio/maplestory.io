@@ -3,7 +3,6 @@ using PKG1;
 
 namespace maplestory.io.Controllers.API
 {
-    [Produces("application/json")]
     [Route("api/{region}/{version}/zmap")]
     public class ZMapController : APIController
     {

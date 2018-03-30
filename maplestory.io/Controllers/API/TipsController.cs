@@ -3,7 +3,6 @@ using PKG1;
 
 namespace maplestory.io.Controllers
 {
-    [Produces("application/json")]
     [Route("api/etc/tips")]
     public class TipsController : APIController
     {

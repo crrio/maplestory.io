@@ -8,7 +8,6 @@ using System.Threading.Tasks;
 
 namespace maplestory.io.Controllers.API
 {
-    [Produces("application/json")]
     [Route("api/ranking")]
     public class RankingController : Controller
     {
@@ -20,7 +19,6 @@ namespace maplestory.io.Controllers.API
 
         [Route("{characterName}")]
         [HttpGet]
-        [ProducesResponseType(typeof(Character), 200)]
         public async Task<IActionResult> GetCharacter(string characterName)
         {
             var character = await Character.GetCharacter(characterName);
@@ -29,8 +27,6 @@ namespace maplestory.io.Controllers.API
 
         [Route("{characterName}/avatar")]
         [HttpGet]
-        [ProducesResponseType(200)]
-        [Produces("image/png")]
         public async Task<IActionResult> GetCharacterAvatar(string characterName)
         {
             var character = await Character.GetCharacter(characterName);
@@ -50,8 +46,6 @@ namespace maplestory.io.Controllers.API
 
         [Route("{characterName}/avatar/full")]
         [HttpGet]
-        [ProducesResponseType(200)]
-        [Produces("image/png")]
         public async Task<IActionResult> GetFullCharacterAvatar(string characterName)
         {
             var character = await Character.GetCharacter(characterName);

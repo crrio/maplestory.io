@@ -1,12 +1,9 @@
-using Microsoft.AspNetCore.Mvc;
-using PKG1;
-using System.Collections.Generic;
-using System.Linq;
 using maplestory.io.Data;
+using Microsoft.AspNetCore.Mvc;
+using System.Linq;
 
 namespace maplestory.io.Controllers.API
 {
-    [Produces("application/json")]
     [Route("api/{region}/{version}/job")]
     [ResponseCache(Duration = 86400, Location = ResponseCacheLocation.Any)]
     public class JobController : APIController
@@ -14,12 +11,10 @@ namespace maplestory.io.Controllers.API
 
         [Route("")]
         [HttpGet]
-        [ProducesResponseType(typeof(Job[]), 200)]
         public IActionResult GetJobs() => Json(SkillFactory.GetJobs());
 
         [Route("{jobId}")]
         [HttpGet]
-        [ProducesResponseType(typeof(Job), 200)]
         public IActionResult GetJob(int jobId)
         {
             Job job = SkillFactory.GetJob(jobId);
@@ -29,7 +24,6 @@ namespace maplestory.io.Controllers.API
 
         [Route("{jobId}/skillbook")]
         [HttpGet]
-        [ProducesResponseType(typeof(SkillBook), 200)]
         public IActionResult GetSkillbook(int jobId)
         {
             SkillBook book = SkillFactory.GetSkillBook(jobId);
@@ -39,7 +33,6 @@ namespace maplestory.io.Controllers.API
 
         [Route("{jobId}/skillbook/{skillId}")]
         [HttpGet]
-        [ProducesResponseType(typeof(Skill), 200)]
         public IActionResult GetSkillFromBook(int jobId, int skillId)
         {
             SkillBook book = SkillFactory.GetSkillBook(jobId);
@@ -51,7 +44,6 @@ namespace maplestory.io.Controllers.API
 
         [Route("skill/{skillId}")]
         [HttpGet]
-        [ProducesResponseType(typeof(SkillDescription), 200)]
         public IActionResult GetSkill(int skillId)
         {
             Skill desc = SkillFactory.GetSkill(skillId);
@@ -61,7 +53,6 @@ namespace maplestory.io.Controllers.API
 
         [Route("skilltree")]
         [HttpGet]
-        [ProducesResponseType(typeof(IEnumerable<SkillTree>), 200)]
         public IActionResult GetSkillTree()
             => Json(SkillFactory.GetSkills());
     }

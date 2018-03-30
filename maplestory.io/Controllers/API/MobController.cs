@@ -1,23 +1,19 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using PKG1;
-using System.Linq;
-using maplestory.io.Data.Images;
+﻿using maplestory.io.Data.Images;
 using maplestory.io.Data.Mobs;
+using Microsoft.AspNetCore.Mvc;
+using System.Linq;
 
 namespace maplestory.io.Controllers.API
 {
-    [Produces("application/json")]
     [Route("api/{region}/{version}/mob")]
     public class MobController : APIController
     {
         [Route("")]
         [HttpGet]
-        [ProducesResponseType(typeof(MobInfo[]), 200)]
         public IActionResult List() => Json(MobFactory.GetMobs());
 
         [Route("{mobId}")]
         [HttpGet]
-        [ProducesResponseType(typeof(Mob), 200)]
         public IActionResult GetMob(int mobId)
         {
             return Json(MobFactory.GetMob(mobId));
@@ -25,8 +21,6 @@ namespace maplestory.io.Controllers.API
 
         [Route("{mobId}/icon")]
         [HttpGet]
-        [ProducesResponseType(200)]
-        [Produces("image/png")]
         public IActionResult GetFrame(int mobId)
         {
             Mob mobData = MobFactory.GetMob(mobId);
@@ -46,8 +40,6 @@ namespace maplestory.io.Controllers.API
 
         [Route("{mobId}/render/{framebook}/{frame?}")]
         [HttpGet]
-        [ProducesResponseType(200)]
-        [Produces("image/png")]
         public IActionResult Render(int mobId, string framebook, int frame = 0)
         {
             Mob mobData = MobFactory.GetMob(mobId);

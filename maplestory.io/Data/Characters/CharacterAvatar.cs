@@ -533,7 +533,6 @@ namespace maplestory.io.Data.Characters
                 .Concat(
                     Equips
                     .GroupBy(c => c.ItemId / 100)
-                    .AsParallel()
                     .Select(c => {
                         int category = c.Key / 100;
 
@@ -554,7 +553,7 @@ namespace maplestory.io.Data.Characters
                             nodes = characterFolder.Children.Where(b => equipLookup.Keys.Contains(b.NameWithoutExtension));
                         } else
                         {
-                            nodes = nodes.AsParallel().Select(b =>
+                            nodes = nodes.Select(b =>
                             {
                                 int? tamingMob = b.ResolveFor<int>("info/tamingMob");
                                 if (tamingMob.HasValue && tamingMob.Value != 0)
@@ -583,7 +582,7 @@ namespace maplestory.io.Data.Characters
             watch.Stop();
             times.Add(watch.ElapsedMilliseconds);
             watch.Restart();
-            var a = equipped.AsParallel().Select(c =>
+            var a = equipped.Select(c =>
             {
                 WZProperty itemNode = c.Item1;
                 WZProperty node = itemNode; // Resolve all items and body parts to their correct nodes for the animation
@@ -622,7 +621,7 @@ namespace maplestory.io.Data.Characters
             watch.Stop();
             times.Add(watch.ElapsedMilliseconds);
             watch.Restart();
-            var z = equipped.AsParallel().Select(c =>
+            var z = equipped.Select(c =>
             {
                 IEnumerable<WZProperty> nodes = new WZProperty[] { itemEff.Resolve($"{c.Item2.ItemId}/effect") }; // Resolve the selected animation
                 if (nodes.First() == null && (c.Item2.ItemId / 10000) == 301) nodes = installItem.Resolve($"{c.Item2.ItemId.ToString("D8")}").Children.Where(eff => eff.NameWithoutExtension.StartsWith("effect", StringComparison.CurrentCultureIgnoreCase));
@@ -759,14 +758,14 @@ namespace maplestory.io.Data.Characters
             IEnumerable<IGrouping<int, int>> itemEntriesStr = Equips.Select(c => c.ItemId).Concat(new int[] { 1060002, 1040002 }).Where(c => c >= 30000).GroupBy(c => c / 100);
 
             WZProperty character = wz.Resolve("Character");
-            IEnumerable<WZProperty> itemNodes = itemEntriesStr.AsParallel().Select(c =>
+            IEnumerable<WZProperty> itemNodes = itemEntriesStr.Select(c =>
             {
                 string[] names = c.Select(b => b.ToString("D8")).ToArray();
                 if (!wz.categoryFolders.ContainsKey(c.Key)) return null;
                 string folder = wz.categoryFolders[c.Key];
                 WZProperty characterFolder = character.Resolve(folder);
                 return characterFolder.Children.Where(b => names.Contains(b.NameWithoutExtension));
-            }).SelectMany(c => c).AsParallel().Select(c => c.Resolve()).ToArray();
+            }).SelectMany(c => c).Select(c => c.Resolve()).ToArray();
 
             string[] firstItemAnimations = itemNodes.Where(c => c.NameWithoutExtension.Equals("01040002")).First().Children.Select(c => c.NameWithoutExtension).ToArray();
 

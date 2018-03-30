@@ -10,7 +10,6 @@ using maplestory.io.Data.Items;
 
 namespace maplestory.io.Controllers.API
 {
-    [Produces("application/json")]
     [Route("api/{region}/{version}/item")]
     public class ItemController : APIController
     {
@@ -34,7 +33,6 @@ namespace maplestory.io.Controllers.API
         [Route("")]
         [Route("list")]
         [HttpGet]
-        [ProducesResponseType(typeof(ItemNameInfo[]), 200)]
         public IActionResult List(
             [FromQuery] uint startPosition = 0, 
             [FromQuery] uint? count = null, 
@@ -52,18 +50,15 @@ namespace maplestory.io.Controllers.API
 
         [Route("category")]
         [HttpGet]
-        [ProducesResponseType(typeof(string[]), 200)]
         public IActionResult GetCategories() => Json(ItemFactory.GetItemCategories());
 
         [Route("category/{overallCategory}")]
         [HttpGet]
-        [ProducesResponseType(typeof(ItemNameInfo), 200)]
         public IActionResult ListByCategory(string overallCategory)
             => Json(ItemFactory.GetItems().Where(c => c.TypeInfo.OverallCategory.Equals(overallCategory, StringComparison.CurrentCultureIgnoreCase)), serializerSettings);
 
         [Route("bulk/{ids}")]
         [HttpGet]
-        [ProducesResponseType(typeof(Tuple<int, IconInfo, ItemNameInfo>[]), 200)]
         public IActionResult GetItemIconName(string ids)
         {
             int[] itemIds = ids
@@ -77,7 +72,6 @@ namespace maplestory.io.Controllers.API
 
         [Route("{itemId}")]
         [HttpGet]
-        [ProducesResponseType(typeof(MapleItem), 200)]
         public IActionResult itemSearch(int itemId)
         {
             MapleItem eq = ItemFactory.Search(itemId);
@@ -86,7 +80,6 @@ namespace maplestory.io.Controllers.API
 
         [Route("{itemId}/icon")]
         [HttpGet]
-        [Produces("image/png")]
         public IActionResult itemIcon(int itemId)
         {
             Image<Rgba32> icon = null;
@@ -97,7 +90,6 @@ namespace maplestory.io.Controllers.API
 
         [Route("{itemId}/iconRaw")]
         [HttpGet]
-        [Produces("image/png")]
         public IActionResult itemIconRaw(int itemId)
         {
             Image<Rgba32> icon = null;

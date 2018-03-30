@@ -1,22 +1,19 @@
-using Microsoft.AspNetCore.Mvc;
-using System.Linq;
 using maplestory.io.Data.Images;
 using maplestory.io.Data.NPC;
+using Microsoft.AspNetCore.Mvc;
+using System.Linq;
 
 namespace maplestory.io.Controllers
 {
-    [Produces("application/json")]
     [Route("api/{region}/{version}/npc")]
     public class NPCController : APIController
     {
         [Route("")]
         [HttpGet]
-        [ProducesResponseType(typeof(NPC[]), 200)]
         public IActionResult List() => Json(NPCFactory.GetNPCs());
 
         [Route("{npcId}")]
         [HttpGet]
-        [ProducesResponseType(typeof(NPC), 200)]
         public IActionResult GetNPC(int npcId)
         {
             return Json(NPCFactory.GetNPC(npcId));
@@ -24,7 +21,6 @@ namespace maplestory.io.Controllers
 
         [Route("{npcId}/icon")]
         [HttpGet]
-        [Produces("image/png")]
         public IActionResult GetFrame(int npcId)
         {
             NPC npcData = NPCFactory.GetNPC(npcId);
@@ -41,8 +37,6 @@ namespace maplestory.io.Controllers
 
         [Route("{npcId}/render/{framebook}/{frame?}")]
         [HttpGet]
-        [ProducesResponseType(200)]
-        [Produces("image/png")]
         public IActionResult Render(int npcId, string framebook, int frame = 0)
         {
             NPC npcData = NPCFactory.GetNPC(npcId);

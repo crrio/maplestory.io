@@ -15,7 +15,6 @@ using maplestory.io.Data.Images;
 
 namespace maplestory.io.Controllers.API
 {
-    [Produces("application/json")]
     [Route("api/{region}/{version}/Character")]
     public class CharacterController : APIController
     {
@@ -61,19 +60,16 @@ namespace maplestory.io.Controllers.API
 
         [Route("base/{skinId?}")]
         [HttpGet]
-        [Produces("image/png")]
         public IActionResult GetBase(int skinId = 2000)
             => File(CharacterFactory.GetBase(skinId).ImageToByte(Request), "image/png");
 
         [Route("base/{skinId?}/example")]
         [HttpGet]
-        [Produces("image/png")]
         public IActionResult GetBaseExample(int skinId = 2000)
             => File(CharacterFactory.GetBaseWithHair(skinId).ImageToByte(Request), "image/png");
 
         [Route("{skinId}/{items?}/{animation?}/{frame?}")]
         [HttpGet]
-        [Produces("image/png")]
         public IActionResult GetCharacter(int skinId, string items = "1102039", string animation = null, int frame = 0, [FromQuery] RenderMode renderMode = RenderMode.Full)
             => File(CharacterFactory.GetCharacter(skinId, animation, frame, showEars, showLefEars, padding, name, resize, flipX, renderMode, items
                     .Split(new string[] { "," }, StringSplitOptions.RemoveEmptyEntries)
@@ -86,13 +82,11 @@ namespace maplestory.io.Controllers.API
 
         [Route("compact/{skinId}/{items?}/{animation?}/{frame?}")]
         [HttpGet]
-        [Produces("image/png")]
         public IActionResult GetCompactCharacter(int skinId, string items = "1102039", string animation = null, int frame = 0, [FromQuery] bool showEars = false)
         => GetCharacter(skinId, items, animation, frame, RenderMode.Compact);
 
         [Route("json/{skinId}/{items?}/{animation?}/{frame?}")]
         [HttpGet]
-        [ProducesResponseType(typeof(Tuple<Frame, Point>[]), 200)]
         public IActionResult GetJsonCharacter(int skinId, string items = "1102039", string animation = null, int frame = 0)
             => Json(CharacterFactory.GetJsonCharacter(skinId, animation, frame, showEars, showLefEars, padding, name, resize, flipX, items
                     .Split(new string[] { "," }, StringSplitOptions.RemoveEmptyEntries)
@@ -103,25 +97,21 @@ namespace maplestory.io.Controllers.API
                     .ToArray()));
         [Route("center/{skinId}/{items?}/{animation?}/{frame?}")]
         [HttpGet]
-        [Produces("image/png")]
         public IActionResult GetCenteredCharacter(int skinId, string items = "1102039", string animation = null, int frame = 0)
             => GetCharacter(skinId, items, animation, frame, RenderMode.Centered);
 
         [Route("navelCenter/{skinId}/{items?}/{animation?}/{frame?}")]
         [HttpGet]
-        [Produces("image/png")]
         public IActionResult GetNavelCenteredCharacter(int skinId, string items = "1102039", string animation = null, int frame = 0)
             => GetCharacter(skinId, items, animation, frame, RenderMode.NavelCenter);
 
         [Route("feetCenter/{skinId}/{items?}/{animation?}/{frame?}")]
         [HttpGet]
-        [Produces("image/png")]
         public IActionResult GetFeetCenteredCharacter(int skinId, string items = "1102039", string animation = null, int frame = 0)
             => GetCharacter(skinId, items, animation, frame, RenderMode.FeetCenter);
 
         [Route("detailed/{skinId}/{items?}/{animation?}/{frame?}")]
         [HttpGet]
-        [Produces(typeof(Tuple<Image<Rgba32>, Dictionary<string, Point>>))]
         public IActionResult GetCharacterDetails(int skinId, string items, string animation, int frame, RenderMode renderMode, bool showEars, bool showLefEars, int padding)
         {
             Tuple<Image<Rgba32>, Dictionary<string, Point>, Dictionary<string, int>, int> detailed = CharacterFactory.GetDetailedCharacter(skinId, animation, frame, showEars, showLefEars, padding, name, resize, flipX, renderMode, items?
@@ -137,7 +127,6 @@ namespace maplestory.io.Controllers.API
 
         [Route("animated/{skinId}/{items?}/{animation?}/{frame?}")]
         [HttpGet]
-        [Produces(typeof(Tuple<Image<Rgba32>, Dictionary<string, Point>>))]
         public IActionResult GetCharacterAnimated(int skinId, string items, string animation, RenderMode renderMode, bool showEars, bool showLefEars, int padding, [FromQuery] string bgColor = "")
         {
             Rgba32 background = Rgba32.Transparent;
@@ -224,7 +213,6 @@ namespace maplestory.io.Controllers.API
 
         [Route("actions/{items?}")]
         [HttpGet]
-        [ProducesResponseType(typeof(string[]), 200)]
         public IActionResult GetPossibleActions(string items = "1102039")
             => Json(CharacterFactory.GetActions(items
                 .Split(new string[] { "," }, StringSplitOptions.RemoveEmptyEntries)
@@ -235,12 +223,10 @@ namespace maplestory.io.Controllers.API
 
         [Route("")]
         [HttpGet]
-        [ProducesResponseType(typeof(int[]), 200)]
         public IActionResult GetSkinTypes() => Json(CharacterFactory.GetSkinIds());
 
         [Route("random")]
         [HttpGet]
-        [Produces("image/png")]
         public IActionResult GetRandomCharacter()
         {
             int[] itemIds = presets[rng.Next(0, presets.Length - 1)];
@@ -259,7 +245,6 @@ namespace maplestory.io.Controllers.API
 
         [Route("download/{skinId}/{items?}")]
         [HttpGet]
-        [Produces("application/zip")]
         public IActionResult GetSpritesheet(int skinId, string items = "1102039", [FromQuery] RenderMode renderMode = RenderMode.Full, [FromQuery] bool showEars = false, [FromQuery] bool showLefEars = false, [FromQuery] int padding = 2, [FromQuery] SpriteSheetFormat format = SpriteSheetFormat.Plain)
             => File(CharacterFactory.GetSpriteSheet(Request, skinId, showEars, showLefEars, padding, renderMode, format, items
                 .Split(new string[] { "," }, StringSplitOptions.RemoveEmptyEntries)
