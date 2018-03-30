@@ -50,7 +50,9 @@ namespace maplestory.io.Services.Implementations.MapleStory
                 Logger.LogInformation($"Waiting for other thread to finish loading {region} - {version}");
                 wzLoading[versionHash].WaitOne();
                 Logger.LogInformation($"Finished waiting for {region} - {version}");
-                return GetWZ(region, version);
+                if (cache.ContainsKey(region) && cache[region].ContainsKey(version))
+                    return GetWZ(region, version);
+                else throw new KeyNotFoundException("That version or region could not be found");
             }
 
             MapleVersion ver = null;
