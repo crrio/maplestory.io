@@ -100,7 +100,6 @@ namespace maplestory.io.Controllers.API
 
         [Route("{itemId}/name")]
         [HttpGet]
-        [Produces("text/json")]
         public IActionResult itemName(int itemId) => Json(ItemFactory.Search(itemId).Description);
     }
 }
