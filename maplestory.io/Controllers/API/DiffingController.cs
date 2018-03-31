@@ -29,6 +29,7 @@ AND `MapleVersionId` = @originalVersion;";
         private readonly ApplicationDbContext _ctx;
 
         [Route("{otherVersion}")]
+        [HttpGet]
         public IActionResult GetDiff(string otherVersion)
         {
             if (otherVersion.Equals(WZ.MapleVersion.MapleVersionId)) throw new InvalidOperationException("Cannot diff against self");
