@@ -25,8 +25,6 @@ namespace maplestory.io.Controllers.API
         [FromQuery] public float resize { get; set; } = 1;
         [FromQuery] public bool flipX { get; set; } = false;
 
-        private ICharacterFactory _factory;
-        private readonly IItemFactory _itemFactory;
         private Random rng;
         private ILogger<WZFactory> _logging;
         static readonly int[] hero1h = new int[] { 1302275, 1092113, 1003797, 1042254, 1062165, 1072743, 1082543, 1102481, 1132174, 1190301 };
@@ -50,10 +48,8 @@ namespace maplestory.io.Controllers.API
         static readonly int[] faceIds = new int[] { 20008, 20023, 20104, 20214, 20315, 20425, 20588, 20699, 23563, 21273, 21657 };
         static readonly int[] skinIds = new int[] { 2000, 2001, 2002, 2003, 2004, 2005, 2009, 2010, 2011, 2012, 2013 };
 
-        public CharacterController(ICharacterFactory factory, IItemFactory items, ILogger<WZFactory> logger)
+        public CharacterController(ILogger<WZFactory> logger)
         {
-            _factory = factory;
-            _itemFactory = items;
             _logging = logger;
             rng = new Random();
         }

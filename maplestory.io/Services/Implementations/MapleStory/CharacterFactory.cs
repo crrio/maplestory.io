@@ -21,7 +21,7 @@ namespace maplestory.io.Services.Implementations.MapleStory
 {
     public class CharacterFactory : NeedWZ, ICharacterFactory
     {
-        private readonly IItemFactory itemFactory;
+        internal readonly IItemFactory itemFactory;
         private readonly ILogger<CharacterFactory> _logger;
         private readonly IZMapFactory _zmapFactory;
 

@@ -549,7 +549,7 @@ namespace maplestory.io.Data.Characters
                         {
                             if (!wz.categoryFolders.ContainsKey(c.Key)) return null;
                             string folder = wz.categoryFolders[c.Key];
-                            WZProperty characterFolder = character.Resolve(folder);
+                            WZProperty characterFolder = character.Resolve(folder).Resolve();
                             nodes = characterFolder.Children.Where(b => equipLookup.Keys.Contains(b.NameWithoutExtension));
                         } else
                         {

@@ -39,6 +39,13 @@ namespace maplestory.io.Controllers
                 needs.WZ = this.WZ;
                 needs.Region = this.Region;
                 needs.Version = this.Version;
+
+                if (that is CharacterFactory)
+                {
+                    CharacterFactory characterFactory = (CharacterFactory)(object)that;
+                    ItemFactory items = (ItemFactory)characterFactory.itemFactory;
+                    items.CloneWZFrom(needs);
+                }
             }
             return that;
         }
