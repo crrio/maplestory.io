@@ -68,7 +68,12 @@ namespace maplestory.io.Services.Implementations.MapleStory
             MSPackageCollection collection = new MSPackageCollection(ver, null, region);
             Logger.LogInformation($"Finished loading {region} - {version}");
             wait.Set();
-            if (cache[region].TryAdd(version, collection)) return collection;
+            if (cache[region].TryAdd(version, collection))
+            {
+                if (ver.Id > cache[region]["latest"].MapleVersion.Id) // Update the latest pointer if this is newer than the old latest
+                    cache[region]["latest"] = collection;
+                return collection;
+            }
             else return cache[region][version];
         }
 

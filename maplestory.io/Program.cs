@@ -65,7 +65,7 @@ namespace maplestory.io
             WZReader.InitializeKeys();
             readerLogging.LogDebug("Done");
 
-            WZFactory.LoadAllWZ();
+            //WZFactory.LoadAllWZ();
 
             ILogger prog = logging.CreateLogger<Program>();
             watch.Stop();

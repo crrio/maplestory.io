@@ -522,9 +522,6 @@ namespace maplestory.io.Data.Characters
             this.body = character.Resolve(bodyId);
             WZProperty head = character.Resolve(headId);
 
-            List<double> times = new List<double>();
-            Stopwatch watch = Stopwatch.StartNew();
-
             List<EquipSelection> unResolved = new List<EquipSelection>();
             // Gather all of the equips (including body parts) and get their nodes
             IEnumerable<Tuple<WZProperty, EquipSelection>> equippedTmp = (new[]{
@@ -613,16 +610,9 @@ namespace maplestory.io.Data.Characters
             }
 
             equipped = equippedTmp.Where(c => c != null && c.Item1 != null).ToArray();
-
-            watch.Stop();
-            times.Add(watch.ElapsedMilliseconds);
-            watch.Restart();
+            
             // Calculate the frame counts for all individual actions
-            /////
             string[] actions = GetActions();
-            watch.Stop();
-            times.Add(watch.ElapsedMilliseconds);
-            watch.Restart();
             var a = equipped.Select(c =>
             {
                 WZProperty itemNode = c.Item1;
@@ -665,9 +655,6 @@ namespace maplestory.io.Data.Characters
                     return new Tuple<string, int, int>(action, c.Item2.ItemId, frameCount);
                 }).Where(b => b != null).ToArray();
             }).Where(c => c != null).ToArray();
-            watch.Stop();
-            times.Add(watch.ElapsedMilliseconds);
-            watch.Restart();
             var z = equipped.Select(c =>
             {
                 IEnumerable<WZProperty> nodes = new WZProperty[] { itemEff.Resolve($"{c.Item2.ItemId}/effect") }; // Resolve the selected animation
@@ -685,18 +672,9 @@ namespace maplestory.io.Data.Characters
                     });
                 }).ToArray();
             }).Where(c => c != null).SelectMany(c => c).Where(b => b != null).ToArray();
-            watch.Stop();
-            times.Add(watch.ElapsedMilliseconds);
-            watch.Restart();
             var y = a.SelectMany(c => c).ToArray();
-            watch.Stop();
-            times.Add(watch.ElapsedMilliseconds);
-            watch.Restart();
-            List<double> subTimes = new List<double>();
-            Stopwatch subWatch = new Stopwatch();
             FrameCounts = y.GroupBy(c => c.Item1)
                 .Select(c => {
-                    subWatch.Restart();
                     int[] itemsFrameCounts = c.GroupBy(b => b.Item2).Where(b => b.Count() > 0).Select(b =>
                     {
                         int[] itemsActionFrameCounts = b.Where(d => d.Item3 > 0).Select(d => d.Item3).ToArray();
@@ -705,16 +683,10 @@ namespace maplestory.io.Data.Characters
                         else return 0;
                     }).Where(b => b != 0).ToArray();
                     if (itemsFrameCounts.Length == 0) return null;
-                    var res = new Tuple<string, int>(c.Key, lcmn(itemsFrameCounts));
-                    subWatch.Stop();
-                    subTimes.Add(subWatch.ElapsedMilliseconds);
-                    return res;
+                    return new Tuple<string, int>(c.Key, lcmn(itemsFrameCounts));
                 })
                 .Where(c => c != null && c.Item2 != 0)
                 .ToDictionary(c => c.Item1, c => c.Item2);
-            watch.Stop();
-            times.Add(watch.ElapsedMilliseconds);
-            watch.Restart();
 
             // Get a cached version of the zmap
             zmap = wz.Resolve("Base/zmap").Children.Select(b => b.NameWithoutExtension).Reverse().ToList();
@@ -738,9 +710,6 @@ namespace maplestory.io.Data.Characters
                     Enumerable.Range(0, c.Item2.Length / 2).Select((b, i) => c.Item2.Substring(i * 2, 2)).ToArray(),
                     Enumerable.Range(0, c.Item3.Length / 2).Select((b, i) => c.Item3.Substring(i * 2, 2)).ToArray()
                 ));
-            watch.Stop();
-            times.Add(watch.ElapsedMilliseconds);
-            watch.Restart();
 
             // Establish slots of equips
             Dictionary<string, int> exclusiveSlots = new Dictionary<string, int>();
@@ -768,9 +737,6 @@ namespace maplestory.io.Data.Characters
                 }
             }
             equipped = newEquipped.ToArray();
-            watch.Stop();
-            times.Add(watch.ElapsedMilliseconds);
-            watch.Restart();
 
             // Build a dictionary between what is locked and what is locking it
             exclusiveLocks = new Dictionary<string, int>();
@@ -794,8 +760,6 @@ namespace maplestory.io.Data.Characters
             weaponType = weaponEntry?.Item1 != null && weaponEntry?.Item2 != null ? (int)((weaponEntry.Item2.ItemId - 1000000) / 10000d) : 30;
             // WeaponTypes of 70 are cash items, go back to 30.
             if (weaponType == 70) weaponType = 30;
-            watch.Stop();
-            times.Add(watch.ElapsedMilliseconds);
 
             this.preloaded = true;
         }
