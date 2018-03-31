@@ -57,7 +57,7 @@ AND `MapleVersionId` = @originalVersion;";
                 while (reader.Read())
                 {
                     string path = (string)reader[0];
-                    bool existedPrior = (int)reader[1] == 1;
+                    bool existedPrior = (long)reader[1] == 1;
                     string hasntChangedSince = (string)reader[2];
                     if (int.TryParse(hasntChangedSince, out int hasntChangedSinceVerNum))
                     {
