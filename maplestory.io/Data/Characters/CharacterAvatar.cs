@@ -525,15 +525,17 @@ namespace maplestory.io.Data.Characters
             List<double> times = new List<double>();
             Stopwatch watch = Stopwatch.StartNew();
 
+            List<EquipSelection> unResolved = new List<EquipSelection>();
             // Gather all of the equips (including body parts) and get their nodes
-            equipped = (new[]{
+            IEnumerable<Tuple<WZProperty, EquipSelection>> equippedTmp = (new[]{
                 new Tuple<WZProperty, EquipSelection>(body, new EquipSelection()),
                 new Tuple<WZProperty, EquipSelection>(head, new EquipSelection())
             })
                 .Concat(
                     Equips
                     .GroupBy(c => c.ItemId / 100)
-                    .Select(c => {
+                    .Select(c =>
+                    {
                         int category = c.Key / 100;
 
                         Dictionary<string, EquipSelection> equipLookup = c.ToDictionary(b => b.ItemId.ToString("D8"), b => b);
@@ -547,11 +549,16 @@ namespace maplestory.io.Data.Characters
 
                         if (nodes == null)
                         {
-                            if (!wz.categoryFolders.ContainsKey(c.Key)) return null;
-                            string folder = wz.categoryFolders[c.Key];
-                            WZProperty characterFolder = character.Resolve(folder).Resolve();
-                            nodes = characterFolder.Children.Where(b => equipLookup.Keys.Contains(b.NameWithoutExtension));
-                        } else
+                            if (!wz.categoryFolders.ContainsKey(c.Key))
+                                nodes = new WZProperty[0];
+                            else
+                            {
+                                string folder = wz.categoryFolders[c.Key];
+                                WZProperty characterFolder = character.Resolve(folder).Resolve();
+                                nodes = characterFolder.Children.Where(b => equipLookup.Keys.Contains(b.NameWithoutExtension));
+                            }
+                        }
+                        else
                         {
                             nodes = nodes.Select(b =>
                             {
@@ -565,14 +572,48 @@ namespace maplestory.io.Data.Characters
                             });
                         }
 
+                        WZProperty[] nodeArr = nodes.ToArray();
+
+                        if (nodeArr.Length != equipLookup.Count)
+                        {
+                            string[] nodeNames = nodeArr.Select(f => f.NameWithoutExtension).ToArray();
+                            foreach (KeyValuePair<string, EquipSelection> equipSearch in equipLookup)
+                                if (!nodeNames.Contains(equipSearch.Key))
+                                    unResolved.Add(equipSearch.Value);
+                        }
+
                         return nodes.Select(b => new Tuple<WZProperty, EquipSelection>(
                             b.Resolve(),
                             equipLookup[b.NameWithoutExtension]
                         ));
                     }).Where(c => c != null).SelectMany(c => c)
-                )
-                .Where(c => c != null && c.Item1 != null)
-                .ToArray();
+                ).ToArray();
+
+            if (unResolved.Count > 0)
+            {
+                Dictionary<string, EquipSelection> searchingFor = unResolved.ToDictionary(c => c.ItemId.ToString("D8"), c => c);
+                List<Tuple<WZProperty, EquipSelection>> resolved = new List<Tuple<WZProperty, EquipSelection>>();
+
+                IEnumerable<WZProperty> allEquips = character.Children.Select(b => b.Resolve()).SelectMany(b => b.Children);
+                foreach (WZProperty equip in allEquips)
+                {
+                    if (searchingFor.ContainsKey(equip.NameWithoutExtension))
+                    {
+                        resolved.Add(new Tuple<WZProperty, EquipSelection>(equip, searchingFor[equip.NameWithoutExtension]));
+                        searchingFor.Remove(equip.NameWithoutExtension);
+                    }
+                    if (searchingFor.Count == 0) break;
+                }
+
+                if (resolved.Count > 0) equippedTmp = equippedTmp.Concat(resolved);
+                //if (resolved.Count != searchingFor.Count)
+                //{
+                //    // TODO: Log this
+                //}
+            }
+
+            equipped = equippedTmp.Where(c => c != null && c.Item1 != null).ToArray();
+
             watch.Stop();
             times.Add(watch.ElapsedMilliseconds);
             watch.Restart();

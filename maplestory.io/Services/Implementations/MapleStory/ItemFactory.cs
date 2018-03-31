@@ -28,8 +28,6 @@ namespace maplestory.io.Services.Implementations.MapleStory
             { 16, "Pirate" }
         };
 
-        private static Dictionary<Region, Dictionary<decimal, ILookup<int, int>>> DroppedLookups = new Dictionary<Region, Dictionary<decimal, ILookup<int, int>>>();
-
         public Dictionary<string, Dictionary<string, Tuple<string, int, int>[]>> GetItemCategories() => ItemType.overall;
 
         public IEnumerable<ItemNameInfo> GetItems(
@@ -133,9 +131,7 @@ namespace maplestory.io.Services.Implementations.MapleStory
             return result;
         }
 
-        WZProperty GetItemNode(int id) {
-            WZProperty stringWz = WZ.Resolve("String");
-
+        public WZProperty GetItemNode(int id) {
             string idString = id.ToString("D8");
             // TODO: Refactor to use character grouping IDs
             WZProperty item = WZ.Resolve("Character").Children.SelectMany(c => c.Children).Where(c => c.Type == PropertyType.Image).FirstOrDefault(c => c.NameWithoutExtension == idString);
