@@ -89,7 +89,7 @@ namespace maplestory.io.Data.Characters
 
             if (anchorPositions == null) anchorPositions = new Dictionary<string, Point>() { { "navel", new Point(0, 0) } };
             else if (!anchorPositions.ContainsKey("navel")) anchorPositions.Add("navel", new Point(0, 0));
-            RankedFrame bodyFrame = partsData.FirstOrDefault(c => c.frame.Position == "body" || c.frame.Position == "backBody");
+            RankedFrame bodyFrame = partsData.FirstOrDefault(c => (c.frame.Position == "body" || c.frame.Position == "backBody") && c.frame.MapOffset.ContainsKey("neck") && c.frame.MapOffset.ContainsKey("navel"));
             Point neckOffsetBody = bodyFrame.frame.MapOffset["neck"];
             Point navelOffsetBody = bodyFrame.frame.MapOffset["navel"];
 
