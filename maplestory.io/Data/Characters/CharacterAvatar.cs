@@ -180,7 +180,7 @@ namespace maplestory.io.Data.Characters
             Size center = new Size((int)((maxX - minX) / 2), (int)((maxY - minY) / 2));
             Size offset = new Size((int)minX, (int)minY);
 
-            Tuple<Frame, Point, float?> body = positionedFrames.Where(c => (c.Item1.Position?.Equals("body") ?? false) || (c.Item1.Position?.Equals("backBody") ?? false)).First();
+            Tuple<Frame, Point, float?> body = positionedFrames.Where(c => ((c.Item1.Position?.Equals("body") ?? false) || (c.Item1.Position?.Equals("backBody") ?? false)) && c.Item1.MapOffset.ContainsKey("neck") && c.Item1.MapOffset.ContainsKey("navel")).First();
 
             Tuple<Frame, Image<Rgba32>>[] parts = positionedFrames.Select((frame, index) =>
             {
@@ -268,7 +268,7 @@ namespace maplestory.io.Data.Characters
                 );
             }));
 
-            Tuple<Frame, Point, float?> body = positionedFrames.Where(c => (c.Item1.Position?.Equals("body") ?? false) || (c.Item1.Position?.Equals("backBody") ?? false)).First();
+            Tuple<Frame, Point, float?> body = positionedFrames.Where(c => ((c.Item1.Position?.Equals("body") ?? false) || (c.Item1.Position?.Equals("backBody") ?? false)) && c.Item1.MapOffset.ContainsKey("neck") && c.Item1.MapOffset.ContainsKey("navel")).First();
 
             return Transform(destination, body, minX, minY, maxX, maxY);
         }
@@ -311,7 +311,7 @@ namespace maplestory.io.Data.Characters
                 );
             }));
 
-            Tuple<Frame, Point, float?> body = positionedFrames.Where(c => (c.Item1.Position?.Equals("body") ?? false) || (c.Item1.Position?.Equals("backBody") ?? false)).First();
+            Tuple<Frame, Point, float?> body = positionedFrames.Where(c => ((c.Item1.Position?.Equals("body") ?? false) || (c.Item1.Position?.Equals("backBody") ?? false)) && c.Item1.MapOffset.ContainsKey("neck") && c.Item1.MapOffset.ContainsKey("navel")).First();
 
             Image<Rgba32> original = destination;
             destination = Transform(destination, body, minX, minY, maxX, maxY);
