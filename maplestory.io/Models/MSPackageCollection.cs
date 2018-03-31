@@ -1,6 +1,5 @@
 ﻿using maplestory.io.Entities;
 using maplestory.io.Entities.Models;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using MySql.Data.MySqlClient;
 using Newtonsoft.Json;
@@ -10,7 +9,6 @@ using System;
 using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Data.Common;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -30,7 +28,7 @@ namespace maplestory.io.Models
             { 8, "Thief" },
             { 16, "Pirate" }
         };
-        MapleVersion MapleVersion;
+        public MapleVersion MapleVersion;
         public Dictionary<int, string> categoryFolders;
         public IDictionary<int, Tuple<string[], byte?, bool>> EquipMeta;
         public IDictionary<int, int[]> ItemDrops;
