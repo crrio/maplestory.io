@@ -112,8 +112,6 @@ namespace maplestory.io.Services.Implementations.MapleStory
             });
         }
 
-        public Dictionary<string, string[]> GetAvailableRegionsAndVersions() => cache.ToDictionary(c => c.Key.ToString(), c => c.Value.Keys.ToArray());
-
         public static MSPackageCollection GetWZFromCache(Region region, string version)
         {
             if (cache.ContainsKey(region) && cache[region].ContainsKey(version)) return cache[region][version];
