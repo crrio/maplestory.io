@@ -63,20 +63,20 @@ namespace maplestory.io
             services.Configure<WZOptions>(Configuration.GetSection("WZ"));
             services.AddSingleton<IRethinkDbConnectionFactory, RethinkDbConnectionFactory>();
 
-            services.AddScoped<IWZFactory, WZFactory>();
-            services.AddScoped<IItemFactory, ItemFactory>();
-            services.AddScoped<ISkillFactory, SkillFactory>();
-            services.AddScoped<IMusicFactory, MusicFactory>();
-            services.AddScoped<IMapFactory, MapFactory>();
-            services.AddScoped<IMobFactory, MobFactory>();
-            services.AddScoped<INPCFactory, NPCFactory>();
-            services.AddScoped<IQuestFactory, QuestFactory>();
-            services.AddScoped<ITipFactory, TipFactory>();
-            services.AddScoped<IZMapFactory, ZMapFactory>();
-            services.AddScoped<ICharacterFactory, CharacterFactory>();
-            services.AddScoped<ICraftingEffectFactory, CraftingEffectFactory>();
-            services.AddScoped<IAndroidFactory, AndroidFactory>();
-            services.AddScoped<IPetFactory, PetFactory>();
+            services.AddTransient<IWZFactory, WZFactory>();
+            services.AddTransient<IItemFactory, ItemFactory>();
+            services.AddTransient<ISkillFactory, SkillFactory>();
+            services.AddTransient<IMusicFactory, MusicFactory>();
+            services.AddTransient<IMapFactory, MapFactory>();
+            services.AddTransient<IMobFactory, MobFactory>();
+            services.AddTransient<INPCFactory, NPCFactory>();
+            services.AddTransient<IQuestFactory, QuestFactory>();
+            services.AddTransient<ITipFactory, TipFactory>();
+            services.AddTransient<IZMapFactory, ZMapFactory>();
+            services.AddTransient<ICharacterFactory, CharacterFactory>();
+            services.AddTransient<ICraftingEffectFactory, CraftingEffectFactory>();
+            services.AddTransient<IAndroidFactory, AndroidFactory>();
+            services.AddTransient<IPetFactory, PetFactory>();
 
             services.AddSwaggerGen(c =>
             {
