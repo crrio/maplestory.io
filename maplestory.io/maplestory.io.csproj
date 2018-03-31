@@ -18,6 +18,7 @@
 
   <ItemGroup>
     <Compile Remove="CachedEnumerable.cs" />
+    <Compile Remove="Controllers\Diff.cs" />
     <Compile Remove="Data\Extensions.cs" />
     <Compile Remove="Properties\Resources.Designer.cs" />
     <Compile Remove="Services\Interfaces\MapleStory\INeedWZ.cs" />

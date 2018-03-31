@@ -85,7 +85,7 @@ namespace maplestory.io.Services.Implementations.MapleStory
                 return null;
             }).OrderBy(c => c.Item1).Where(c => c != null).Last().Item2;
 
-            foreach (MapleVersion ver in versions)
+            Parallel.ForEach(versions, ver =>
             {
                 Region region = (Region)ver.Region;
                 string version = ver.MapleVersionId;
@@ -104,7 +104,7 @@ namespace maplestory.io.Services.Implementations.MapleStory
                 {
                     Logger.LogWarning($"Couldn't load {region} - {version}");
                 }
-            }
+            });
         }
 
         public Dictionary<string, string[]> GetAvailableRegionsAndVersions() => cache.ToDictionary(c => c.Key.ToString(), c => c.Value.Keys.ToArray());
