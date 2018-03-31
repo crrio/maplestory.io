@@ -17,7 +17,7 @@ namespace maplestory.io.Controllers.API
     {
         const string DiffQuery = @"SELECT 
 	`Path`,
-    (SELECT count(*) FROM `VersionPathHashes` WHERE `ImgName` = a.`ImgName` && `MapleVersionId` in ({0}) && strcmp(`Path`, a.`Path`) = 0) > 0 as ExistedBefore,
+    (SELECT count(*) FROM `VersionPathHashes` WHERE `ImgName` = a.`ImgName` && `MapleVersionId` in ({0}) && strcmp(`Path`, a.`Path`) = 0) as ExistedBefore,
     (SELECT `MapleVersionId` from `MapleVersions` c WHERE c.`Id` = (SELECT `MapleVersionId` from `VersionPathHashes` b WHERE b.`Id` = a.`ResolvesTo`)) HasntChangedSince
 FROM 
 	`VersionPathHashes` a
@@ -43,9 +43,6 @@ AND `MapleVersionId` = @originalVersion;";
                 versionIds.Add(version.Id);
             }
 
-            Response.Headers.Add("VersionsChecked", new StringValues(string.Join(',', versionIds)));
-            Response.Headers.Add("Version", new StringValues(string.Join(',', WZ.MapleVersion.Id)));
-
             string diffQueryIn = string.Format(DiffQuery, string.Join(',', versionIds));
 
             DbConnection con = _ctx.Database.GetDbConnection();
@@ -63,15 +60,12 @@ AND `MapleVersionId` = @originalVersion;";
                     string path = (string)reader[0];
                     bool existedPrior = ((long)reader[1]) > 0;
                     string hasntChangedSince = reader.IsDBNull(2) ? null : (string)reader[2];
-                    if (int.TryParse(hasntChangedSince, out int hasntChangedSinceVerNum))
+                    diffEntries.Add(new DiffEntry()
                     {
-                        diffEntries.Add(new DiffEntry()
-                        {
-                            ExistedPrior = existedPrior,
-                            HasntChangedSince = hasntChangedSinceVerNum,
-                            Path = path
-                        });
-                    }
+                        ExistedPrior = existedPrior,
+                        HasntChangedSince = int.TryParse(hasntChangedSince, out int hasntChangedSinceVerNum) ? (int?)hasntChangedSinceVerNum : null,
+                        Path = path
+                    });
                 }
             }
 
@@ -82,7 +76,7 @@ AND `MapleVersionId` = @originalVersion;";
         {
             public string Path;
             public bool ExistedPrior;
-            public int HasntChangedSince;
+            public int? HasntChangedSince;
         }
     }
 }
