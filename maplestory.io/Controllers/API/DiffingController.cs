@@ -8,6 +8,7 @@ using System.Data.Common;
 using Microsoft.EntityFrameworkCore;
 using MySql.Data.MySqlClient;
 using maplestory.io.Entities.Models;
+using Microsoft.Extensions.Primitives;
 
 namespace maplestory.io.Controllers.API
 {
@@ -42,6 +43,9 @@ AND `MapleVersionId` = @originalVersion;";
                 versionIds.Add(version.Id);
             }
 
+            Response.Headers.Add("VersionsChecked", new StringValues(string.Join(',', versionIds)));
+            Response.Headers.Add("Version", new StringValues(string.Join(',', WZ.MapleVersion.Id)));
+
             string diffQueryIn = string.Format(DiffQuery, string.Join(',', versionIds));
 
             DbConnection con = _ctx.Database.GetDbConnection();
@@ -57,7 +61,7 @@ AND `MapleVersionId` = @originalVersion;";
                 while (reader.Read())
                 {
                     string path = (string)reader[0];
-                    bool existedPrior = (long)reader[1] == 1;
+                    bool existedPrior = ((long)reader[1]) > 0;
                     string hasntChangedSince = reader.IsDBNull(2) ? null : (string)reader[2];
                     if (int.TryParse(hasntChangedSince, out int hasntChangedSinceVerNum))
                     {
