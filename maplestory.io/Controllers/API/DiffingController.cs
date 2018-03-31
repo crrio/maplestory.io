@@ -17,7 +17,7 @@ namespace maplestory.io.Controllers.API
         const string DiffQuery = @"SELECT 
 	`Path`,
     (SELECT count(*) FROM `VersionPathHashes` WHERE `ImgName` = a.`ImgName` && `MapleVersionId` in ({0}) && strcmp(`Path`, a.`Path`) = 0) > 0 as ExistedBefore,
-    (SELECT `MapleVersionId` from `VersionPathHashes` b WHERE b.`Id` = a.`ResolvesTo`) HasntChangedSince
+    (SELECT `MapleVersionId` from `MapleVersions` c WHERE c.`Id` = (SELECT `MapleVersionId` from `VersionPathHashes` b WHERE b.`Id` = a.`ResolvesTo`)) HasntChangedSince
 FROM 
 	`VersionPathHashes` a
 WHERE `ImgName` is not null 
