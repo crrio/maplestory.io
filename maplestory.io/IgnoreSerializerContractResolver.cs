@@ -12,7 +12,7 @@ namespace maplestory.io.Data
     /// Pulled from https://stackoverflow.com/questions/13588022/exclude-property-from-serialization-via-custom-attribute-json-net
     /// Special JsonConvert resolver that allows you to ignore properties.  See https://stackoverflow.com/a/13588192/1037948
     /// </summary>
-    public class IgnorableSerializerContractResolver : DefaultContractResolver
+    public class IgnorableSerializerContractResolver : CamelCasePropertyNamesContractResolver
     {
         protected readonly Dictionary<Type, HashSet<string>> Ignores;
 
