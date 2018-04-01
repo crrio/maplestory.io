@@ -134,7 +134,7 @@ namespace maplestory.io.Services.Implementations.MapleStory
         public WZProperty GetItemNode(int id) {
             string idString = id.ToString("D8");
             // TODO: Refactor to use character grouping IDs
-            WZProperty item = WZ.Resolve("Character").Children.SelectMany(c => c.Children).Where(c => c.Type == PropertyType.Image).FirstOrDefault(c => c.NameWithoutExtension == idString);
+            WZProperty item = WZ.Resolve("Character").Children.SelectMany(c => c.Children).Where(c => c.Type == PropertyType.Image || c.Type == PropertyType.Lua).FirstOrDefault(c => c.NameWithoutExtension == idString)?.Resolve();
             if (item != null) return item;
 
             item = WZ.Resolve($"Item/Etc/{idString.Substring(0, 4)}/{idString}");

@@ -14,8 +14,6 @@ namespace maplestory.io.Services.Implementations.MapleStory
 {
     public class PetFactory : NeedWZ, IPetFactory
     {
-        static Dictionary<int, Pet> cache = new Dictionary<int, Pet>();
-
         public Dictionary<int, string> GetPets()
         {
             WZProperty pets = WZ.Resolve("String/Pet") ?? WZ.Resolve("String/Item/Pet");
@@ -24,17 +22,8 @@ namespace maplestory.io.Services.Implementations.MapleStory
 
         public Pet GetPet(int petId)
         {
-            if (!cache.ContainsKey(petId))
-            {
-                WZProperty item = (WZ.Resolve("String/Pet") ?? WZ.Resolve("String/Item/Pet")).Resolve(petId.ToString());
-                try
-                {
-                    if (!cache.ContainsKey(petId))
-                        cache.Add(petId, Pet.Parse(item));
-                }
-                catch (Exception) { } // Usually happens when multi threaded caching something
-            }
-            return cache[petId];
+            WZProperty petItem = (WZ.Resolve("String/Pet") ?? WZ.Resolve("String/Item/Pet")).Resolve(petId.ToString());
+            return Pet.Parse(petItem);
         }
 
         public Image<Rgba32> RenderPet(int petId, string animation, int frame, int petEquip)
