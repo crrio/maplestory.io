@@ -689,7 +689,7 @@ namespace maplestory.io.Data.Characters
                 .ToDictionary(c => c.Item1, c => c.Item2);
 
             // Get a cached version of the zmap
-            zmap = wz.Resolve("Base/zmap").Children.Select(b => b.NameWithoutExtension).Reverse().ToList();
+            zmap = (wz.Resolve("Base/zmap") ?? wz.Resolve("zmap")).Children.Select(b => b.NameWithoutExtension).Reverse().ToList();
 
             // Build a sorted list of defined exclusive locks from items
             IEnumerable<Tuple<int, string[], string[]>> exclusiveLockItems = equipped
