@@ -749,7 +749,7 @@ namespace maplestory.io.Data.Characters
                             exclusiveLocks.Add(locking, exclusiveLock.Item1);
 
             // Build an smap dictionary to look up between what a position will require to lock before it can be rendered
-            smap = wz.Resolve("Base/smap").Children
+            smap = (wz.Resolve("Base/smap") ?? wz.Resolve("smap")).Children
                 .Where(c => c.ResolveForOrNull<string>() != null)
                 .ToDictionary(c => c.NameWithoutExtension, c => (c.ResolveForOrNull<string>() ?? "").Replace("PnSo", "Pn"));
 
