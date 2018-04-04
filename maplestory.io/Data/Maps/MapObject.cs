@@ -14,6 +14,7 @@ namespace maplestory.io.Data.Maps
 {
     public class MapObject : IPositionedFrameContainer, IComparable
     {
+        public int Index { get; set; }
         public string pathToImage;
         public Frame Canvas { get; set; }
         public Vector3 Position { get; set; }

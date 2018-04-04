@@ -25,6 +25,8 @@ namespace maplestory.io.Data.Maps
             get => ToMap == 999999999 ? null : Map.Parse(ToMap, null, collection);
         }
         public bool IsStarForcePortal;
+        public int Index { get; set; }
+
         //    get => LinkedMap?.MinimumStarForce > 0;
         //}
         public bool UnknownExit { get => ToMap == 999999999; }
@@ -47,6 +49,7 @@ namespace maplestory.io.Data.Maps
         {
             Portal portal = new Portal()
             {
+                Index = int.Parse(portalData.Name),
                 collection = portalData.FileContainer.Collection,
                 PortalName = portalData.ResolveForOrNull<string>("pn"),
                 ToMap = portalData.ResolveFor<int>("tm") ?? int.MinValue,

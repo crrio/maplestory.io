@@ -13,6 +13,7 @@ namespace maplestory.io.Data.Maps
 {
     public class MapTile : IPositionedFrameContainer
     {
+        public int Index { get; set; }
         public string pathToImage;
         public bool FrontMost;
         public bool Flip { get; set; }

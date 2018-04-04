@@ -161,6 +161,7 @@ namespace maplestory.io.Data.Maps
 
                     allGraphicsParsed[node.Parent].Add(new MapTile()
                     {
+                        Index = int.Parse(node.Name),
                         Canvas = parsedFrame,
                         Flip = flip,
                         FrontMost = frontMost,
@@ -249,6 +250,7 @@ namespace maplestory.io.Data.Maps
 
                     allGraphicsParsed[node.Parent].Add(new MapObject()
                     {
+                        Index = int.Parse(node.Name),
                         Canvas = parsedFrame,
                         Flip = flip,
                         FrontMost = frontMost,
@@ -475,7 +477,7 @@ namespace maplestory.io.Data.Maps
         {
             Image<Rgba32> layerResult = new Image<Rgba32>((int)(maxX - minX), (int)(maxY - minY));
             Rectangle layerBounds = new Rectangle(0, 0, layerResult.Width, layerResult.Height);
-            foreach (IPositionedFrameContainer frameContainer in frameContainerZ.Where(c => c?.Canvas?.Image != null))
+            foreach (IPositionedFrameContainer frameContainer in frameContainerZ.Where(c => c?.Canvas?.Image != null).OrderBy(c => c.Index))
             {
                 Point origin = frameContainer.Canvas.Origin ?? (new Point(frameContainer.Canvas.Image.Width / 2, frameContainer.Canvas.Image.Height / 2));
                 Point drawAt = new Point(

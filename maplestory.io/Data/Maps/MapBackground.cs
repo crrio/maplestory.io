@@ -21,6 +21,7 @@ namespace maplestory.io.Data.Maps
         private bool Front;
         public Frame Canvas { get; set; }
         public Vector3 Position { get; set; }
+        public int Index { get; set; }
         public RectangleF Bounds {
             get {
                 Point canvasOrigin = Canvas.Origin ?? new Point(Canvas.Image.Width / 2, Canvas.Image.Height / 2);
@@ -32,6 +33,7 @@ namespace maplestory.io.Data.Maps
                 );
             }
         }
+
         public static MapBackground Parse(WZProperty data)
         {
             MapBackground result = new MapBackground();
@@ -41,6 +43,7 @@ namespace maplestory.io.Data.Maps
                 "back",
                 data.ResolveForOrNull<string>("no")
             });
+            result.Index = int.Parse(data.Name);
             result.Front = data.ResolveFor<bool>("front") ?? false;
             result.Alpha = (data.ResolveFor<int>("a") ?? 255) / 255;
             result.Flip = data.ResolveFor<bool>("f") ?? false;

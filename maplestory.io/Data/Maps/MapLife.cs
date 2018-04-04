@@ -30,6 +30,7 @@ namespace maplestory.io.Data.Maps
                 return $"/mob/{Id}";
             }
         }
+        public int Index { get; set; }
         public string Name;
         [JsonIgnore]
         public Frame Canvas { get; set; }
@@ -45,6 +46,7 @@ namespace maplestory.io.Data.Maps
         {
             MapLife result = new MapLife();
 
+            result.Index = int.Parse(data.Name);
             result.X = data.ResolveFor<int>("x") ?? int.MinValue; // x
             result.Y = data.ResolveFor<int>("y") ?? int.MinValue; // y
             result.WalkAreaX1 = data.ResolveFor<int>("rx0") ?? int.MinValue; // rx0
