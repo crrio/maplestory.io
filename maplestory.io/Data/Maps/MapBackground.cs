@@ -33,6 +33,7 @@ namespace maplestory.io.Data.Maps
                 );
             }
         }
+        public int rx, ry, cx, cy;
 
         public static MapBackground Parse(WZProperty data)
         {
@@ -60,6 +61,10 @@ namespace maplestory.io.Data.Maps
                 data.ResolveFor<int>("y") ?? 0,
                 result.Front ? 100000000 : int.Parse(data.NameWithoutExtension)
             );
+            result.rx = data.ResolveFor<int>("rx") ?? 0;
+            result.ry = data.ResolveFor<int>("ry") ?? 0;
+            result.cx = data.ResolveFor<int>("cx") ?? 0;
+            result.cy = data.ResolveFor<int>("cy") ?? 0;
             return result;
         }
     }
