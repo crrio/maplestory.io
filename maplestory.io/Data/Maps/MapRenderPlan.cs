@@ -39,8 +39,8 @@ namespace maplestory.io.Data.Maps
             ConcurrentBag<MapBackground> bgs = new ConcurrentBag<MapBackground>();
             Parallel.ForEach(mapNode.Children.FirstOrDefault(c => c.Name == "back")?.Children, backgroundNode => bgs.Add(MapBackground.Parse(backgroundNode)));
             Backgrounds = new MapBackground[bgs.Count];
-            int i = 0;
-            while (bgs.TryTake(out MapBackground back)) Backgrounds[i++] = back;
+            int k = 0;
+            while (bgs.TryTake(out MapBackground back)) Backgrounds[k++] = back;
 
             ProcessGraphicsNode(tileSets, allGraphics);
             AllGraphicLayers = allGraphicsParsed.ToDictionary(c => c.Key, c =>
