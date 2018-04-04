@@ -71,7 +71,7 @@ namespace maplestory.io.Data.Maps
         int lcm(int a, int b) => Math.Abs(a * b) / GCD(a, b);
         int GCD(int a, int b) => b == 0 ? a : GCD(b, a % b);
 
-        void ProcessGraphicsNode(int frame, Dictionary<WZProperty, WZProperty> tileSets, IEnumerable<WZProperty> allGraphics, Dictionary<WZProperty, ConcurrentBag<IPositionedFrameContainer>> allGraphicsParsed, bool filterTrash = false)
+        void ProcessGraphicsNode(int frame, Dictionary<WZProperty, WZProperty> tileSets, IEnumerable<WZProperty> allGraphics, Dictionary<WZProperty, ConcurrentBag<IPositionedFrameContainer>> allGraphicsParsed, bool filterTrash = false, int? minX = null, int? minY = null)
         {
             ConcurrentDictionary<string, Frame> parsedFrames = new ConcurrentDictionary<string, Frame>();
             ConcurrentDictionary<string, Frame> parsedFlippedFrames = new ConcurrentDictionary<string, Frame>();
@@ -263,10 +263,10 @@ namespace maplestory.io.Data.Maps
                 }
             });
 
-            minX = allX.Min();
-            maxX = allRight.Max();
-            minY = allY.Min();
-            maxY = allBottom.Max();
+            this.minX = minX ?? allX.Min();
+            this.maxX = allRight.Max();
+            this.minY = minY ?? allY.Min();
+            this.maxY = allBottom.Max();
 #if DEBUG
             Dictionary<string, int> idealFrameCounts = frameCounts.ToDictionary(c => c.Key.Path, c =>
             {
@@ -283,7 +283,7 @@ namespace maplestory.io.Data.Maps
             }, new ConcurrentBag<int>[] { allX, allY, allRight, allBottom });
         }
 
-        public Image<Rgba32> RenderLayer(int frame, int layer, bool filterTrash = false)
+        public Image<Rgba32> RenderLayer(int frame, int layer, bool filterTrash = false, int? minX = null, int? minY = null)
         {
             int folderNumber = layer / 2;
             bool isObjLayer = layer % 2 == 0;
@@ -295,7 +295,7 @@ namespace maplestory.io.Data.Maps
             Dictionary<WZProperty, ConcurrentBag<IPositionedFrameContainer>> allGraphicsParsed = allLayerNodeFolders.ToDictionary(c => c, c => new ConcurrentBag<IPositionedFrameContainer>());
             ConcurrentDictionary<int, Image<Rgba32>> renderedLayers = new ConcurrentDictionary<int, Image<Rgba32>>();
 
-            ProcessGraphicsNode(frame, tileSets, allGraphics, allGraphicsParsed, filterTrash);
+            ProcessGraphicsNode(frame, tileSets, allGraphics, allGraphicsParsed, filterTrash, minX, minY);
             Parallel.ForEach(allGraphicsParsed.Where(c => c.Value.Count > 0), layerElements => renderedLayers.TryAdd(GetLayerIndex(layerElements.Key), RenderPositioned(layerElements.Value)));
 
             return renderedLayers[layer];

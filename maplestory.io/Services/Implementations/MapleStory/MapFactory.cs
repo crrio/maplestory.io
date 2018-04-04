@@ -53,11 +53,11 @@ namespace maplestory.io.Services.Implementations.MapleStory
             return renderer.Render(frame, showLife, showPortals, showBackgrounds);
         }
 
-        public Image<Rgba32> RenderLayer(int mapId, int layer, int frame, bool filterTrash)
+        public Image<Rgba32> RenderLayer(int mapId, int layer, int frame, bool filterTrash, int? minX = null, int? minY = null)
         {
             Map entry = GetMap(mapId);
             MapRender renderer = new MapRender(entry, entry.mapEntry);
-            return renderer.RenderLayer(frame, layer, filterTrash);
+            return renderer.RenderLayer(frame, layer, filterTrash, minX, minY);
         }
 
         public Image<Rgba32> RenderLayer(int mapId, int layer, int frame)

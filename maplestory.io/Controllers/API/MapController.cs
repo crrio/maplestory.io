@@ -46,8 +46,8 @@ namespace maplestory.io.Controllers.API
             => File(MapFactory.Render(mapId, frame, showLife, showPortals, showBackgrounds).ImageToByte(Request), "image/png");
 
         [Route("{mapId}/render/layer/{layer}/{frame?}")]
-        public IActionResult RenderMapLayer([FromRoute]int mapId, [FromRoute]int layer, [FromRoute]int frame = 0, [FromQuery] bool filterTrash = false)
-            => File(MapFactory.RenderLayer(mapId, layer, frame, filterTrash).ImageToByte(Request), "image/png");
+        public IActionResult RenderMapLayer([FromRoute]int mapId, [FromRoute]int layer, [FromRoute]int frame = 0, [FromQuery] bool filterTrash = false, [FromQuery] int? minX = null, [FromQuery] int? minY = null)
+            => File(MapFactory.RenderLayer(mapId, layer, frame, filterTrash, minX, minY).ImageToByte(Request), "image/png");
 
         [Route("{mapId}/minimap")]
         [HttpGet]
