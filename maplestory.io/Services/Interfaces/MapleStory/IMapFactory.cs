@@ -11,5 +11,7 @@ namespace maplestory.io.Services.Interfaces.MapleStory
         Map GetMap(int id, bool followLinks = true);
         MapMark GetMapMark(string markName);
         Image<Rgba32> Render(int id, int frame, bool showLife, bool showPortals, bool showBackgrounds);
+        Image<Rgba32> RenderLayer(int mapId, int layer, int frame);
+        Image<Rgba32> RenderLayer(int mapId, int layer, int frame, bool filterTrash);
     }
 }

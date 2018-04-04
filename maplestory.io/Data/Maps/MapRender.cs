@@ -71,13 +71,16 @@ namespace maplestory.io.Data.Maps
         int lcm(int a, int b) => Math.Abs(a * b) / GCD(a, b);
         int GCD(int a, int b) => b == 0 ? a : GCD(b, a % b);
 
-        void ProcessGraphicsNode(int frame, Dictionary<WZProperty, WZProperty> tileSets, IEnumerable<WZProperty> allGraphics, ConcurrentDictionary<string, Frame> parsedFrames, ConcurrentDictionary<string, Frame> parsedFlippedFrames, ConcurrentDictionary<string, int> tileZIndexes, Dictionary<WZProperty, ConcurrentBag<IPositionedFrameContainer>> allGraphicsParsed)
+        void ProcessGraphicsNode(int frame, Dictionary<WZProperty, WZProperty> tileSets, IEnumerable<WZProperty> allGraphics, Dictionary<WZProperty, ConcurrentBag<IPositionedFrameContainer>> allGraphicsParsed, bool filterTrash = false)
         {
+            ConcurrentDictionary<string, Frame> parsedFrames = new ConcurrentDictionary<string, Frame>();
+            ConcurrentDictionary<string, Frame> parsedFlippedFrames = new ConcurrentDictionary<string, Frame>();
+            ConcurrentDictionary<string, int> tileZIndexes = new ConcurrentDictionary<string, int>();
             ConcurrentBag<int> allX = new ConcurrentBag<int>();
             ConcurrentBag<int> allRight = new ConcurrentBag<int>();
             ConcurrentBag<int> allY = new ConcurrentBag<int>();
             ConcurrentBag<int> allBottom = new ConcurrentBag<int>();
-            ConcurrentBag<int> frameCounts = new ConcurrentBag<int>();
+            ConcurrentDictionary<WZProperty, ConcurrentBag<int>> frameCounts = new ConcurrentDictionary<WZProperty, ConcurrentBag<int>>();
             Parallel.ForEach(allGraphics, node =>
             {
                 if (node.Parent.Name[0] == 't')
@@ -132,7 +135,11 @@ namespace maplestory.io.Data.Maps
                         frameCount = tileCanvas.Children?.Select(c => int.TryParse(c.Name, out int blah) ? (int?)blah : null).Where(c => c.HasValue).Select(c => c.Value).Count() ?? 1;
                         canvasNode = tileCanvas.Resolve((frameCount == 0 ? 0 : (frame % frameCount)).ToString()) ?? tileCanvas;
                         parsedFrame = Frame.Parse(canvasNode);
-                        frameCounts.Add(frameCount);
+#if DEBUG
+                        if (!frameCounts.ContainsKey(node.Parent))
+                            frameCounts.TryAdd(node.Parent, new ConcurrentBag<int>());
+                        frameCounts[node.Parent].Add(frameCount);
+#endif
 
                         tileZIndexes.TryAdd(elementPath, tileZ);
                         if (flip)
@@ -184,6 +191,8 @@ namespace maplestory.io.Data.Maps
                         if (childNode.Name == "quest") return;//quests = childNode.Children.Select(c => int.TryParse(c.NameWithoutExtension, out int blah) ? (int?)blah : null).Where(c => c.HasValue).Select(c => c.Value).ToArray();
                     }
 
+                    if (filterTrash && (oS == "MFF" || l0 == "2011Xmas")) return;
+
                     string elementPath = $"{oS}/{l0}/{l1}/{l2}";
 
                     bool created = false;
@@ -213,9 +222,13 @@ namespace maplestory.io.Data.Maps
                         created = true;
                         WZProperty objCanvas = node.ResolveOutlink($"Map/Obj/{elementPath}") ?? node.ResolveOutlink($"Map2/Obj/{elementPath}");
                         if (objCanvas == null) return;
-                        frameCount = objCanvas.Children?.Select(c => int.TryParse(c.Name, out int blah) ? (int?)blah : null).Where(c => c.HasValue).Select(c => c.Value).Count() ?? 1;                        frameCounts.Add(frameCount);
-                        frameCounts.Add(frameCount);
+                        frameCount = objCanvas.Children?.Select(c => int.TryParse(c.Name, out int blah) ? (int?)blah : null).Where(c => c.HasValue).Select(c => c.Value).Count() ?? 1;
+#if DEBUG
+                        if (!frameCounts.ContainsKey(node.Parent))
+                            frameCounts.TryAdd(node.Parent, new ConcurrentBag<int>());
+                        frameCounts[node.Parent].Add(frameCount);
                         parsedFrame = Frame.Parse(objCanvas.Resolve((frameCount == 0 ? 0 : (frame % frameCount)).ToString()) ?? objCanvas);
+#endif
 
                         if (flip)
                         {
@@ -252,12 +265,38 @@ namespace maplestory.io.Data.Maps
             maxX = allRight.Max();
             minY = allY.Min();
             maxY = allBottom.Max();
-            int idealFrameCount = lcmn(frameCounts.Where(c => c != 0).ToArray());
+#if DEBUG
+            Dictionary<string, int> idealFrameCounts = frameCounts.ToDictionary(c => c.Key.Path, c =>
+            {
+                int[] layerFrameCounts = new int[c.Value.Count];
+                int i = 0;
+                while (c.Value.TryTake(out int frameCount)) layerFrameCounts[i++] = frameCount;
+                return lcmn(layerFrameCounts.Where(b => b != 0).DefaultIfEmpty(1).ToArray());
+            });
+#endif
 
             ThreadPool.QueueUserWorkItem(s =>
             {
                 foreach (ConcurrentBag<int> bag in (ConcurrentBag<int>[])s) while (bag.TryTake(out int blah)) ;
-            }, new ConcurrentBag<int>[] { allX, allY, allRight, allBottom, frameCounts });
+            }, new ConcurrentBag<int>[] { allX, allY, allRight, allBottom });
+        }
+
+        public Image<Rgba32> RenderLayer(int frame, int layer, bool filterTrash = false)
+        {
+            int folderNumber = layer / 2;
+            bool isObjLayer = layer % 2 == 0;
+            IEnumerable<WZProperty> layerNodes = mapNode.Children.Where(c => int.TryParse(c.Name, out int blah) && blah == folderNumber).ToArray();
+            Dictionary<WZProperty, WZProperty> tileSets = layerNodes.ToDictionary(c => c.Resolve("tile"), c => c.ResolveOutlink("Map/Tile/" + c.ResolveForOrNull<string>("info/tS")));
+            IEnumerable<WZProperty> allLayerNodeFolders = layerNodes.SelectMany(c => c.Children).Where(c => (isObjLayer && c.Name == "obj") || (!isObjLayer && c.Name == "tile")).ToArray();
+            Dictionary<WZProperty, Tuple<WZProperty, WZProperty>> layersToFolders = allLayerNodeFolders.GroupBy(c => c.Parent).ToDictionary(c => c.Key, c => new Tuple<WZProperty, WZProperty>(c.First(), c.Last()));
+            IEnumerable<WZProperty> allGraphics = allLayerNodeFolders.SelectMany(c => c.Children).ToArray();
+            Dictionary<WZProperty, ConcurrentBag<IPositionedFrameContainer>> allGraphicsParsed = allLayerNodeFolders.ToDictionary(c => c, c => new ConcurrentBag<IPositionedFrameContainer>());
+            ConcurrentDictionary<int, Image<Rgba32>> renderedLayers = new ConcurrentDictionary<int, Image<Rgba32>>();
+
+            ProcessGraphicsNode(frame, tileSets, allGraphics, allGraphicsParsed, filterTrash);
+            Parallel.ForEach(allGraphicsParsed.Where(c => c.Value.Count > 0), layerElements => renderedLayers.TryAdd(GetLayerIndex(layerElements.Key), RenderPositioned(layerElements.Value)));
+
+            return renderedLayers[layer];
         }
 
         public Image<Rgba32> Render(int frame, bool showLife, bool showPortals, bool showBackgrounds)
@@ -268,12 +307,9 @@ namespace maplestory.io.Data.Maps
             Dictionary<WZProperty, Tuple<WZProperty, WZProperty>> layersToFolders = allLayerNodeFolders.GroupBy(c => c.Parent).ToDictionary(c => c.Key, c => new Tuple<WZProperty, WZProperty>(c.First(), c.Last()));
             IEnumerable<WZProperty> allGraphics = allLayerNodeFolders.SelectMany(c => c.Children).ToArray();
             Dictionary<WZProperty, ConcurrentBag<IPositionedFrameContainer>> allGraphicsParsed = allLayerNodeFolders.ToDictionary(c => c, c => new ConcurrentBag<IPositionedFrameContainer>());
-            ConcurrentDictionary<string, Frame> parsedFrames = new ConcurrentDictionary<string, Frame>();
-            ConcurrentDictionary<string, Frame> parsedFlippedFrames = new ConcurrentDictionary<string, Frame>();
-            ConcurrentDictionary<string, int> tileZIndexes = new ConcurrentDictionary<string, int>();
             ConcurrentDictionary<int, Image<Rgba32>> renderedLayers = new ConcurrentDictionary<int, Image<Rgba32>>();
 
-            ProcessGraphicsNode(frame, tileSets, allGraphics, parsedFrames, parsedFlippedFrames, tileZIndexes, allGraphicsParsed);
+            ProcessGraphicsNode(frame, tileSets, allGraphics, allGraphicsParsed);
 
             List<Task> otherLayers = new List<Task>();
             if (showLife)

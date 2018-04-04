@@ -52,5 +52,19 @@ namespace maplestory.io.Services.Implementations.MapleStory
             MapRender renderer = new MapRender(entry, entry.mapEntry);
             return renderer.Render(frame, showLife, showPortals, showBackgrounds);
         }
+
+        public Image<Rgba32> RenderLayer(int mapId, int layer, int frame, bool filterTrash)
+        {
+            Map entry = GetMap(mapId);
+            MapRender renderer = new MapRender(entry, entry.mapEntry);
+            return renderer.RenderLayer(frame, layer, filterTrash);
+        }
+
+        public Image<Rgba32> RenderLayer(int mapId, int layer, int frame)
+        {
+            Map entry = GetMap(mapId);
+            MapRender renderer = new MapRender(entry, entry.mapEntry);
+            return renderer.RenderLayer(frame, layer);
+        }
     }
 }
