@@ -9,6 +9,7 @@ using maplestory.io.Data.Images;
 using SixLabors.ImageSharp.Processing;
 using SixLabors.Primitives;
 using SixLabors.ImageSharp.PixelFormats;
+using Newtonsoft.Json;
 
 namespace maplestory.io.Data.Maps
 {
@@ -16,9 +17,11 @@ namespace maplestory.io.Data.Maps
     {
         public int Index { get; set; }
         public string pathToImage;
+        [JsonIgnore]
         public Frame Canvas { get; set; }
         public Vector3 Position { get; set; }
 
+        [JsonIgnore]
         public RectangleF Bounds  {
             get {
                 Point canvasOrigin = Canvas.Origin ?? new Point(Canvas.Image.Width / 2, Canvas.Image.Height / 2);

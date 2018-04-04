@@ -19,9 +19,6 @@ namespace maplestory.io.Data.Maps
 {
     public class MapRender
     {
-        public IEnumerable<GraphicsSet> Graphics;
-        public IEnumerable<MapBackground> Backgrounds;
-
         Map map;
         WZProperty mapNode;
         int minX, minY, maxX, maxY;

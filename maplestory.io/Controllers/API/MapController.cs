@@ -49,6 +49,10 @@ namespace maplestory.io.Controllers.API
         public IActionResult RenderMapLayer([FromRoute]int mapId, [FromRoute]int layer, [FromRoute]int frame = 0, [FromQuery] bool filterTrash = false, [FromQuery] int? minX = null, [FromQuery] int? minY = null)
             => File(MapFactory.RenderLayer(mapId, layer, frame, filterTrash, minX, minY).ImageToByte(Request), "image/png");
 
+        [Route("{mapId}/render/plan")]
+        public IActionResult RenderMapPlan([FromRoute]int mapId)
+            => Json(MapFactory.GetRenderPlan(mapId));
+
         [Route("{mapId}/minimap")]
         [HttpGet]
         public IActionResult GetMinimap(int mapId)

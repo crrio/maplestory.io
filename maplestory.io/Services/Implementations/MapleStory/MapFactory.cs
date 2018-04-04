@@ -66,5 +66,10 @@ namespace maplestory.io.Services.Implementations.MapleStory
             MapRender renderer = new MapRender(entry, entry.mapEntry);
             return renderer.RenderLayer(frame, layer);
         }
+
+        public MapRenderPlan GetRenderPlan(int mapId) {
+            Map entry = GetMap(mapId);
+            return new MapRenderPlan(entry, entry.mapEntry);
+        }
     }
 }

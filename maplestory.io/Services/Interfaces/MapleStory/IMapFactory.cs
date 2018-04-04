@@ -13,5 +13,6 @@ namespace maplestory.io.Services.Interfaces.MapleStory
         Image<Rgba32> Render(int id, int frame, bool showLife, bool showPortals, bool showBackgrounds);
         Image<Rgba32> RenderLayer(int mapId, int layer, int frame);
         Image<Rgba32> RenderLayer(int mapId, int layer, int frame, bool filterTrash, int? minX, int? minY);
+        MapRenderPlan GetRenderPlan(int mapId);
     }
 }
