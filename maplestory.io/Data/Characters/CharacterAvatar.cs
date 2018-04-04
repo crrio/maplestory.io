@@ -535,7 +535,7 @@ namespace maplestory.io.Data.Characters
                     {
                         int category = c.Key / 100;
 
-                        Dictionary<string, EquipSelection> equipLookup = c.ToDictionary(b => b.ItemId.ToString("D8"), b => b);
+                        Dictionary<string, EquipSelection> equipLookup = c.DistinctBy(b => b.ItemId).ToDictionary(b => b.ItemId.ToString("D8"), b => b);
 
                         IEnumerable<WZProperty> nodes = null;
                         if (category == 301)

@@ -9,7 +9,7 @@ namespace maplestory.io
 {
     public static class Extensions
     {
-        public static byte[] ImageToByte(this Image<Rgba32> img, HttpRequest context, bool autoResize = true, IImageFormat format = null, bool autoDispose = true)
+        public static byte[] ImageToByte(this Image<Rgba32> img, HttpRequest context, bool autoResize = true, IImageFormat format = null, bool autoDispose = false)
         {
             if (format == null) format = ImageFormats.Png;
             if (context.Query.ContainsKey("resize") && autoResize)

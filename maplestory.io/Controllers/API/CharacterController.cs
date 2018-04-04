@@ -62,7 +62,7 @@ namespace maplestory.io.Controllers.API
         [Route("base/{skinId?}/example")]
         [HttpGet]
         public IActionResult GetBaseExample(int skinId = 2000)
-            => File(CharacterFactory.GetBaseWithHair(skinId).ImageToByte(Request), "image/png");
+            => File(CharacterFactory.GetBaseWithHair(skinId).ImageToByte(Request, true, null, true), "image/png");
 
         [Route("{skinId}/{items?}/{animation?}/{frame?}")]
         [HttpGet]
@@ -74,7 +74,7 @@ namespace maplestory.io.Controllers.API
                     .Select(c => new Tuple<int, string, float?>(int.Parse(c[0]), c.Length > 1 && !float.TryParse(c[1], out float blah) ? c[1] : animation, c.Length > 2 && float.TryParse(c[2], out float huehuehue) ? (float?)huehuehue : (c.Length > 1 && float.TryParse(c[1], out huehuehue) ? (float?)huehuehue : null)))
                     .OrderBy(c => c.Item1, OrderByDirection.Descending)
                     .ToArray()
-                ).ImageToByte(Request, false), "image/png");
+                ).ImageToByte(Request, false, null, true), "image/png");
 
         [Route("compact/{skinId}/{items?}/{animation?}/{frame?}")]
         [HttpGet]
@@ -204,7 +204,7 @@ namespace maplestory.io.Controllers.API
             }
             gif.Frames.RemoveFrame(0);
 
-            return File(gif.ImageToByte(Request, false, ImageFormats.Gif), "image/gif");
+            return File(gif.ImageToByte(Request, false, ImageFormats.Gif, true), "image/gif");
         }
 
         [Route("actions/{items?}")]
@@ -236,7 +236,7 @@ namespace maplestory.io.Controllers.API
                     itemIds.Concat(new int[] { face, hair })
                     .Select(c => new Tuple<int, string, float?>(c, null, null))
                     .ToArray()
-                ).ImageToByte(Request), "image/png");
+                ).ImageToByte(Request, true, null, true), "image/png");
         }
 
         [Route("download/{skinId}/{items?}")]
