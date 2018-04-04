@@ -18,7 +18,7 @@ namespace maplestory.io.Data.Maps
         public ConcurrentDictionary<string, int> TileZIndexes = new ConcurrentDictionary<string, int>();
         Dictionary<string, ConcurrentBag<IPositionedFrameContainer>> allGraphicsParsed;
         public Dictionary<string, IPositionedFrameContainer[]> AllGraphicLayers;
-        public List<MapBackground> Backgrounds;
+        public MapBackground[] Backgrounds;
         public Map map;
         [JsonIgnore]
         WZProperty mapNode;
@@ -38,7 +38,9 @@ namespace maplestory.io.Data.Maps
 
             ConcurrentBag<MapBackground> bgs = new ConcurrentBag<MapBackground>();
             Parallel.ForEach(mapNode.Children.FirstOrDefault(c => c.Name == "back")?.Children, backgroundNode => bgs.Add(MapBackground.Parse(backgroundNode)));
-            while (bgs.TryTake(out MapBackground back)) Backgrounds.Add(back);
+            Backgrounds = new MapBackground[bgs.Count];
+            int i = 0;
+            while (bgs.TryTake(out MapBackground back)) Backgrounds[i++] = back;
 
             ProcessGraphicsNode(tileSets, allGraphics);
             AllGraphicLayers = allGraphicsParsed.ToDictionary(c => c.Key, c =>
