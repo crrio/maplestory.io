@@ -112,6 +112,7 @@ namespace maplestory.io.Data.Maps
                         if (childNode.Name == "y") y = childNode.ResolveFor<int>() ?? 0;
                         if (childNode.Name == "z") z = childNode.ResolveFor<int>() ?? 0;
                         if (childNode.Name == "quest") res.Quests = childNode.Children.Select(c => int.TryParse(c.NameWithoutExtension, out int blah) ? (int?)blah : null).Where(c => c.HasValue).Select(c => c.Value).ToArray();
+                        if (childNode.Name == "groupName") res.GroupName = childNode.ResolveForOrNull<string>();
                     }
 
                     string elementPath = $"{oS}/{l0}/{l1}/{l2}";

@@ -187,6 +187,7 @@ namespace maplestory.io.Data.Maps
                         if (childNode.Name == "y") y = childNode.ResolveFor<int>() ?? 0;
                         if (childNode.Name == "z") z = childNode.ResolveFor<int>() ?? 0;
                         if (childNode.Name == "quest") return;//quests = childNode.Children.Select(c => int.TryParse(c.NameWithoutExtension, out int blah) ? (int?)blah : null).Where(c => c.HasValue).Select(c => c.Value).ToArray();
+                        if (childNode.Name == "groupName") return;//res.GroupName = childNode.ResolveForOrNull<string>();
                     }
 
                     if (filterTrash && (oS == "MFF" || l0 == "2011Xmas")) return;
@@ -474,7 +475,7 @@ namespace maplestory.io.Data.Maps
         {
             Image<Rgba32> layerResult = new Image<Rgba32>((int)(maxX - minX), (int)(maxY - minY));
             Rectangle layerBounds = new Rectangle(0, 0, layerResult.Width, layerResult.Height);
-            foreach (IPositionedFrameContainer frameContainer in frameContainerZ.Where(c => c?.Canvas?.Image != null).OrderBy(c => c.Index))
+            foreach (IPositionedFrameContainer frameContainer in frameContainerZ.Where(c => c?.Canvas?.Image != null).OrderBy(c => c.Position.Z))
             {
                 Point origin = frameContainer.Canvas.Origin ?? (new Point(frameContainer.Canvas.Image.Width / 2, frameContainer.Canvas.Image.Height / 2));
                 Point drawAt = new Point(

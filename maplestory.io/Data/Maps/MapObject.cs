@@ -39,6 +39,7 @@ namespace maplestory.io.Data.Maps
         public int[] Quests;
         public string Tags;
         public float SecondZ;
+        public string GroupName;
 
         public bool Flip { get; set; }
         public static MapObject Parse(WZProperty data, int frame)

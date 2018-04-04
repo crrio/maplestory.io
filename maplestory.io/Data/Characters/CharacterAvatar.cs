@@ -581,8 +581,8 @@ namespace maplestory.io.Data.Characters
 
                         return nodes.Select(b => new Tuple<WZProperty, EquipSelection>(
                             b.Resolve(),
-                            equipLookup[b.NameWithoutExtension]
-                        ));
+                            equipLookup.ContainsKey(b.NameWithoutExtension) ? equipLookup[b.NameWithoutExtension] : null
+                        )).Where(b => b.Item2 != null);
                     }).Where(c => c != null).SelectMany(c => c)
                 ).ToArray();
 
