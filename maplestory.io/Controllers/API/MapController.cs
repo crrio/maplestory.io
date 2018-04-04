@@ -40,10 +40,10 @@ namespace maplestory.io.Controllers.API
             return GetMarkByName(map.MapMark);
         }
 
-        [Route("{mapId}/render")]
+        [Route("{mapId}/render/{frame?}")]
         [HttpGet]
-        public IActionResult RenderMap(int mapId, [FromQuery]bool showLife = false, [FromQuery]bool showPortals = false, [FromQuery]bool showBackgrounds = false)
-            => File(MapFactory.Render(mapId, showLife, showPortals, showBackgrounds).ImageToByte(Request), "image/png");
+        public IActionResult RenderMap(int mapId, [FromQuery]bool showLife = false, [FromQuery]bool showPortals = false, [FromQuery]bool showBackgrounds = false, [FromRoute] int frame = 0)
+            => File(MapFactory.Render(mapId, frame, showLife, showPortals, showBackgrounds).ImageToByte(Request), "image/png");
 
         [Route("{mapId}/minimap")]
         [HttpGet]

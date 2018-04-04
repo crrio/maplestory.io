@@ -3,12 +3,13 @@ using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Formats;
 using System.Collections.Generic;
 using System.IO;
+using System.Threading;
 
 namespace maplestory.io
 {
     public static class Extensions
     {
-        public static byte[] ImageToByte(this Image<Rgba32> img, HttpRequest context, bool autoResize = true, IImageFormat format = null)
+        public static byte[] ImageToByte(this Image<Rgba32> img, HttpRequest context, bool autoResize = true, IImageFormat format = null, bool autoDispose = true)
         {
             if (format == null) format = ImageFormats.Png;
             if (context.Query.ContainsKey("resize") && autoResize)
@@ -29,6 +30,7 @@ namespace maplestory.io
             using (MemoryStream mem = new MemoryStream())
             {
                 img.Save(mem, format);
+                if (autoDispose) ThreadPool.QueueUserWorkItem((s) => img.Dispose());
                 return mem.ToArray();
             }
         }

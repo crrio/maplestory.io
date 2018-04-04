@@ -48,7 +48,7 @@ namespace maplestory.io.Data.Characters
         public float NameWidthAdjustmentX;
         public int Delay;
 
-        static FontCollection fonts;
+        internal static FontCollection fonts;
         static CharacterAvatar()
         {
             fonts = new FontCollection();
@@ -220,7 +220,7 @@ namespace maplestory.io.Data.Characters
 
                     ConcurrentBag<Tuple<string, byte[]>> bag = new ConcurrentBag<Tuple<string, byte[]>>(parts.Select((c, i) => new Tuple<string, byte[]>($"L{i + 1},R1,C1,{c.Item1.Position},visible,normal,255.png", convertImg(c.Item2))));
 
-                    foreach (Tuple<string, byte[]> frameData in bag)
+                    while(bag.TryTake(out Tuple<string, byte[]> frameData))
                     {
                         ZipArchiveEntry entry = archive.CreateEntry(frameData.Item1, CompressionLevel.Optimal);
                         using (Stream entryData = entry.Open())
@@ -900,7 +900,11 @@ namespace maplestory.io.Data.Characters
                 rankedFrames.Add(ranked);
             }).IsCompleted) Thread.Sleep(1);
 
-            return rankedFrames.ToArray();
+            RankedFrame[] rankedFramesArray = new RankedFrame[rankedFrames.Count];
+            int i = 0;
+            while (rankedFrames.TryTake(out RankedFrame rankedFrame)) rankedFramesArray[i++] = rankedFrame;
+
+            return rankedFramesArray;
         }
     }
 

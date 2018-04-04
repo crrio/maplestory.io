@@ -37,7 +37,7 @@ namespace maplestory.io.Data.Maps
         public float SecondZ;
 
         public bool Flip { get; set; }
-        public static MapObject Parse(WZProperty data)
+        public static MapObject Parse(WZProperty data, int frame)
         {
             MapObject result = new MapObject();
             result.pathToImage = string.Join("/", (new []{
@@ -61,7 +61,8 @@ namespace maplestory.io.Data.Maps
             result.Rotation = data.ResolveFor<float>("r");
             WZProperty objCanvas = data.ResolveOutlink($"Map/Obj/{result.pathToImage}") ?? data.ResolveOutlink($"Map2/Obj/{result.pathToImage}");
             if (objCanvas == null) return null;
-            result.Canvas = Frame.Parse(objCanvas.Children.FirstOrDefault(c => c.Type == PropertyType.Canvas || c.Type == PropertyType.UOL)?.Resolve() ?? objCanvas);
+            int frameCount = objCanvas.Resolve().Children.Select(c => int.TryParse(c.NameWithoutExtension, out int frameNum) ? (int?)frameNum : null).Where(c => c.HasValue).Select(c => c.Value).Max();
+            result.Canvas = Frame.Parse(objCanvas.Resolve((frame % (frameCount + 1)).ToString()) ?? objCanvas);
             result.Flip = data.ResolveFor<bool>("f") ?? false;
             if (result.Flip && result.Canvas != null && result.Canvas.Image != null)
                 result.Canvas.Image = result.Canvas.Image.Clone(c => c.Flip(FlipType.Horizontal));

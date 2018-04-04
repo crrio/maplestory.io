@@ -19,13 +19,13 @@ namespace maplestory.io.Data.Maps
         public IEnumerable<MapTile> Tiles;
         public int Index;
 
-        public static GraphicsSet Parse(WZProperty data, int index)
+        public static GraphicsSet Parse(WZProperty data, int index, int frame)
         {
             GraphicsSet result = new GraphicsSet();
             result.Index = index;
             result.TileSet = data.ResolveForOrNull<string>("info/tS");
-            result.Objects = data.Resolve("obj")?.Children.Select(c => MapObject.Parse(c)).Where(c => c != null);
-            result.Tiles = data.Resolve("tile")?.Children.Select(c => MapTile.Parse(c, result.TileSet)).Where(c => c != null);
+            result.Objects = data.Resolve("obj")?.Children.Select(c => MapObject.Parse(c, frame)).Where(c => c != null);
+            result.Tiles = data.Resolve("tile")?.Children.Select(c => MapTile.Parse(c, result.TileSet, frame)).Where(c => c != null);
 
             return result;
         }

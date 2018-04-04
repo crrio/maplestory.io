@@ -21,7 +21,7 @@ namespace maplestory.io.Data.Maps
         public RectangleF Bounds {
             get => Canvas == null ? new RectangleF(Position.X, Position.Y, 1, 1) : new RectangleF(Position.X - Canvas.OriginOrZero.X, Position.Y - Canvas.OriginOrZero.Y, Canvas?.Image.Width ?? 1, Canvas?.Image.Height ?? 1);
         }
-        public static MapTile Parse(WZProperty data, string tileSet)
+        public static MapTile Parse(WZProperty data, string tileSet, int frame)
         {
             MapTile result = new MapTile();
             result.pathToImage = string.Join("/", new []{
@@ -31,7 +31,8 @@ namespace maplestory.io.Data.Maps
             });
             WZProperty tileCanvas = data.ResolveOutlink($"Map/Tile/{result.pathToImage}");
             if (tileCanvas == null) return null;
-            result.Canvas = Frame.Parse(tileCanvas.Children.FirstOrDefault(c => c.Type == PropertyType.Canvas || c.Type == PropertyType.UOL)?.Resolve() ?? tileCanvas);
+            int frameCount = tileCanvas.Resolve().Children.Select(c => int.TryParse(c.NameWithoutExtension, out int frameNum) ? (int?)frameNum : null).Where(c => c.HasValue).Select(c => c.Value).DefaultIfEmpty(0).Max();
+            result.Canvas = Frame.Parse(tileCanvas.Resolve((frame % (frameCount + 1)).ToString()) ?? tileCanvas);
             result.FrontMost = data.ResolveFor<bool>("front") ?? false;
             result.Flip = data.ResolveFor<bool>("f") ?? false;
             if (result.Flip && result.Canvas != null && result.Canvas.Image != null)

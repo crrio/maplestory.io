@@ -46,7 +46,11 @@ namespace maplestory.io.Services.Implementations.MapleStory
             MapName name = MapName.Parse(mapName);
             return name;
         }
-        public Image<Rgba32> Render(int id, bool showLife, bool showPortals, bool showBackgrounds)
-            => GetMap(id)?.Render(showLife, showPortals, showBackgrounds);
+        public Image<Rgba32> Render(int id, int frame, bool showLife, bool showPortals, bool showBackgrounds)
+        {
+            Map entry = GetMap(id);
+            MapRender renderer = new MapRender(entry, entry.mapEntry);
+            return renderer.Render(frame, showLife, showPortals, showBackgrounds);
+        }
     }
 }

@@ -17,7 +17,7 @@ namespace maplestory.io.Data.Maps
         public int ToMap, x, y;
         public string LinkToMap => ToMap == 999999999 ? null : $"/map/{ToMap}";
         public MapName ToMapName;
-        private PackageCollection collection;
+        internal PackageCollection collection;
         public string portalImage;
         public bool? onlyOnce;
         [JsonIgnore]
@@ -30,7 +30,7 @@ namespace maplestory.io.Data.Maps
         public bool UnknownExit { get => ToMap == 999999999; }
 
         [JsonIgnore]
-        public Frame Canvas { get; set; }
+        public Frame Canvas { get => Frame.Parse(collection.Resolve($"Map/MapHelper/portal/game/pv/{portalImage ?? "default"}/0")); }
 
         [JsonIgnore]
         public Vector3 Position {
@@ -56,8 +56,8 @@ namespace maplestory.io.Data.Maps
                 y = portalData.ResolveFor<int>("y") ?? int.MinValue,
                 ToMapName = MapName.GetMapNameLookup(portalData)[portalData.ResolveFor<int>("tm") ?? -1].FirstOrDefault(),
                 portalImage = portalData.ResolveForOrNull<string>("image"),
-                onlyOnce = portalData.ResolveFor<bool>("onlyOnce"),
-                Canvas = Frame.Parse(portalData.ResolveOutlink($"Map/MapHelper/portal/game/pv/{portalData.ResolveForOrNull<string>("image") ?? "default"}/0"))
+                onlyOnce = portalData.ResolveFor<bool>("onlyOnce")
+                //Canvas = Frame.Parse(portalData.ResolveOutlink($"Map/MapHelper/portal/game/pv/{portalData.ResolveForOrNull<string>("image") ?? "default"}/0"))
             };
 
             if (!portal.UnknownExit)
