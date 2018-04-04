@@ -82,9 +82,9 @@ namespace maplestory.io.Data.Maps
                         FrameContainer container = new FrameContainer();
                         if (ParsedFrames.TryAdd(elementPath, container))
                         {
-                            int frameCount = tileCanvas.Children?.Select(c => int.TryParse(c.Name, out int blah) ? (int?)blah : null).Where(c => c.HasValue).Select(c => c.Value).Count() ?? 1;
+                            int frameCount = Math.Max(tileCanvas.Children?.Select(c => int.TryParse(c.Name, out int blah) ? (int?)blah : null).Where(c => c.HasValue).Select(c => c.Value).Count() ?? 1, 1);
                             container.Frames = new Frame[frameCount];
-                            for (int i = 0; i < frameCount; ++i) container.Frames[i] = Frame.Parse(tileCanvas.Resolve(i.ToString()) ?? tileCanvas);
+                            for (int i = 0; i < frameCount; ++i) container.Frames[i] = Frame.Parse((tileCanvas.Resolve(i.ToString()) ?? tileCanvas).Resolve());
                         }
                     }
 
@@ -126,9 +126,9 @@ namespace maplestory.io.Data.Maps
                         FrameContainer container = new FrameContainer();
                         if (ParsedFrames.TryAdd(elementPath, container))
                         {
-                            int frameCount = objCanvas.Children?.Select(c => int.TryParse(c.Name, out int blah) ? (int?)blah : null).Where(c => c.HasValue).Select(c => c.Value).Count() ?? 1;
+                            int frameCount = Math.Max(objCanvas.Children?.Select(c => int.TryParse(c.Name, out int blah) ? (int?)blah : null).Where(c => c.HasValue).Select(c => c.Value).Count() ?? 1, 1);
                             container.Frames = new Frame[frameCount];
-                            for (int i = 0; i < frameCount; ++i) container.Frames[i] = Frame.Parse(objCanvas.Resolve(i.ToString()) ?? objCanvas);
+                            for (int i = 0; i < frameCount; ++i) container.Frames[i] = Frame.Parse((objCanvas.Resolve(i.ToString()) ?? objCanvas).Resolve());
                         }
                     }
 
