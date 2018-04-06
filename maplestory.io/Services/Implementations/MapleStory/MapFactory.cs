@@ -34,8 +34,9 @@ namespace maplestory.io.Services.Implementations.MapleStory
                     string nineDigitId = mapId.ToString("D9");
                     WZProperty eightDigits = WZ.Resolve($"Map/Map/Map{eightDigitId[0]}");
                     WZProperty nineDigits = WZ.Resolve($"Map/Map/Map{nineDigitId[0]}");
-                    return eightDigits.Children.Any(m => m.NameWithoutExtension.Equals(eightDigitId) || m.NameWithoutExtension.Equals(nineDigitId)) || nineDigits.Children.Any(m => m.NameWithoutExtension.Equals(eightDigitId) || m.NameWithoutExtension.Equals(nineDigitId));
+                    return eightDigits.Children.Any(m => m.NameWithoutExtension.Equals(eightDigitId) || m.NameWithoutExtension.Equals(nineDigitId)) || nineDigits?.Children.Any(m => m.NameWithoutExtension.Equals(eightDigitId) || m.NameWithoutExtension.Equals(nineDigitId));
                 })
+                .Where(c => c != null)
                 .Select(c => MapName.Parse(c));
         }
         public MapName GetMapName(int id) {
