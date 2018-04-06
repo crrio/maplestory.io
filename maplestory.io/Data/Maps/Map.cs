@@ -143,15 +143,15 @@ namespace maplestory.io.Data.Maps
                     if (portalChildNode.Name == "pn") portal.PortalName = portalChildNode.ResolveForOrNull<string>();
                     if (portalChildNode.Name == "tm")
                     {
-                        portal.ToMap = portalData.ResolveFor<int>() ?? int.MinValue;
-                        portal.ToMapName = MapName.GetMapNameLookup(portalData)[portal.ToMap].FirstOrDefault();
+                        portal.ToMap = portalChildNode.ResolveFor<int>() ?? int.MinValue;
+                        portal.ToMapName = MapName.GetMapNameLookup(portalChildNode)[portal.ToMap].FirstOrDefault();
                     }
-                    if (portalChildNode.Name == "tn") portal.ToName = portalData.ResolveForOrNull<string>();
-                    if (portalChildNode.Name == "pt") portal.Type = (PortalType)(portalData.ResolveFor<int>() ?? 0);
-                    if (portalChildNode.Name == "x") portal.x = portalData.ResolveFor<int>() ?? int.MinValue;
-                    if (portalChildNode.Name == "y") portal.y = portalData.ResolveFor<int>() ?? int.MinValue;
-                    if (portalChildNode.Name == "image") portal.PortalName = portalData.ResolveForOrNull<string>();
-                    if (portalChildNode.Name == "onlyOnce") portal.onlyOnce = portalData.ResolveFor<bool>();
+                    if (portalChildNode.Name == "tn") portal.ToName = portalChildNode.ResolveForOrNull<string>();
+                    if (portalChildNode.Name == "pt") portal.Type = (PortalType)(portalChildNode.ResolveFor<int>() ?? 0);
+                    if (portalChildNode.Name == "x") portal.x = portalChildNode.ResolveFor<int>() ?? int.MinValue;
+                    if (portalChildNode.Name == "y") portal.y = portalChildNode.ResolveFor<int>() ?? int.MinValue;
+                    if (portalChildNode.Name == "image") portal.PortalName = portalChildNode.ResolveForOrNull<string>();
+                    if (portalChildNode.Name == "onlyOnce") portal.onlyOnce = portalChildNode.ResolveFor<bool>();
                 }
 
                 if (!portal.UnknownExit)
