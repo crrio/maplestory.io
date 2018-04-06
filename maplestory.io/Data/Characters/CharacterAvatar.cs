@@ -832,6 +832,7 @@ namespace maplestory.io.Data.Characters
 
                     if (!ElfEars && framePart.NameWithoutExtension.Equals("ear", StringComparison.CurrentCultureIgnoreCase)) return false;
                     if (!LefEars && framePart.NameWithoutExtension.Equals("lefEar", StringComparison.CurrentCultureIgnoreCase)) return false;
+                    if (framePart.NameWithoutExtension.Equals("highlefEar", StringComparison.CurrentCultureIgnoreCase)) return false;
 
                     // If the z-position is equal to the equipCategory, the required locks are the vslot
                     // This seems to resolve the caps only requiring the locks of vslot, not the full `cap` in smap
