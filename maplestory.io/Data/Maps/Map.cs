@@ -127,6 +127,43 @@ namespace maplestory.io.Data.Maps
             float bottom = 0;
             float left = 0;
 
+            WZProperty mapImg = mapEntry.Parent;
+
+            Task[] loading = new Task[]
+            {
+                Task.Run(() => result.MiniMap = MiniMap.Parse(mapImg.Resolve("miniMap"))),
+                Task.Run(() =>
+                {
+                    result.portals = mapImg.Resolve("portal").Children.Select(portalData =>
+                    {
+                        Portal portal = new Portal();
+                        portal.collection = portalData.FileContainer.Collection;
+
+                        foreach (WZProperty portalChildNode in portalData.Children)
+                        {
+                            if (portalChildNode.Name == "pn") portal.PortalName = portalChildNode.ResolveForOrNull<string>();
+                            if (portalChildNode.Name == "tm")
+                            {
+                                portal.ToMap = portalData.ResolveFor<int>() ?? int.MinValue;
+                                portal.ToMapName = MapName.GetMapNameLookup(portalData)[portal.ToMap].FirstOrDefault();
+                            }
+                            if (portalChildNode.Name == "tn") portal.ToName = portalData.ResolveForOrNull<string>();
+                            if (portalChildNode.Name == "pt") portal.Type = (PortalType)(portalData.ResolveFor<int>() ?? 0);
+                            if (portalChildNode.Name == "x") portal.x = portalData.ResolveFor<int>() ?? int.MinValue;
+                            if (portalChildNode.Name == "y") portal.y = portalData.ResolveFor<int>() ?? int.MinValue;
+                            if (portalChildNode.Name == "image") portal.PortalName = portalData.ResolveForOrNull<string>();
+                            if (portalChildNode.Name == "onlyOnce") portal.onlyOnce = portalData.ResolveFor<bool>();
+                        }
+
+                        if (!portal.UnknownExit)
+                            portal.IsStarForcePortal = (portalData.ResolveOutlinkFor<int>($"Map/Map/Map{portal.ToMap.ToString("D8")[0]}/{portal.ToMap.ToString("D8")}.img/info/barrier") ?? 0) > 0;
+
+                        return portal;
+
+                    }).ToArray();
+                })
+            };
+
             Parallel.ForEach(mapInfo.Children, (child) =>
             {
                 if (child.Name == "link") result.LinksTo = child.ResolveFor<int>();
@@ -148,36 +185,7 @@ namespace maplestory.io.Data.Maps
                 if (child.Name == "VRTop") top = child.ResolveFor<float>() ?? 0;
                 if (child.Name == "VRRight") right = child.ResolveFor<float>() ?? 0;
                 if (child.Name == "VRBottom") bottom = child.ResolveFor<float>() ?? 0;
-                if (child.Name == "VRLeft") left = child.ResolveFor<float>() ?? 0;
-
-                if (child.Name == "portal") result.portals = child.Children.Select(portalData =>
-                {
-                    Portal portal = new Portal();
-                    portal.collection = portalData.FileContainer.Collection;
-
-                    foreach (WZProperty portalChildNode in portalData.Children)
-                    {
-                        if (portalChildNode.Name == "pn") portal.PortalName = portalChildNode.ResolveForOrNull<string>();
-                        if (portalChildNode.Name == "tm")
-                        {
-                            portal.ToMap = portalData.ResolveFor<int>() ?? int.MinValue;
-                            portal.ToMapName = MapName.GetMapNameLookup(portalData)[portal.ToMap].FirstOrDefault();
-                        }
-                        if (portalChildNode.Name == "tn") portal.ToName = portalData.ResolveForOrNull<string>();
-                        if (portalChildNode.Name == "pt") portal.Type = (PortalType)(portalData.ResolveFor<int>() ?? 0);
-                        if (portalChildNode.Name == "x") portal.x = portalData.ResolveFor<int>() ?? int.MinValue;
-                        if (portalChildNode.Name == "y") portal.y = portalData.ResolveFor<int>() ?? int.MinValue;
-                        if (portalChildNode.Name == "image") portal.PortalName = portalData.ResolveForOrNull<string>();
-                        if (portalChildNode.Name == "onlyOnce") portal.onlyOnce = portalData.ResolveFor<bool>();
-                    }
-
-                    if (!portal.UnknownExit)
-                        portal.IsStarForcePortal = (portalData.ResolveOutlinkFor<int>($"Map/Map/Map{portal.ToMap.ToString("D8")[0]}/{portal.ToMap.ToString("D8")}.img/info/barrier") ?? 0) > 0;
-
-                    return portal;
-                    
-                }).ToArray();
-                if (child.Name == "miniMap") result.MiniMap = MiniMap.Parse(child);
+                if (child.Name == "VRLeft") left = child.ResolveFor<float>() ?? 0;                
             });
 
             result.VRBounds = new RectangleF(left, top, right - left, bottom - top);
