@@ -22,7 +22,7 @@ namespace maplestory.io.Controllers.API
         [HttpGet]
         public IActionResult GetChat([FromQuery]string ringIdsJoined, [FromQuery]string message)
         {
-            if (message.Length > 256) throw new InvalidOperationException("Too long of a message");
+            if (message.Length > 512) throw new InvalidOperationException("Too long of a message");
 
             int[] ringIds = ringIdsJoined.Split(',').Select(b => int.TryParse(b, out int d) ? (int?)d : null).Where(b => b.HasValue).Select(b => b.Value).ToArray();
             WZProperty rings = WZ.Resolve("Character/Ring");
@@ -93,7 +93,7 @@ namespace maplestory.io.Controllers.API
             Font font = CharacterAvatar.fonts.Families.First(f => f.Name.Equals("Arial", StringComparison.CurrentCultureIgnoreCase)).CreateFont(12, FontStyle.Regular);
             RendererOptions textOptions = new RendererOptions(font);
 
-            string[] lines = message.Batch(15).Select(b => new string(b.ToArray())).ToArray();
+            string[] lines = message.Batch(32).Select(b => new string(b.ToArray())).ToArray();
             SizeF[] lineSizes = lines.Select(line => TextMeasurer.Measure(line, textOptions)).ToArray();
 
             int leftPadding = new[] { nw.Width, w.Width, sw.Width }.Max();
