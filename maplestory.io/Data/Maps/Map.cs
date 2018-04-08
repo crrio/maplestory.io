@@ -38,6 +38,7 @@ namespace maplestory.io.Data.Maps
         public MapName ReturnMapName;
         [JsonIgnore]
         internal WZProperty mapEntry;
+        public List<LadderRope> LadderRopes;
 
         public static Map Parse(int id, MapName name, PackageCollection collection, List<int> attemptedIds = null)
         {
@@ -81,9 +82,19 @@ namespace maplestory.io.Data.Maps
             if (mapEntry == null) return null;
             WZProperty mapInfo = mapEntry.Resolve("info");
 
+            Task loadLadders = Task.Run(() =>
+            {
+                List<LadderRope> ladderRopes = new List<LadderRope>();
+                foreach (WZProperty entry in mapEntry.Resolve("ladderRope").Children)
+                {
+                    ladderRopes.Add(LadderRope.Parse(entry));
+                }
+                result.LadderRopes = ladderRopes;
+            });
             ParseInfo(result, mapEntry, mapInfo);
             ParseFootholds(result, mapEntry);
             ParseLife(result, mapEntry);
+            Task.WaitAll(loadLadders);
 
             return result;
         }
@@ -200,12 +211,35 @@ namespace maplestory.io.Data.Maps
         }
     }
 
+    public class LadderRope
+    {
+        public int x, y1, y2;
+        public bool IsLadder;
+
+        public static LadderRope Parse(WZProperty entry)
+        {
+            LadderRope result = new LadderRope();
+
+            foreach (WZProperty prop in entry.Children)
+            {
+                if (prop.Name == "x") result.x = prop.ResolveFor<int>() ?? 0;
+                if (prop.Name == "y1") result.y1 = prop.ResolveFor<int>() ?? 0;
+                if (prop.Name == "y2") result.y2 = prop.ResolveFor<int>() ?? 0;
+                if (prop.Name == "l") result.IsLadder = prop.ResolveFor<bool>() ?? false;
+            }
+
+            return result;
+        }
+    }
+
     public class Foothold {
         public int id;
         public int next;
         public int prev;
         public int piece;
         public int x1, x2, y1, y2;
+        public int LayerId;
+        public int GroupId;
         internal static Foothold Parse(WZProperty c)
         {
             Foothold result = new Foothold();
@@ -217,6 +251,8 @@ namespace maplestory.io.Data.Maps
             result.x2 = c.ResolveFor<int>("x2") ?? 0;
             result.y1 = c.ResolveFor<int>("y1") ?? 0;
             result.y2 = c.ResolveFor<int>("y2") ?? 0;
+            result.GroupId = int.Parse(c.Parent.Name);
+            result.LayerId = int.Parse(c.Parent.Parent.Name);
             return result;
         }
 
