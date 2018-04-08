@@ -95,6 +95,7 @@ namespace maplestory.io.Data.Mobs
         public static Frame GetFirstFrame(WZProperty anyWz, string id)
         {
             WZProperty npcImg = anyWz.ResolveOutlink($"Mob/{id}");
+            if (npcImg == null) return null;
             string linksTo = npcImg.ResolveForOrNull<string>("info/link");
             if (linksTo != null)
                 return GetFirstFrame(anyWz, linksTo);

@@ -94,6 +94,7 @@ namespace maplestory.io.Data.NPC
         public static Frame GetFirstFrame(WZProperty anyWz, string id)
         {
             WZProperty npcImg = anyWz.ResolveOutlink($"Npc/{id}");
+            if (npcImg == null) return null;
             string linksTo = npcImg.ResolveForOrNull<string>("info/link");
             if (linksTo != null)
                 return GetFirstFrame(anyWz, linksTo);
