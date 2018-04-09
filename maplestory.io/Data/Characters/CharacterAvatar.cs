@@ -886,7 +886,7 @@ namespace maplestory.io.Data.Characters
 
             while (!Parallel.ForEach(frameParts ?? new Tuple<WZProperty, EquipSelection>[0], (c) =>
             {
-                string zIndex = c.Item1.ResolveForOrNull<string>("../z") ?? c.Item1.Resolve().ResolveForOrNull<string>("z");
+                string zIndex = c.Item1.ResolveForOrNull<string>("../z") ?? c.Item1.Resolve().ResolveForOrNull<string>("z") ?? "0";
                 int zPosition = 0;
                 if (!int.TryParse(zIndex, out zPosition))
                     zPosition = zmap.IndexOf(zIndex);
