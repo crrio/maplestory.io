@@ -884,7 +884,7 @@ namespace maplestory.io.Data.Characters
 
             ConcurrentBag<RankedFrame> rankedFrames = new ConcurrentBag<RankedFrame>();
 
-            while (!Parallel.ForEach(frameParts, (c) =>
+            while (!Parallel.ForEach(frameParts ?? new Tuple<WZProperty, EquipSelection>[0], (c) =>
             {
                 string zIndex = c.Item1.ResolveForOrNull<string>("../z") ?? c.Item1.Resolve().ResolveForOrNull<string>("z");
                 int zPosition = 0;
