@@ -144,7 +144,7 @@ namespace maplestory.io.Controllers.API
                     .Where(c => c.Length > 0 && int.TryParse(c[0], out int blah))
                     .Select(c => {
                         int itemId = int.Parse(c[0]);
-                        Tuple<int, string, float?> itemEntry = new Tuple<int, string, float?>(itemId, itemId >= 20000 || itemId < 30000 ? face : animation, null);
+                        Tuple<int, string, float?> itemEntry = new Tuple<int, string, float?>(itemId, itemId >= 20000 && itemId < 30000 ? face : animation, null);
                         return itemEntry;
                     }).OrderBy(c => c.Item1, OrderByDirection.Descending).ToArray();
 
