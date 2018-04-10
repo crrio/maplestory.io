@@ -12,6 +12,8 @@ using System.Collections.Generic;
 using System.Linq;
 using maplestory.io.Data.Characters;
 using maplestory.io.Data.Images;
+using System.Threading.Tasks;
+using System.Collections.Concurrent;
 
 namespace maplestory.io.Controllers.API
 {
@@ -57,7 +59,7 @@ namespace maplestory.io.Controllers.API
         [Route("base/{skinId?}")]
         [HttpGet]
         public IActionResult GetBase(int skinId = 2000)
-            => File(CharacterFactory.GetBase(skinId).ImageToByte(Request), "image/png");
+            => File(CharacterFactory.GetBase(skinId).ImageToByte(Request, true, null, true), "image/png");
 
         [Route("base/{skinId?}/example")]
         [HttpGet]
@@ -119,6 +121,46 @@ namespace maplestory.io.Controllers.API
                 .ToArray()
             );
             return Json(new Tuple<byte[], Dictionary<string, Point>, Dictionary<string, int>, int>(detailed.Item1.ImageToByte(Request, false), detailed.Item2, detailed.Item3, detailed.Item4));
+        }
+
+        [Route("multidetailed/{skinId}/{items}")]
+        public IActionResult GetMultipleCharacterDetails(int skinId, string items, [FromQuery]string animations, [FromQuery]string faces)
+        {
+            string[] animationsSplit = animations.Split(',');
+            string[] facesSplit = faces.Split(',');
+            ConcurrentDictionary<string, Tuple<Image<Rgba32>, Dictionary<string, Point>, int>> allDetails = new ConcurrentDictionary<string, Tuple<Image<Rgba32>, Dictionary<string, Point>, int>>();
+            List<Tuple<string, string>> allPossible = new List<Tuple<string, string>>();
+            foreach (string animation in animationsSplit)
+                foreach (string face in facesSplit)
+                    allPossible.Add(new Tuple<string, string>(animation, face));
+            Parallel.ForEach(allPossible, animationFaceTuple =>
+            {
+                string animation = animationFaceTuple.Item1;
+                string face = animationFaceTuple.Item2;
+
+                Tuple<int, string, float?>[] itemEntries = items?
+                    .Split(new string[] { "," }, StringSplitOptions.RemoveEmptyEntries)
+                    .Select(c => c.Split(':', ';'))
+                    .Where(c => c.Length > 0 && int.TryParse(c[0], out int blah))
+                    .Select(c => {
+                        int itemId = int.Parse(c[0]);
+                        Tuple<int, string, float?> itemEntry = new Tuple<int, string, float?>(itemId, itemId >= 20000 || itemId < 30000 ? face : animation, null);
+                        return itemEntry;
+                    }).OrderBy(c => c.Item1, OrderByDirection.Descending).ToArray();
+
+                int frame = 0;
+                int frameCount = 0;
+                do
+                {
+                    Tuple<Image<Rgba32>, Dictionary<string, Point>, Dictionary<string, int>, int> detailed = CharacterFactory.GetDetailedCharacter(skinId, animation, 0, showEars, showLefEars, padding, name, resize, flipX, RenderMode.Full, itemEntries);
+                    allDetails.TryAdd($"{animation}-{face}-{frame}", new Tuple<Image<Rgba32>, Dictionary<string, Point>, int>(detailed.Item1, detailed.Item2, detailed.Item4));
+
+                    frameCount = detailed.Item3[animation];
+                    frame++;
+                } while (frame < frameCount);
+            });
+
+            return Json(allDetails);
         }
 
         [Route("animated/{skinId}/{items?}/{animation?}/{frame?}")]
