@@ -152,7 +152,7 @@ namespace maplestory.io.Controllers.API
                 int frameCount = 0;
                 do
                 {
-                    Tuple<Image<Rgba32>, Dictionary<string, Point>, Dictionary<string, int>, int> detailed = CharacterFactory.GetDetailedCharacter(skinId, animation, 0, showEars, showLefEars, padding, name, resize, flipX, RenderMode.Full, itemEntries);
+                    Tuple<Image<Rgba32>, Dictionary<string, Point>, Dictionary<string, int>, int> detailed = CharacterFactory.GetDetailedCharacter(skinId, animation, frame, showEars, showLefEars, padding, name, resize, flipX, RenderMode.Full, itemEntries);
                     allDetails.TryAdd($"{animation}-{face}-{frame}", new Tuple<Image<Rgba32>, Dictionary<string, Point>, int>(detailed.Item1, detailed.Item2, detailed.Item4));
 
                     frameCount = detailed.Item3[animation];
