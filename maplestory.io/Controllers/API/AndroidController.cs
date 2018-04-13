@@ -5,7 +5,7 @@ using maplestory.io.Data;
 
 namespace maplestory.io.Controllers.API
 {
-    [Route("api/android")]
+    [Route("api/{region}/{version}/android")]
     public class AndroidController : APIController
     {
         [Route("")]

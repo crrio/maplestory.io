@@ -124,6 +124,7 @@ namespace maplestory.io.Controllers.API
         }
 
         [Route("multidetailed/{skinId}/{items}")]
+        [HttpGet]
         public IActionResult GetMultipleCharacterDetails(int skinId, string items, [FromQuery]string animations, [FromQuery]string faces)
         {
             string[] animationsSplit = animations.Split(',');

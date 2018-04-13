@@ -1,4 +1,7 @@
 ﻿{
+  "JwtKey": "somethingsuperduperunique",
+  "JwtIssuer": "https://maplestory.io",
+  "JwtExpireDays": 30,
   "Logging": {
     "IncludeScopes": false,
     "LogLevel": {
