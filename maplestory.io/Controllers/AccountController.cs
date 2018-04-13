@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
@@ -31,6 +32,11 @@ namespace maplestory.io.Controllers
             _signInManager = signInManager;
             _configuration = configuration;
         }
+
+        [HttpGet]
+        [Route("")]
+        [Authorize]
+        public IActionResult GetUserId([FromQuery] string authCode) => Json(new { id = HttpContext.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value });
 
         [HttpPost]
         [Route("login")]
@@ -88,7 +94,12 @@ namespace maplestory.io.Controllers
                 signingCredentials: creds
             );
 
-            return new JwtSecurityTokenHandler().WriteToken(token);
+            return new
+            {
+                expires = expires,
+                token = new JwtSecurityTokenHandler().WriteToken(token),
+                type = "Bearer"
+            };
         }
 
         public class LoginInfo

@@ -62,7 +62,6 @@ namespace maplestory.io
                     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
                     options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
                     options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-
                 })
                 .AddJwtBearer(cfg =>
                 {
@@ -90,7 +89,7 @@ namespace maplestory.io
             services.Configure<RethinkDbOptions>(Configuration.GetSection("RethinkDb"));
             services.Configure<WZOptions>(Configuration.GetSection("WZ"));
             services.AddSingleton<IRethinkDbConnectionFactory, RethinkDbConnectionFactory>();
-
+            services.AddSingleton<IConfiguration>(Configuration);
             services.AddTransient<IWZFactory, WZFactory>();
             services.AddTransient<IItemFactory, ItemFactory>();
             services.AddTransient<ISkillFactory, SkillFactory>();
@@ -133,6 +132,8 @@ namespace maplestory.io
 
             app.UseCors(builder => builder.AllowAnyOrigin().AllowAnyMethod());
 
+            // ===== Use Authentication ======
+            app.UseAuthentication();
             app.UseMvc(routes =>
             {
                 routes.MapRoute(
@@ -148,9 +149,6 @@ namespace maplestory.io
             {
                 c.SwaggerEndpoint("/swagger/V2/swagger.json", "MapleStory.IO V2");
             });
-
-            // ===== Use Authentication ======
-            app.UseAuthentication();
             //using (var con = connectionFactory.CreateConnection())
             //    con.CheckOpen();
         }
