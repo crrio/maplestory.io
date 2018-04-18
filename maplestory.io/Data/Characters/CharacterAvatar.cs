@@ -30,6 +30,7 @@ namespace maplestory.io.Data.Characters
         public int FrameNumber;
         public string AnimationName;
         public Dictionary<string, int> FrameCounts;
+        public Dictionary<string, int[]> FrameDelays;
         private readonly MSPackageCollection wz;
         public int Padding;
         public bool ElfEars;
@@ -46,7 +47,6 @@ namespace maplestory.io.Data.Characters
         public float Zoom;
         public bool FlipX;
         public float NameWidthAdjustmentX;
-        public int Delay;
 
         internal static FontCollection fonts;
         static CharacterAvatar()
@@ -79,6 +79,7 @@ namespace maplestory.io.Data.Characters
             this.equipped = old.equipped;
             this.preloaded = old.preloaded;
             this.FrameCounts = old.FrameCounts;
+            this.FrameDelays = old.FrameDelays;
         }
 
         public Tuple<Frame, Point, float?>[] GetFrameParts(Dictionary<string, Point> anchorPositions = null)
@@ -331,7 +332,7 @@ namespace maplestory.io.Data.Characters
                 destination,
                 offsets,
                 FrameCounts,
-                Delay
+                FrameDelays[AnimationName][FrameNumber]
             );
         }
 
@@ -613,6 +614,7 @@ namespace maplestory.io.Data.Characters
             
             // Calculate the frame counts for all individual actions
             string[] actions = GetActions();
+            FrameDelays = new Dictionary<string, int[]>();
             var a = equipped.Select(c =>
             {
                 WZProperty itemNode = c.Item1;
@@ -650,7 +652,13 @@ namespace maplestory.io.Data.Characters
                         int frameForEntry = (c.Item2.EquipFrame ?? FrameNumber) % frameCount;
                         // Resolve for frame, and then ensure the frame is resolved completely. If there is no frame, then the animationNode likely contains the parts
                         WZProperty frameNode = animationNode.Resolve(frameForEntry.ToString())?.Resolve() ?? (frameCount == 1 ? animationNode.Resolve() : null);
-                        if (frameNode != null) Delay = frameNode.ResolveFor<int>("delay") ?? 0;
+
+                        int? frameNodeDelay = frameNode.ResolveFor<int>("delay");
+                        if (frameNodeDelay.HasValue)
+                        {
+                            if (!FrameDelays.ContainsKey(animationNode.Name)) FrameDelays.Add(animationNode.Name, new int[frameCount]);
+                            FrameDelays[animationNode.Name][frameForEntry] = frameNodeDelay.Value;
+                        }
                     }
                     return new Tuple<string, int, int>(action, c.Item2.ItemId, frameCount);
                 }).Where(b => b != null).ToArray();
