@@ -332,7 +332,7 @@ namespace maplestory.io.Data.Characters
                 destination,
                 offsets,
                 FrameCounts,
-                FrameDelays[AnimationName][FrameNumber]
+                MustSit ? FrameDelays["sit"][FrameNumber] : FrameDelays[AnimationName][FrameNumber]
             );
         }
 
@@ -653,12 +653,9 @@ namespace maplestory.io.Data.Characters
                         // Resolve for frame, and then ensure the frame is resolved completely. If there is no frame, then the animationNode likely contains the parts
                         WZProperty frameNode = animationNode.Resolve(frameForEntry.ToString())?.Resolve() ?? (frameCount == 1 ? animationNode.Resolve() : null);
 
-                        int? frameNodeDelay = frameNode.ResolveFor<int>("delay");
-                        if (frameNodeDelay.HasValue)
-                        {
-                            if (!FrameDelays.ContainsKey(animationNode.Name)) FrameDelays.Add(animationNode.Name, new int[frameCount]);
-                            FrameDelays[animationNode.Name][frameForEntry] = frameNodeDelay.Value;
-                        }
+                        int frameNodeDelay = frameNode.ResolveFor<int>("delay") ?? 0;
+                        if (!FrameDelays.ContainsKey(animationNode.Name)) FrameDelays.Add(animationNode.Name, new int[frameCount]);
+                        FrameDelays[animationNode.Name][frameForEntry] = frameNodeDelay;
                     }
                     return new Tuple<string, int, int>(action, c.Item2.ItemId, frameCount);
                 }).Where(b => b != null).ToArray();
