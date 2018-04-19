@@ -49,7 +49,12 @@ namespace maplestory.io.Controllers
             if (prop == null) return NotFound();
 
             if (!childrenOnly && prop is IWZPropertyVal)
-                return Json(((IWZPropertyVal)prop).GetValue());
+                return Json(new
+                {
+                    children = prop.Children.Select(c => c.Name),
+                    type = prop.Type,
+                    value = ((IWZPropertyVal)prop).GetValue()
+                });
 
             return Json(prop.Children.Select(c => c.Name));
         }
