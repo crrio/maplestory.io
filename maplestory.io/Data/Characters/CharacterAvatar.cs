@@ -332,7 +332,7 @@ namespace maplestory.io.Data.Characters
                 destination,
                 offsets,
                 FrameCounts,
-                MustSit ? FrameDelays["sit"][FrameNumber] : FrameDelays[AnimationName][FrameNumber]
+                MustSit ? FrameDelays["sit"][FrameNumber % FrameDelays["sit"].Length] : FrameDelays[AnimationName][FrameNumber % FrameDelays[AnimationName].Length]
             );
         }
 
