@@ -44,6 +44,7 @@ namespace maplestory.io.Controllers
         public IActionResult Index() => Json(_ctx.MapleVersions.ToArray(), serializerSettings);
 
         [Route("{region}/{version}/{*path}")]
+        [HttpGet]
         public IActionResult Query(Region region, string version, string path)
         {
             MSPackageCollection wz = _wzFactory.GetWZ(region, version);
@@ -73,6 +74,7 @@ namespace maplestory.io.Controllers
         }
 
         [Route("export/{region}/{version}/{*path}")]
+        [HttpGet]
         public IActionResult Export(Region region, string version, string path, [FromQuery] bool rawImage = false)
         {
             MSPackageCollection wz = _wzFactory.GetWZ(region, version);
