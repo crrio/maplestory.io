@@ -6,6 +6,11 @@ using maplestory.io.Services.Interfaces.MapleStory;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using PKG1;
+using SixLabors.ImageSharp;
+using System.Collections;
+using System.Collections.Generic;
+using System.IO;
+using System.IO.Compression;
 using System.Linq;
 
 namespace maplestory.io.Controllers
@@ -24,7 +29,7 @@ namespace maplestory.io.Controllers
 
             IgnorableSerializerContractResolver resolver = new IgnorableSerializerContractResolver();
             resolver.Ignore<MapleVersion>(a => a.Location);
-            
+
             serializerSettings = new JsonSerializerSettings()
             {
                 ReferenceLoopHandling = ReferenceLoopHandling.Ignore,
@@ -39,16 +44,20 @@ namespace maplestory.io.Controllers
         public IActionResult Index() => Json(_ctx.MapleVersions.ToArray(), serializerSettings);
 
         [Route("{region}/{version}/{*path}")]
-        public IActionResult Query(Region region, string version, string path, [FromQuery] bool childrenOnly = false)
+        public IActionResult Query(Region region, string version, string path)
         {
             MSPackageCollection wz = _wzFactory.GetWZ(region, version);
             if (string.IsNullOrEmpty(path))
-                return Json(wz.Packages.Keys.ToArray());
+                return Json(new
+                {
+                    children = wz.Packages.Keys.ToArray(),
+                    type = -1
+                });
 
             WZProperty prop = wz.Resolve(path);
             if (prop == null) return NotFound();
 
-            if (!childrenOnly && prop is IWZPropertyVal)
+            if (prop is IWZPropertyVal)
                 return Json(new
                 {
                     children = prop.Children.Select(c => c.Name),
@@ -56,7 +65,60 @@ namespace maplestory.io.Controllers
                     value = ((IWZPropertyVal)prop).GetValue()
                 });
 
-            return Json(prop.Children.Select(c => c.Name));
+            return Json(new
+            {
+                children = prop.Children.Select(c => c.Name),
+                type = prop.Type
+            });
+        }
+
+        [Route("export/{region}/{version}/{*path}")]
+        public IActionResult Export(Region region, string version, string path)
+        {
+            MSPackageCollection wz = _wzFactory.GetWZ(region, version);
+            WZProperty prop = wz.Resolve(path);
+
+            if (prop == null) return NotFound();
+            if (prop.Type == PropertyType.Directory) return Forbid();
+
+            Queue<WZProperty> propQueue = new Queue<WZProperty>();
+            propQueue.Enqueue(prop);
+
+            using (MemoryStream mem = new MemoryStream())
+            {
+                using (ZipArchive archive = new ZipArchive(mem, ZipArchiveMode.Create, true))
+                {
+                    while (propQueue.TryDequeue(out WZProperty entry))
+                    {
+                        byte[] data = null;
+                        string extension = null;
+                        if (entry.Type == PropertyType.Audio)
+                        {
+                            data = (byte[])((IWZPropertyVal<byte[]>)entry).Value;
+                            extension = "mp3";
+                        }
+                        else if (entry.Type == PropertyType.Canvas)
+                        {
+                            data = ((IWZPropertyVal<Image<Rgba32>>)entry).Value.ImageToByte(Request, false, null, false);
+                            extension = "png";
+                        }
+
+                        if (data != null)
+                        {
+                            ZipArchiveEntry zipEntry = archive.CreateEntry(entry.Path + '.' + extension, CompressionLevel.Optimal);
+                            using (Stream zipEntryData = zipEntry.Open())
+                            {
+                                zipEntryData.Write(data, 0, data.Length);
+                                zipEntryData.Flush();
+                            }
+                        }
+
+                        foreach (WZProperty child in entry.Children) propQueue.Enqueue(child);
+                    }
+                }
+
+                return File(mem.ToArray(), "application/zip", "export.zip");
+            }
         }
     }
 }
