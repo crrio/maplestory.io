@@ -62,7 +62,7 @@ namespace maplestory.io.Controllers
                 {
                     children = prop.Children.Select(c => c.Name),
                     type = prop.Type,
-                    value = ((IWZPropertyVal)prop).GetValue()
+                    value = prop.Type == PropertyType.Canvas ? prop.ResolveForOrNull<Image<Rgba32>>() : ((IWZPropertyVal)prop).GetValue()
                 });
 
             return Json(new
@@ -73,7 +73,7 @@ namespace maplestory.io.Controllers
         }
 
         [Route("export/{region}/{version}/{*path}")]
-        public IActionResult Export(Region region, string version, string path)
+        public IActionResult Export(Region region, string version, string path, [FromQuery] bool rawImage = false)
         {
             MSPackageCollection wz = _wzFactory.GetWZ(region, version);
             WZProperty prop = wz.Resolve(path);
@@ -83,6 +83,15 @@ namespace maplestory.io.Controllers
 
             Queue<WZProperty> propQueue = new Queue<WZProperty>();
             propQueue.Enqueue(prop);
+
+            if (rawImage && rawImage)
+            {
+                using (WZReader reader = prop.FileContainer.GetContentReader(null, prop.Resolve()))
+                {
+                    reader.BaseStream.Seek(prop.Offset, SeekOrigin.Begin);
+                    return File(reader.ReadBytes((int)prop.Size), "wizet/img", $"{prop.NameWithoutExtension}.img");
+                }
+            }
 
             using (MemoryStream mem = new MemoryStream())
             {
@@ -99,7 +108,7 @@ namespace maplestory.io.Controllers
                         }
                         else if (entry.Type == PropertyType.Canvas)
                         {
-                            data = ((IWZPropertyVal<Image<Rgba32>>)entry).Value.ImageToByte(Request, false, null, false);
+                            data = entry.ResolveForOrNull<Image<Rgba32>>()?.ImageToByte(Request, false, null, false);
                             extension = "png";
                         }
 
