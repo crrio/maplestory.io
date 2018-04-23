@@ -38,7 +38,7 @@ namespace maplestory.io.Data.Maps
         public RectangleF Bounds {
             get => Canvas == null ? new RectangleF(X, Y, 1, 1) : new RectangleF(new Point(X - Canvas.OriginOrZero.X,Y - Canvas.OriginOrZero.Y), new Size(Canvas?.Image?.Width ?? 1, Canvas?.Image?.Height ?? 1));
         }
-        public bool Flip { get; }
+        public bool Flip { get; set; }
         public static MapLife Parse(WZProperty data)
             => Parse(data, new ConcurrentDictionary<int, Tuple<string, Frame>>());
 
@@ -53,6 +53,7 @@ namespace maplestory.io.Data.Maps
             result.WalkAreaX2 = data.ResolveFor<int>("rx1") ?? int.MinValue; // rx1
             result.Id = data.ResolveFor<int>("id") ?? -1;
             result.FootholdId = data.ResolveFor<int>("fh"); // fh
+            result.Flip = data.ResolveFor<bool>("f") ?? false; // fh
             result.Hidden = data.ResolveFor<bool>("hide") ?? false; // hide
             result.Type = data.ResolveForOrNull<string>("type").ToLower() == "n" ? LifeType.NPC : LifeType.Monster; // type
 

@@ -22,6 +22,8 @@ namespace maplestory.io.Data.Maps
         Map map;
         WZProperty mapNode;
         int minX, minY, maxX, maxY;
+        Font MaplestoryFont = Characters.CharacterAvatar.fonts.Families.First(f => f.Name.Equals("Arial Unicode MS", StringComparison.CurrentCultureIgnoreCase)).CreateFont(12, FontStyle.Regular);
+
         public MapRender(Map info,  WZProperty mapNode)
         {
             map = info;
@@ -311,11 +313,32 @@ namespace maplestory.io.Data.Maps
 
             ProcessGraphicsNode(frame, tileSets, allGraphics, allGraphicsParsed);
 
+            Dictionary<int, List<MapLife>> pendingLifeRender = new Dictionary<int, List<MapLife>>();
             List<Task> otherLayers = new List<Task>();
             if (showLife)
             {
-                otherLayers.Add(Task.Run(() => renderedLayers.TryAdd(2000000001, RenderPositioned(map.Life))));
-                otherLayers.Add(Task.Run(() => renderedLayers.TryAdd(2000000002, RenderLifeNames(map.Life))));
+                foreach(MapLife life in map.Life)
+                {
+                    int layer = (life.Foothold.LayerId + 1) * 2;
+                    bool found = false;
+                    foreach(KeyValuePair<WZProperty, ConcurrentBag<IPositionedFrameContainer>> layerEntry in allGraphicsParsed)
+                        if (found = GetLayerIndex(layerEntry.Key) == layer)
+                        {
+                            layerEntry.Value.Add(life);
+                            break;
+                        }
+
+                    if (!found)
+                    {
+                        if (!pendingLifeRender.ContainsKey(layer)) pendingLifeRender.Add(layer, new List<MapLife>());
+                        pendingLifeRender[layer].Add(life);
+                    }
+                }
+                foreach (KeyValuePair<int, List<MapLife>> pendingRender in pendingLifeRender)
+                {
+                    otherLayers.Add(Task.Run(() => renderedLayers.TryAdd(pendingRender.Key, RenderPositioned(pendingRender.Value))));
+                    otherLayers.Add(Task.Run(() => renderedLayers.TryAdd(pendingRender.Key + 1, RenderLifeNames(map.Life))));
+                }
             }
             if (showPortals) otherLayers.Add(Task.Run(() => renderedLayers.TryAdd(2000000003, RenderPositioned(map.portals.Where(c => c.Type == PortalType.Portal)))));
 
@@ -364,26 +387,22 @@ namespace maplestory.io.Data.Maps
             return new PathCollection(cornerToptLeft, cornerBottomLeft, cornerTopRight, cornerBottomRight);
         }
 
-
         private Image<Rgba32> RenderLifeNames(IEnumerable<MapLife> life)
         {
             Image<Rgba32> layer = new Image<Rgba32>((maxX - minX), (maxY - minY));
-
-            layer.Mutate(x =>
-            {
-                Font MaplestoryFont = Characters.CharacterAvatar.fonts.Families.First(f => f.Name.Equals("Arial Unicode MS", StringComparison.CurrentCultureIgnoreCase)).CreateFont(12, FontStyle.Regular);
-                foreach (MapLife npc in life)
-                {
-                    SizeF nameSize = TextMeasurer.Measure(npc.Name, new RendererOptions(MaplestoryFont));
-                    Rectangle boxPosition = new Rectangle((int)((npc.Position.X - (nameSize.Width / 2)) - 2) - minX, (int)(npc.Position.Y - minY) + 5, (int)nameSize.Width + 5, (int)nameSize.Height + 4);
-                    x.Fill(new Rgba32(0, 0, 0, 128), boxPosition);
-                    IPathCollection iPath = BuildCorners(boxPosition.X, boxPosition.Y, boxPosition.Width, boxPosition.Height, 4);
-                    x.Fill(new Rgba32(0, 0, 0, 0), iPath, new GraphicsOptions() { BlenderMode = PixelBlenderMode.Src });
-                    x.DrawText(npc.Name, MaplestoryFont, new Rgba32(223, 220, 109, byte.MaxValue), new PointF(boxPosition.X + 2, boxPosition.Y - 1));
-                }
-            });
+            layer.Mutate(x => { foreach (MapLife npc in life) RenderLifeName(x, npc); });
 
             return layer;
+        }
+
+        void RenderLifeName(IImageProcessingContext<Rgba32> x, MapLife npc)
+        {
+            SizeF nameSize = TextMeasurer.Measure(npc.Name, new RendererOptions(MaplestoryFont));
+            Rectangle boxPosition = new Rectangle((int)((npc.Position.X - (nameSize.Width / 2)) - 2) - minX, (int)(npc.Position.Y - minY) + 5, (int)nameSize.Width + 5, (int)nameSize.Height + 4);
+            x.Fill(new Rgba32(0, 0, 0, 128), boxPosition);
+            IPathCollection iPath = BuildCorners(boxPosition.X, boxPosition.Y, boxPosition.Width, boxPosition.Height, 4);
+            x.Fill(new Rgba32(0, 0, 0, 0), iPath, new GraphicsOptions() { BlenderMode = PixelBlenderMode.Src });
+            x.DrawText(npc.Name, MaplestoryFont, npc.Type == LifeType.NPC ? new Rgba32(223, 220, 109, byte.MaxValue) : new Rgba32(255, 255, 255, byte.MaxValue), new PointF(boxPosition.X + 2, boxPosition.Y - 1));
         }
 
         void DisposeLayers(object layersState)
@@ -475,21 +494,59 @@ namespace maplestory.io.Data.Maps
         {
             Image<Rgba32> layerResult = new Image<Rgba32>((int)(maxX - minX), (int)(maxY - minY));
             Rectangle layerBounds = new Rectangle(0, 0, layerResult.Width, layerResult.Height);
-            foreach (IPositionedFrameContainer frameContainer in frameContainerZ.Where(c => c?.Canvas?.Image != null).OrderBy(c => c.Position.Z))
+            layerResult.Mutate(c =>
             {
-                Point origin = frameContainer.Canvas.Origin ?? (new Point(frameContainer.Canvas.Image.Width / 2, frameContainer.Canvas.Image.Height / 2));
-                Point drawAt = new Point(
-                    (int)((frameContainer.Position.X - origin.X) - minX),
-                    (int)((frameContainer.Position.Y - origin.Y) - minY)
-                );
-                if (!layerBounds.Contains(drawAt)) continue;
-                layerResult.Mutate(c => c.DrawImage(
-                    frameContainer.Canvas.Image, 1,
-                    new Size(frameContainer.Canvas.Image.Width, frameContainer.Canvas.Image.Height),
-                    drawAt
-                ));
-                // Draw NPC Names at some point
-            }
+                foreach (IPositionedFrameContainer frameContainer in frameContainerZ.Where(b => b?.Canvas?.Image != null).OrderBy(b => b.Position.Z))
+                {
+                    Point origin = frameContainer.Canvas.Origin ?? (new Point(frameContainer.Canvas.Image.Width / 2, frameContainer.Canvas.Image.Height / 2));
+
+                    if (frameContainer is MapLife)
+                    {
+                        MapLife life = (MapLife)frameContainer;
+                        if (life.Flip)
+                        {
+                            Point drawAt = new Point(
+                                (int)((frameContainer.Position.X - (frameContainer.Canvas.Image.Width - origin.X)) - minX),
+                                (int)((frameContainer.Position.Y - origin.Y) - minY)
+                            );
+                            if (!layerBounds.Contains(drawAt)) continue;
+                            using (Image<Rgba32> flipped = frameContainer.Canvas.Image.Clone(sub => sub.Flip(FlipType.Horizontal)))
+                                c.DrawImage(
+                                    flipped, 1,
+                                    new Size(frameContainer.Canvas.Image.Width, frameContainer.Canvas.Image.Height),
+                                    drawAt
+                                );
+                        }
+                        else
+                        {
+                            Point drawAt = new Point(
+                                (int)((frameContainer.Position.X - origin.X) - minX),
+                                (int)((frameContainer.Position.Y - origin.Y) - minY)
+                            );
+                            if (!layerBounds.Contains(drawAt)) continue;
+                            c.DrawImage(
+                                frameContainer.Canvas.Image, 1,
+                                new Size(frameContainer.Canvas.Image.Width, frameContainer.Canvas.Image.Height),
+                                drawAt
+                            );
+                        }
+                        RenderLifeName(c, life);
+                    }
+                    else
+                    {
+                        Point drawAt = new Point(
+                            (int)((frameContainer.Position.X - origin.X) - minX),
+                            (int)((frameContainer.Position.Y - origin.Y) - minY)
+                        );
+                        if (!layerBounds.Contains(drawAt)) continue;
+                        c.DrawImage(
+                            frameContainer.Canvas.Image, 1,
+                            new Size(frameContainer.Canvas.Image.Width, frameContainer.Canvas.Image.Height),
+                            drawAt
+                        );
+                    }
+                }
+            });
             return layerResult;
         }
     }
