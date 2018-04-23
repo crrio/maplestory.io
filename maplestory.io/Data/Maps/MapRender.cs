@@ -371,7 +371,7 @@ namespace maplestory.io.Data.Maps
 
             layer.Mutate(x =>
             {
-                Font MaplestoryFont = Characters.CharacterAvatar.fonts.Families.First(f => f.Name.Equals("Arial", StringComparison.CurrentCultureIgnoreCase)).CreateFont(12, FontStyle.Regular);
+                Font MaplestoryFont = Characters.CharacterAvatar.fonts.Families.First(f => f.Name.Equals("Arial Unicode MS", StringComparison.CurrentCultureIgnoreCase)).CreateFont(12, FontStyle.Regular);
                 foreach (MapLife npc in life)
                 {
                     SizeF nameSize = TextMeasurer.Measure(npc.Name, new RendererOptions(MaplestoryFont));

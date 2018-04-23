@@ -445,7 +445,7 @@ namespace maplestory.io.Data.Characters
                 
                 Point feetCenter = calcFeetCenter(body, minX, minY, destination);
                 Font MaplestoryFont = fonts.Families
-                    .First(f => f.Name.Equals("Arial", StringComparison.CurrentCultureIgnoreCase)).CreateFont(12, FontStyle.Regular);
+                    .First(f => f.Name.Equals("Arial Unicode MS", StringComparison.CurrentCultureIgnoreCase)).CreateFont(12, FontStyle.Regular);
                 SizeF realNameSize = TextMeasurer.Measure(Name, new RendererOptions(MaplestoryFont));
                 realNameSize = new SizeF((int)Math.Round(realNameSize.Width, MidpointRounding.AwayFromZero), (int)Math.Round(realNameSize.Height, MidpointRounding.AwayFromZero));
                 int tagHeight = Math.Max(w?.Height ?? 0, e?.Height ?? 0);
