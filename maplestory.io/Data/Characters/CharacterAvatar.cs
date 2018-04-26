@@ -368,6 +368,7 @@ namespace maplestory.io.Data.Characters
                     new Size(cropArea.Width, cropArea.Height),
                     new Point((int)cropOffsetFromOrigin.X, (int)cropOffsetFromOrigin.Y)
                 ));
+                destination.Dispose();
 
                 return compact;
             }
@@ -380,6 +381,7 @@ namespace maplestory.io.Data.Characters
                 Point distanceFromCenter = new Point(distanceFromCen.X * 2, distanceFromCen.Y * 2);
                 Image<Rgba32> centered = new Image<Rgba32>(destination.Width + (int)Math.Abs(distanceFromCenter.X), destination.Height + (int)Math.Abs(distanceFromCenter.Y));
                 centered.Mutate(c => c.DrawImage(destination, 1, new Size(destination.Width, destination.Height), new Point((int)Math.Max(distanceFromCenter.X, 0), (int)Math.Max(distanceFromCenter.Y, 0))));
+                destination.Dispose();
 
                 return centered;
             }
@@ -390,6 +392,8 @@ namespace maplestory.io.Data.Characters
                 Point distanceFromCenter = new Point(distanceFromCen.X * 2, distanceFromCen.Y * 2);
                 Image<Rgba32> centered = new Image<Rgba32>(destination.Width + (int)Math.Abs(distanceFromCenter.X), destination.Height + (int)Math.Abs(distanceFromCenter.Y));
                 centered.Mutate(c => c.DrawImage(destination, 1, new Size(destination.Width, destination.Height), new Point((int)Math.Max(distanceFromCenter.X, 0), (int)Math.Max(distanceFromCenter.Y, 0))));
+                destination.Dispose();
+
                 return centered;
             }
             else if (Mode == RenderMode.FeetCenter)
@@ -400,6 +404,8 @@ namespace maplestory.io.Data.Characters
                 Point distanceFromCenter = new Point(distanceFromCen.X * 2, distanceFromCen.Y * 2);
                 Image<Rgba32> centered = new Image<Rgba32>(destination.Width + (int)Math.Abs(distanceFromCenter.X), destination.Height + (int)Math.Abs(distanceFromCenter.Y));
                 centered.Mutate(c => c.DrawImage(destination, 1, new Size(destination.Width, destination.Height), new Point((int)Math.Max(distanceFromCenter.X, 0), (int)Math.Max(distanceFromCenter.Y, 0))));
+                destination.Dispose();
+
                 return centered;
             }
 
@@ -410,7 +416,7 @@ namespace maplestory.io.Data.Characters
                 {
                     if ((destination.Height * Zoom) < 50000 && (destination.Width * Zoom) < 50000)
                     {
-                        destination = destination.Clone(c => c.Resize(new ResizeOptions()
+                        destination.Mutate(c => c.Resize(new ResizeOptions()
                         {
                             Mode = ResizeMode.Stretch,
                             Sampler = new NearestNeighborResampler(),
@@ -479,6 +485,7 @@ namespace maplestory.io.Data.Characters
                     }
                     x.DrawImage(destination, 1, new Size(destination.Width, destination.Height), new Point((int)Math.Round(-nMinX), 0));
                 });
+                destination.Dispose();
 
                 return withName;
             }

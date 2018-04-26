@@ -164,7 +164,11 @@ namespace maplestory.io.Services.Implementations.MapleStory
                                     ).ToArray();
                                     var res = new Tuple<string, byte[]>(
                                         path,
-                                        frameAvatar.Render(format, img => img.ImageToByte(request))
+                                        frameAvatar.Render(format, img => {
+                                            byte[] imgBytes = img.ImageToByte(request);
+                                            img.Dispose();
+                                            return imgBytes;
+                                        })
                                     );
                                     return res;
                                 } catch (Exception) {

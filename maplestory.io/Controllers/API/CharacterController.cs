@@ -244,6 +244,9 @@ namespace maplestory.io.Controllers.API
                 ImageFrame<Rgba32> resultFrame = gif.Frames.AddFrame(frameImage.Frames.RootFrame);
                 resultFrame.MetaData.FrameDelay = frames[i].Item4 / 10;
                 resultFrame.MetaData.DisposalMethod = SixLabors.ImageSharp.Formats.Gif.DisposalMethod.RestoreToBackground;
+
+                frameImage.Dispose();
+                if (frameImage != frames[i].Item1) frames[i].Item1.Dispose();
             }
             gif.Frames.RemoveFrame(0);
 

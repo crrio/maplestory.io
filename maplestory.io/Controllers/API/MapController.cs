@@ -43,12 +43,12 @@ namespace maplestory.io.Controllers.API
         [Route("{mapId}/render/{frame?}")]
         [HttpGet]
         public IActionResult RenderMap(int mapId, [FromQuery]bool showLife = false, [FromQuery]bool showPortals = false, [FromQuery]bool showBackgrounds = false, [FromRoute] int frame = 0)
-            => File(MapFactory.Render(mapId, frame, showLife, showPortals, showBackgrounds).ImageToByte(Request), "image/png");
+            => File(MapFactory.Render(mapId, frame, showLife, showPortals, showBackgrounds).ImageToByte(Request, true, null, true), "image/png");
 
         [Route("{mapId}/render/layer/{layer}/{frame?}")]
         [HttpGet]
         public IActionResult RenderMapLayer([FromRoute]int mapId, [FromRoute]int layer, [FromRoute]int frame = 0, [FromQuery] bool filterTrash = false, [FromQuery] int? minX = null, [FromQuery] int? minY = null)
-            => File(MapFactory.RenderLayer(mapId, layer, frame, filterTrash, minX, minY).ImageToByte(Request), "image/png");
+            => File(MapFactory.RenderLayer(mapId, layer, frame, filterTrash, minX, minY).ImageToByte(Request, true, null, true), "image/png");
 
         [Route("{mapId}/render/plan")]
         [HttpGet]

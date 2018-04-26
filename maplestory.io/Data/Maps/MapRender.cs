@@ -105,7 +105,6 @@ namespace maplestory.io.Data.Maps
                     string elementPath = $"{tileSet.Path}/{u}/{no}";
                     Frame parsedFrame = null;
 
-                    bool created = false;
                     if (parsedFrames.ContainsKey(elementPath) && (!flip || !parsedFlippedFrames.ContainsKey(elementPath)))
                     {
                         parsedFrame = parsedFrames[elementPath];
@@ -196,7 +195,6 @@ namespace maplestory.io.Data.Maps
 
                     string elementPath = $"{oS}/{l0}/{l1}/{l2}";
 
-                    bool created = false;
                     Frame parsedFrame = null;
                     int frameCount = 0;
                     if (parsedFrames.ContainsKey(elementPath) && (!flip || !parsedFlippedFrames.ContainsKey(elementPath)))
@@ -220,7 +218,6 @@ namespace maplestory.io.Data.Maps
                         parsedFrame = parsedFlippedFrames[elementPath];
                     else
                     {
-                        created = true;
                         WZProperty objCanvas = node.ResolveOutlink($"Map/Obj/{elementPath}") ?? node.ResolveOutlink($"Map2/Obj/{elementPath}");
                         if (objCanvas == null) return;
                         frameCount = objCanvas.Children?.Select(c => int.TryParse(c.Name, out int blah) ? (int?)blah : null).Where(c => c.HasValue).Select(c => c.Value).Count() ?? 1;
@@ -228,8 +225,8 @@ namespace maplestory.io.Data.Maps
                         if (!frameCounts.ContainsKey(node.Parent))
                             frameCounts.TryAdd(node.Parent, new ConcurrentBag<int>());
                         frameCounts[node.Parent].Add(frameCount);
-                        parsedFrame = Frame.Parse(objCanvas.Resolve((frameCount == 0 ? 0 : (frame % frameCount)).ToString()) ?? objCanvas);
 #endif
+                        parsedFrame = Frame.Parse(objCanvas.Resolve((frameCount == 0 ? 0 : (frame % frameCount)).ToString()) ?? objCanvas);
 
                         if (flip)
                         {
