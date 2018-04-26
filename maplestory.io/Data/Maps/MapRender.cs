@@ -126,7 +126,6 @@ namespace maplestory.io.Data.Maps
                         parsedFrame = parsedFlippedFrames[elementPath];
                     else
                     {
-                        created = true;
                         WZProperty tileCanvas = tileSet.Resolve($"{u}/{no}")?.Resolve();
                         if (tileCanvas == null) return;
                         int tileZ = tileCanvas.ResolveFor<int>("z") ?? 1;
