@@ -209,6 +209,8 @@ namespace maplestory.io.Controllers.API
             );
             Image<Rgba32> gif = new Image<Rgba32>(frameImages.Select(c => c.Width).Max() + maxDifference.X, frameImages.Select(c => c.Height).Max() + maxDifference.Y);
 
+            List<Image<Rgba32>> pendingDispose = new List<Image<Rgba32>>();
+
             for (int i = 0; i < frames.Length; ++i)
             {
                 Image<Rgba32> frameImage = frames[i].Item1;
@@ -238,6 +240,8 @@ namespace maplestory.io.Controllers.API
                         x.Fill(background);
                         x.DrawImage(frameImage, 1, new Size(frameImage.Width, frameImage.Height), Point.Empty);
                     });
+
+                    if (frameImage != frames[i].Item1) frameImage.Dispose();
                     frameImage = frameWithBackground;
                 }
 
@@ -245,10 +249,12 @@ namespace maplestory.io.Controllers.API
                 resultFrame.MetaData.FrameDelay = frames[i].Item4 / 10;
                 resultFrame.MetaData.DisposalMethod = SixLabors.ImageSharp.Formats.Gif.DisposalMethod.RestoreToBackground;
 
-                frameImage.Dispose();
-                if (frameImage != frames[i].Item1) frames[i].Item1.Dispose();
+                pendingDispose.Add(frameImage);
+                if (frameImage != frames[i].Item1) pendingDispose.Add(frames[i].Item1);
             }
             gif.Frames.RemoveFrame(0);
+
+            pendingDispose.ForEach(c => c.Dispose());
 
             return File(gif.ImageToByte(Request, false, ImageFormats.Gif, true), "image/gif");
         }

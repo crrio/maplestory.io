@@ -315,11 +315,12 @@ namespace maplestory.io.Data.Characters
             Tuple<Frame, Point, float?> body = positionedFrames.Where(c => ((c.Item1.Position?.Equals("body") ?? false) || (c.Item1.Position?.Equals("backBody") ?? false)) && c.Item1.MapOffset.ContainsKey("neck") && c.Item1.MapOffset.ContainsKey("navel")).First();
 
             Image<Rgba32> original = destination;
+            Size originalSize = new Size(original.Width, original.Height);
             destination = Transform(destination, body, minX, minY, maxX, maxY);
             Size nameWidthAdjustment = new Size((int)NameWidthAdjustmentX, 0);
             offsets.Add("bodyOrigin", Point.Subtract(body.Item2, nameWidthAdjustment));
             offsets.Add("navelReal", Point.Subtract(new Point(-(int)minX, -(int)minY), nameWidthAdjustment));
-            offsets.Add("centerReal", Point.Add(new Point(original.Width / 2, original.Height / 2), nameWidthAdjustment));
+            offsets.Add("centerReal", Point.Add(new Point(originalSize.Width / 2, originalSize.Height / 2), nameWidthAdjustment));
             offsets.Add("bodyCenterX", Point.Add(Point.Add(new Point((int)(body.Item2.X - minX), (int)(body.Item2.Y - minY)), new Size((int)(body.Item1.Image.Width / 2f), 0)), nameWidthAdjustment));
             offsets.Add("min", Point.Add(new Point((int)minX, (int)minY), nameWidthAdjustment));
             offsets.Add("max", Point.Add(new Point((int)maxX, (int)maxY), nameWidthAdjustment));
