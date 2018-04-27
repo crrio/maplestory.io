@@ -16,5 +16,7 @@ RUN dotnet publish -c Release -o out maplestory.io
 FROM microsoft/aspnetcore:2.0
 WORKDIR /app
 COPY maplestory.io/run.sh .
+COPY maplestory.io/gms.aes .
+COPY maplestory.io/kms.aes .
 COPY --from=build-env /app/maplestory.io/out .
 ENTRYPOINT ["sh", "run.sh"]
