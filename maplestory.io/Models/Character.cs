@@ -26,6 +26,11 @@ namespace maplestory.io.Models
             return cache.TryGetValue(string.Join("-", characterName.ToLower(), rankingMode.ToLower(), rankAttribute.ToLower()), out cachedEntry) && cachedEntry.Item2 > DateTime.Now;
         }
 
+        static string Unescape(string target) {
+            Regex rx = new Regex("&#([0-9A-F]*);");
+            return rx.Replace(target, match => ((char)int.Parse(match.Value.Substring(2, match.Value.Length - 3))).ToString());
+        }
+
         public static async Task<Character> GetCharacter(string characterName, string rankingMode = "overall", string rankAttribute = "legendary")
         {
             string cacheName = string.Join("-", characterName.ToLower(), rankingMode.ToLower(), rankAttribute.ToLower());
@@ -42,7 +47,7 @@ namespace maplestory.io.Models
                 try
                 {
                     using (HttpClient client = new HttpClient())
-                        rankingResponse = await client.GetStringAsync($"http://maplestory.nexon.net/rankings/{rankingMode}-ranking/{rankAttribute}?pageIndex=1&character_name={characterName.Replace("#", "%23")}&search=true");
+                        rankingResponse = await client.GetStringAsync($"http://maplestory.nexon.net/rankings/{rankingMode}-ranking/{rankAttribute}?pageIndex=1&character_name={Uri.EscapeUriString(characterName)}&search=true");
                     break;
                 }
                 catch (HttpRequestException requestException)
@@ -79,7 +84,7 @@ namespace maplestory.io.Models
                     realAvatarUrl = captures[2].Value,
                     // We don't want people spamming Nexon, so pls go through us kty <3
                     Avatar = $"/api/character/{captures[4].Value}/avatar",
-                    Name = captures[4].Value,
+                    Name = Unescape(captures[4].Value),
                     World = captures[7].Value,
                     JobIcon = captures[8].Value,
                     Job = captures[9].Value,
