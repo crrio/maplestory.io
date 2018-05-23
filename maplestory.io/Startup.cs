@@ -1,18 +1,28 @@
-﻿using maplestory.io.Services.MapleStory;
+﻿using maplestory.io.Data;
+using maplestory.io.Entities;
+using maplestory.io.Services.Implementations.MapleStory;
+using maplestory.io.Services.Interfaces.MapleStory;
 using maplestory.io.Services.Rethink;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.ResponseCompression;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.IdentityModel.Tokens;
 using Swashbuckle.AspNetCore.Swagger;
-using WZData;
+using System;
+using System.IdentityModel.Tokens.Jwt;
+using System.Text;
 
 namespace maplestory.io
 {
     public class Startup
     {
+        public static bool Ready;
+        public static bool Started;
+
         public Startup(IHostingEnvironment env)
         {
             var builder = new ConfigurationBuilder()
@@ -28,53 +38,102 @@ namespace maplestory.io
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            // ===== Add our DbContext ========
+            services.AddDbContext<ApplicationDbContext>();
+
+            // ===== Add Identity ========
+            services.AddIdentity<IdentityUser, IdentityRole>(options =>
+            {
+                options.Password.RequireDigit = false;
+                options.Password.RequiredLength = 1;
+                options.Password.RequiredUniqueChars = 1;
+                options.Password.RequireLowercase = false;
+                options.Password.RequireNonAlphanumeric = false;
+                options.Password.RequireUppercase = false;
+            })
+                .AddEntityFrameworkStores<ApplicationDbContext>()
+                .AddDefaultTokenProviders();
+
+            // ===== Add Jwt Authentication ========
+            JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear(); // => remove default claims
+            services
+                .AddAuthentication(options =>
+                {
+                    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                    options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
+                    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+                })
+                .AddJwtBearer(cfg =>
+                {
+                    cfg.RequireHttpsMetadata = false;
+                    cfg.SaveToken = true;
+                    cfg.TokenValidationParameters = new TokenValidationParameters
+                    {
+                        ValidIssuer = Configuration["JwtIssuer"],
+                        ValidAudience = Configuration["JwtIssuer"],
+                        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Configuration["JwtKey"])),
+                        ClockSkew = TimeSpan.Zero // remove delay of token when expire
+                    };
+                });
+
             // Add framework services.
             services.AddMvc()
-                .AddJsonOptions(options => options.SerializerSettings.Formatting = Newtonsoft.Json.Formatting.Indented)
+                .AddJsonOptions(options => {
+                    options.SerializerSettings.Formatting = Newtonsoft.Json.Formatting.Indented;
+                    options.SerializerSettings.NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore;
+                })
                 .AddJsonOptions(options => options.SerializerSettings.Converters.Add(new ImageConverter()));
+
+            services.AddCors();
 
             services.Configure<RethinkDbOptions>(Configuration.GetSection("RethinkDb"));
             services.Configure<WZOptions>(Configuration.GetSection("WZ"));
             services.AddSingleton<IRethinkDbConnectionFactory, RethinkDbConnectionFactory>();
-
-            services.AddSingleton<IWZFactory, WZFactory>();
-            services.AddSingleton<IItemFactory, ItemFactory>();
-            services.AddSingleton<ISkillFactory, SkillFactory>();
-            services.AddSingleton<IMusicFactory, MusicFactory>();
-            services.AddSingleton<IMapFactory, MapFactory>();
-            services.AddSingleton<IMobFactory, MobFactory>();
-            services.AddSingleton<INPCFactory, NPCFactory>();
+            services.AddSingleton<IConfiguration>(Configuration);
+            services.AddTransient<IWZFactory, WZFactory>();
+            services.AddTransient<IItemFactory, ItemFactory>();
+            services.AddTransient<ISkillFactory, SkillFactory>();
+            services.AddTransient<IMusicFactory, MusicFactory>();
+            services.AddTransient<IMapFactory, MapFactory>();
+            services.AddTransient<IMobFactory, MobFactory>();
+            services.AddTransient<INPCFactory, NPCFactory>();
+            services.AddTransient<IQuestFactory, QuestFactory>();
+            services.AddTransient<ITipFactory, TipFactory>();
+            services.AddTransient<IZMapFactory, ZMapFactory>();
+            services.AddTransient<ICharacterFactory, CharacterFactory>();
+            services.AddTransient<ICraftingEffectFactory, CraftingEffectFactory>();
+            services.AddTransient<IAndroidFactory, AndroidFactory>();
+            services.AddTransient<IPetFactory, PetFactory>();
 
             services.AddSwaggerGen(c =>
             {
-                c.SwaggerDoc("V2", new Info { Title = "MapleStory.IO", Version = "V2", Contact = new Contact() { Email = ""andy@crr.io"", Name = "Andy", Url = "https://github.com/crrio/maplestory.io/issues" }, Description = "The unofficial MapleStory API Documentation for developers." });
+                c.SwaggerDoc("V2", new Info { Title = "MapleStory.IO", Version = "V2", Contact = new Contact() { Email = "andy@crr.io", Name = "Andy", Url = "https://github.com/crrio/maplestory.io" }, Description = "The unofficial MapleStory API Documentation for developers." });
             });
-
-            services.Configure<GzipCompressionProviderOptions>(options => options.Level = System.IO.Compression.CompressionLevel.Optimal);
-            services.AddResponseCompression();
-            services.AddResponseCaching();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory, IRethinkDbConnectionFactory connectionFactory)
         {
             loggerFactory.AddConsole(Configuration.GetSection("Logging"));
-            loggerFactory.AddDebug();
 
             if (env.IsDevelopment())
             {
+                loggerFactory.AddDebug(LogLevel.Debug);
                 app.UseDeveloperExceptionPage();
                 app.UseBrowserLink();
             }
             else
             {
+                loggerFactory.AddDebug();
                 app.UseExceptionHandler("/Home/Error");
             }
 
             app.UseStaticFiles();
-            app.UseResponseCompression();
-            app.UseResponseCaching();
 
+            app.UseCors(builder => builder.AllowAnyOrigin().AllowAnyMethod());
+
+            // ===== Use Authentication ======
+            app.UseAuthentication();
             app.UseMvc(routes =>
             {
                 routes.MapRoute(
@@ -82,17 +141,16 @@ namespace maplestory.io
                     template: "{controller=Home}/{action=Index}/{id?}");
             });
 
-            // Enable middleware to serve generated Swagger as a JSON endpoint.
+            // Enable middleware to serve generated Swagger as a JSON endVector2.
             app.UseSwagger();
 
-            // Enable middleware to serve swagger-ui (HTML, JS, CSS etc.), specifying the Swagger JSON endpoint.
+            // Enable middleware to serve swagger-ui (HTML, JS, CSS etc.), specifying the Swagger JSON endVector2.
             app.UseSwaggerUI(c =>
             {
-                c.SwaggerEndpoint("/api/swagger.json", "MapleStory.IO V2");
+                c.SwaggerEndpoint("/swagger/V2/swagger.json", "MapleStory.IO V2");
             });
-
-            using (var con = connectionFactory.CreateConnection())
-                con.CheckOpen();
+            //using (var con = connectionFactory.CreateConnection())
+            //    con.CheckOpen();
         }
     }
 }

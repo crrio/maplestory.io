@@ -26,6 +26,11 @@ namespace maplestory.io.Models
             return cache.TryGetValue(string.Join("-", characterName.ToLower(), rankingMode.ToLower(), rankAttribute.ToLower()), out cachedEntry) && cachedEntry.Item2 > DateTime.Now;
         }
 
+        static string Unescape(string target) {
+            Regex rx = new Regex("&#([0-9A-F]*);");
+            return rx.Replace(target, match => ((char)int.Parse(match.Value.Substring(2, match.Value.Length - 3))).ToString());
+        }
+
         public static async Task<Character> GetCharacter(string characterName, string rankingMode = "overall", string rankAttribute = "legendary")
         {
             string cacheName = string.Join("-", characterName.ToLower(), rankingMode.ToLower(), rankAttribute.ToLower());
@@ -42,10 +47,10 @@ namespace maplestory.io.Models
                 try
                 {
                     using (HttpClient client = new HttpClient())
-                        rankingResponse = await client.GetStringAsync($"http://maplestory.nexon.net/rankings/{rankingMode}-ranking/{rankAttribute}?pageIndex=1&character_name={characterName}&search=true");
+                        rankingResponse = await client.GetStringAsync($"http://maplestory.nexon.net/rankings/{rankingMode}-ranking/{rankAttribute}?pageIndex=1&character_name={Uri.EscapeUriString(characterName)}&search=true");
                     break;
                 }
-                catch (HttpRequestException requestException) 
+                catch (HttpRequestException requestException)
                 {
                     if (requestException.InnerException != null && requestException.InnerException.Message.Contains("terminated abnormally") && retryCount++ < 5)
                         continue;
@@ -59,9 +64,9 @@ namespace maplestory.io.Models
             string pattern;
 
             if (rankingMode != "fame")
-                pattern = "<td>[ \r\n\t]*([0-9]*)[ \r\n\t]*<\/td>[ \r\n\t]*<td> <img class=\"avatar\"[ ]* src=\"([^\"]*)\"></td>[ ]*<td>(<img src=\"http://nxcache.nexon.net/maplestory/img/bg/bg-immigrant.png\"/><br />)*([^<]*)</td>[ ]*<td><a class=\"([^\"]*)\" href=\"([^\"]*)\" title=\"([^\"]*)\">&nbsp;</a></td>[ ]*<td><img class=\"job\" src=\"([^\"]*)\" alt=\"([^\"]*)\" title=\"[^\"]*\"></td>[ ]*<td class=\"level-move\">[ ]*([0-9]*)<br />[ ]*\\(([0-9]*)\\)[ ]*<br />[ ]*<div class=\"rank-([^\"]*)\">([^<]*)</div>";
+                pattern = "<td>[ \r\n\t]*([0-9]*)[ \r\n\t]*</td>[ \r\n\t]*<td> <img class=\"avatar\"[ ]* src=\"([^\"]*)\"></td>[ ]*<td>(<img src=\"http://nxcache.nexon.net/maplestory/img/bg/bg-immigrant.png\"/><br />)*([^<]*)</td>[ ]*<td><a class=\"([^\"]*)\" href=\"([^\"]*)\" title=\"([^\"]*)\">&nbsp;</a></td>[ ]*<td><img class=\"job\" src=\"([^\"]*)\" alt=\"([^\"]*)\" title=\"[^\"]*\"></td>[ ]*<td class=\"level-move\">[ ]*([0-9]*)<br />[ ]*\\(([0-9]*)\\)[ ]*<br />[ ]*<div class=\"rank-([^\"]*)\">([^<]*)</div>";
             else
-                pattern = "<td>[ \r\n\t]*([0-9]*)[ \r\n\t]*<\/td>[ \r\n\t]*<td> <img class=\"avatar\"[ ]* src=\"([^\"]*)\"></td>[ ]*<td>(<img src=\"http://nxcache.nexon.net/maplestory/img/bg/bg-immigrant.png\"/><br />)*([^<]*)</td>[ ]*<td><a class=\"([^\"]*)\" href=\"([^\"]*)\" title=\"([^\"]*)\">&nbsp;</a></td>[ ]*<td><img class=\"job\" src=\"([^\"]*)\" alt=\"([^\"]*)\" title=\"[^\"]*\"></td>[ ]*<td class=\"level-move\">[ ]*([0-9]*)";
+                pattern = "<td>[ \r\n\t]*([0-9]*)[ \r\n\t]*</td>[ \r\n\t]*<td> <img class=\"avatar\"[ ]* src=\"([^\"]*)\"></td>[ ]*<td>(<img src=\"http://nxcache.nexon.net/maplestory/img/bg/bg-immigrant.png\"/><br />)*([^<]*)</td>[ ]*<td><a class=\"([^\"]*)\" href=\"([^\"]*)\" title=\"([^\"]*)\">&nbsp;</a></td>[ ]*<td><img class=\"job\" src=\"([^\"]*)\" alt=\"([^\"]*)\" title=\"[^\"]*\"></td>[ ]*<td class=\"level-move\">[ ]*([0-9]*)";
 
             Regex search = new Regex(pattern, RegexOptions.Multiline | RegexOptions.IgnoreCase);
 
@@ -79,14 +84,14 @@ namespace maplestory.io.Models
                     realAvatarUrl = captures[2].Value,
                     // We don't want people spamming Nexon, so pls go through us kty <3
                     Avatar = $"/api/character/{captures[4].Value}/avatar",
-                    Name = captures[4].Value,
+                    Name = Unescape(captures[4].Value),
                     World = captures[7].Value,
                     JobIcon = captures[8].Value,
                     Job = captures[9].Value,
                     Level = int.Parse(captures[10].Value),
                     Exp = long.Parse(captures[11].Value),
                     RankDirection = captures[12].Value,
-                    RankMovement = long.Parse(captures[13].Value),
+                    RankMovement = captures[13].Value != "-" ? long.Parse(captures[13].Value) : 0,
                     Got = got
                 };
 
@@ -124,6 +129,13 @@ namespace maplestory.io.Models
                 avatarData = avatarDataResponse;
                 return avatarDataResponse;
             }
+        }
+
+        public CharacterLook GetAvatarLook()
+        {
+            int lastSlash = this.realAvatarUrl.LastIndexOf("/") + 1;
+            int length = this.realAvatarUrl.LastIndexOf(".") - lastSlash;
+            return new CharacterLook(this.realAvatarUrl.Substring(lastSlash, length));
         }
 
         public override string ToString() => $"{Name} the level {Level} {Job}";
