@@ -31,8 +31,8 @@ namespace maplestory.io.Services.Implementations.MapleStory
         public Dictionary<string, Dictionary<string, Tuple<string, int, int>[]>> GetItemCategories() => ItemType.overall;
 
         public IEnumerable<ItemNameInfo> GetItems(
-            uint startPosition = 0, 
-            uint? count = null, 
+            int startPosition = 0, 
+            int? count = null, 
             string overallCategoryFilter = null, 
             string categoryFilter = null, 
             string subCategoryFilter = null, 
@@ -73,9 +73,9 @@ namespace maplestory.io.Services.Implementations.MapleStory
 
                 return matchesFilter;
             })
-            .Skip((int)startPosition);
+            .Skip(startPosition);
 
-            if (count != null && count.HasValue) return results.Take((int)count.Value);
+            if (count != null && count.HasValue) return results.Take(count.Value);
             return results;
         }
 

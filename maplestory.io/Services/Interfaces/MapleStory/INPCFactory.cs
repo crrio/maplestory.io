@@ -9,7 +9,7 @@ namespace maplestory.io.Services.Interfaces.MapleStory
     public interface INPCFactory
     {
         NPC GetNPC(int id);
-        IEnumerable<NPCInfo> GetNPCs();
+        IEnumerable<NPCInfo> GetNPCs(int startAt, int count, string filter);
         IEnumerable<Frame> GetFrames(int npcId, string frameBook);
     }
 }

@@ -6,7 +6,7 @@ namespace maplestory.io.Services.Interfaces.MapleStory
 {
     public interface IMapFactory
     {
-        IEnumerable<MapName> GetMapNames();
+        IEnumerable<MapName> GetMapNames(int startPosition = 0, int? count = null);
         MapName GetMapName(int id);
         Map GetMap(int id, bool followLinks = true);
         MapMark GetMapMark(string markName);

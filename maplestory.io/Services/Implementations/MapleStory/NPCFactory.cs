@@ -14,8 +14,8 @@ namespace maplestory.io.Services.Implementations.MapleStory
     {
         public NPC GetNPC(int id)
             => NPC.Parse(WZ.Resolve($"String/Npc/{id}"));
-        public IEnumerable<NPCInfo> GetNPCs()
-            => WZ.Resolve("String/Npc").Children.Select(NPCInfo.Parse);
+        public IEnumerable<NPCInfo> GetNPCs(int startAt, int count, string filter)
+            => WZ.Resolve("String/Npc").Children.Select(NPCInfo.Parse).Where(c => string.IsNullOrEmpty(filter) || c.Name.Contains(filter)).Skip(startAt).Take(count);
         public IEnumerable<Frame> GetFrames(int npcId, string frameBook) => GetNPC(npcId)?.GetFrameBook(frameBook)?.First().frames;
     }
 }

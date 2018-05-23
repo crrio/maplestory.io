@@ -34,8 +34,8 @@ namespace maplestory.io.Controllers.API
         [Route("list")]
         [HttpGet]
         public IActionResult List(
-            [FromQuery] uint startPosition = 0, 
-            [FromQuery] uint? count = null, 
+            [FromQuery] int startPosition = 0, 
+            [FromQuery] int? count = null, 
             [FromQuery] string overallCategoryFilter = null, 
             [FromQuery] string categoryFilter = null, 
             [FromQuery] string subCategoryFilter = null, 

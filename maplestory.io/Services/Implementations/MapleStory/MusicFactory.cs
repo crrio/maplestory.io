@@ -22,8 +22,8 @@ namespace maplestory.io.Services.Implementations.MapleStory
 
         public byte[] GetSong(string songPath)
             => WZ.Resolve("Sound").ResolveForOrNull<byte[]>($"{songPath.Trim('/', ' ', '\\').Replace(".img", "")}");
-        public string[] GetSounds()
-            => RecursiveGetSoundPath(WZ.Resolve("Sound").Children).ToArray();
+        public string[] GetSounds(int startPosition = 0, int? count = null)
+            => RecursiveGetSoundPath(WZ.Resolve("Sound").Children).Skip(startPosition).Take(count ?? int.MaxValue).ToArray();
 
         public bool DoesSoundExist(string songPath)
             => WZ.Resolve("Sound").Resolve($"{songPath.Trim('/', ' ', '\\').Replace(".img", "")}")?.Type == PropertyType.Audio;

@@ -10,7 +10,10 @@ namespace maplestory.io.Controllers.API
     {
         [Route("")]
         [HttpGet]
-        public IActionResult List() => Json(MobFactory.GetMobs());
+        public IActionResult List(
+            [FromQuery] int startPosition = 0, 
+            [FromQuery] int? count = null
+        ) => Json(MobFactory.GetMobs(startPosition, count));
 
         [Route("{mobId}")]
         [HttpGet]

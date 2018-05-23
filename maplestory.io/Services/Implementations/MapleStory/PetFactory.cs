@@ -14,10 +14,10 @@ namespace maplestory.io.Services.Implementations.MapleStory
 {
     public class PetFactory : NeedWZ, IPetFactory
     {
-        public Dictionary<int, string> GetPets()
+        public IEnumerable<KeyValuePair<int, string>> GetPets(int startPosition = 0, int? count = null)
         {
             WZProperty pets = WZ.Resolve("String/Pet") ?? WZ.Resolve("String/Item/Pet");
-            return pets.Children.ToDictionary(c => int.Parse(c.NameWithoutExtension), c => c.ResolveForOrNull<string>("name"));
+            return pets.Children.ToDictionary(c => int.Parse(c.NameWithoutExtension), c => c.ResolveForOrNull<string>("name")).Skip(startPosition).Take(count ?? int.MaxValue);
         }
 
         public Pet GetPet(int petId)

@@ -8,7 +8,10 @@ namespace maplestory.io.Controllers.API
     {
         [Route("")]
         [HttpGet]
-        public IActionResult List() => Json(MusicFactory.GetSounds());
+        public IActionResult List(
+            [FromQuery] int startPosition = 0,
+            [FromQuery] int? count = null
+        ) => Json(MusicFactory.GetSounds(startPosition, count));
 
         [Route("{*songPath}")]
         [HttpGet]

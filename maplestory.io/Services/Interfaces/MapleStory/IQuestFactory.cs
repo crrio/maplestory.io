@@ -9,7 +9,7 @@ namespace maplestory.io.Services.Interfaces.MapleStory
 {
     public interface IQuestFactory
     {
-        IEnumerable<QuestMeta> GetQuests();
+        IEnumerable<QuestMeta> GetQuests(int startPosition = 0, int? count = null);
         Quest GetQuest(int id);
     }
 

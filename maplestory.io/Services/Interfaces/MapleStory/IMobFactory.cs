@@ -12,7 +12,7 @@ namespace maplestory.io.Services.Interfaces.MapleStory
     public interface IMobFactory
     {
         Mob GetMob(int id);
-        IEnumerable<MobInfo> GetMobs();
         IEnumerable<Frame> GetFrames(int mobId, string frameBook);
+        IEnumerable<MobInfo> GetMobs(int startPosition = 0, int? count = null);
     }
 }

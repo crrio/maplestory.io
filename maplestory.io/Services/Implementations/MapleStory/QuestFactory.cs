@@ -12,8 +12,8 @@ namespace maplestory.io.Services.Implementations.MapleStory
     {
         public Quest GetQuest(int id)
             => Quest.GetQuest(WZ.Resolve("Quest"), id);
-        public IEnumerable<QuestMeta> GetQuests() {
-            IEnumerable<Quest> quests = Quest.GetQuests(WZ.Resolve("Quest"));
+        public IEnumerable<QuestMeta> GetQuests(int startPosition = 0, int? count = null) {
+            IEnumerable<Quest> quests = Quest.GetQuests(WZ.Resolve("Quest")).Skip(startPosition).Take(count ?? int.MaxValue);
             return quests.Select(q => new QuestMeta(
                 q.Id,
                 q.Name,
