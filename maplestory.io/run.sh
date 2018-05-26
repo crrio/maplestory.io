@@ -1,3 +1,3 @@
 #!/bin/sh
 
-dotnet maplestory.io.dll >> /var/log/"$(echo $HOSTNAME).log"
+dotnet maplestory.io.dll
