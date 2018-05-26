@@ -27,7 +27,7 @@ namespace maplestory.io
         {
             var builder = new ConfigurationBuilder()
                 .SetBasePath(env.ContentRootPath)
-                .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+                .AddJsonFile("appsettings.json", true, true)
                 .AddJsonFile($"appsettings.{env.EnvironmentName}.json", optional: true)
                 .AddEnvironmentVariables();
             Configuration = builder.Build();
@@ -69,9 +69,9 @@ namespace maplestory.io
                     cfg.SaveToken = true;
                     cfg.TokenValidationParameters = new TokenValidationParameters
                     {
-                        ValidIssuer = Configuration["JwtIssuer"],
-                        ValidAudience = Configuration["JwtIssuer"],
-                        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Configuration["JwtKey"])),
+                        ValidIssuer = Configuration["JwtIssuer"] ?? Configuration["JWTISSUER"],
+                        ValidAudience = Configuration["JwtIssuer"] ?? Configuration["JWTISSUER"],
+                        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Configuration["JwtKey"] ?? Configuration["JWTKEY"])),
                         ClockSkew = TimeSpan.Zero // remove delay of token when expire
                     };
                 });
@@ -86,9 +86,9 @@ namespace maplestory.io
 
             services.AddCors();
 
-            services.Configure<RethinkDbOptions>(Configuration.GetSection("RethinkDb"));
-            services.Configure<WZOptions>(Configuration.GetSection("WZ"));
-            services.AddSingleton<IRethinkDbConnectionFactory, RethinkDbConnectionFactory>();
+            //services.Configure<RethinkDbOptions>(Configuration.GetSection("RethinkDb"));
+            //services.Configure<WZOptions>(Configuration.GetSection("WZ"));
+            //services.AddSingleton<IRethinkDbConnectionFactory, RethinkDbConnectionFactory>();
             services.AddSingleton<IConfiguration>(Configuration);
             services.AddTransient<IWZFactory, WZFactory>();
             services.AddTransient<IItemFactory, ItemFactory>();
