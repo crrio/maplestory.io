@@ -82,13 +82,13 @@ namespace maplestory.io.Controllers
                 new Claim(ClaimTypes.NameIdentifier, user.Id)
             };
 
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["JwtKey"]));
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["JwtKey"] ?? _configuration["JWTKEY"]));
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
-            var expires = DateTime.Now.AddDays(Convert.ToDouble(_configuration["JwtExpireDays"]));
+            var expires = DateTime.Now.AddDays(Convert.ToDouble(_configuration["JwtExpireDays"] ?? _configuration["JWTEXPIREDAYS"]));
 
             var token = new JwtSecurityToken(
-                _configuration["JwtIssuer"],
-                _configuration["JwtIssuer"],
+                _configuration["JwtIssuer"] ?? _configuration["JWTISSUER"],
+                _configuration["JwtIssuer"] ?? _configuration["JWTISSUER"],
                 claims,
                 expires: expires,
                 signingCredentials: creds
