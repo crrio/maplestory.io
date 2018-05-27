@@ -18,7 +18,7 @@ namespace maplestory.io.Services.Implementations.MapleStory
         public IEnumerable<MobInfo> GetMobs(int startPosition = 0, int? count = null, int? minLevelFilter = null, int? maxLevelFilter = null, string searchFor = null)
             => WZ.Resolve("String/Mob").Children
                 .Select(MobInfo.Parse)
-                .Where(c => (!minLevelFilter.HasValue || c.Level >= minLevelFilter) && (!maxLevelFilter.HasValue || c.Level <= maxLevelFilter) && (string.IsNullOrEmpty(searchFor) || c.Name.Contains(searchFor)))
+                .Where(c => (!minLevelFilter.HasValue || (c.Level.HasValue && c.Level >= minLevelFilter)) && (!maxLevelFilter.HasValue || (c.Level.HasValue && c.Level <= maxLevelFilter)) && (string.IsNullOrEmpty(searchFor) || (!string.IsNullOrEmpty(c.Name) && c.Name.ToLower().Contains(searchFor.ToLower()))))
                 .Skip(startPosition)
                 .Take(count ?? int.MaxValue); // MaxValue isn't a nice alternative, but it should probably work
     }
