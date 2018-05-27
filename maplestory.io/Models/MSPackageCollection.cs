@@ -31,6 +31,7 @@ namespace maplestory.io.Models
         public MapleVersion MapleVersion;
         public Dictionary<int, string> categoryFolders;
         public IDictionary<int, Tuple<string[], byte?, bool>> EquipMeta;
+        public IDictionary<int, Tuple<string, int, bool>> MobMeta;
         public IDictionary<int, int[]> ItemDrops;
         public MSPackageCollection() { }
         public MSPackageCollection(string baseFilePath, ushort? versionId = null, Region region = Region.GMS) : base(baseFilePath, versionId, region) { }
@@ -52,6 +53,12 @@ namespace maplestory.io.Models
                 EquipMeta = new Dictionary<int, Tuple<string[], byte?, bool>>(JsonConvert.DeserializeObject<Dictionary<int, Tuple<string[], byte?, bool>>>(File.ReadAllText(equipMetaPath)));
             else
                 loading.Add(CacheEquipMeta(equipMetaPath));
+
+            string mobMetaPath = Path.Combine(versionInfo.Location, "mobMeta.json");
+            if (File.Exists(mobMetaPath))
+                MobMeta = new Dictionary<int, Tuple<string, int, bool>>(JsonConvert.DeserializeObject<Dictionary<int, Tuple<string, int, bool>>>(File.ReadAllText(mobMetaPath)));
+            else
+                loading.Add(CacheMobMeta(mobMetaPath));
 
             string dropPath = Path.Combine(versionInfo.Location, "itemDrops.json");
             if (File.Exists(dropPath))
@@ -90,6 +97,37 @@ ORDER BY ANY_VALUE(`folder`)", (MySqlConnection)con);
                             categoryFolders.Add(Convert.ToInt32(reader[0]), (string)reader[1]);
                     File.WriteAllText(characterFoldersPath, JsonConvert.SerializeObject(categoryFolders));
                 }
+            });
+        }
+
+        Task CacheMobMeta(string mobMetaPath)
+        {
+            return Task.Run(() =>
+            {
+                Logger.LogInformation("Caching equip meta for {0}", MapleVersion.Location);
+                ConcurrentDictionary<int, Tuple<string, int, bool>> regionData = new ConcurrentDictionary<int, Tuple<string, int, bool>>();
+
+                while (!Parallel.ForEach(
+                    Resolve("Mob").Children.Concat(Resolve("Mob2")?.Children ?? new WZProperty[0]),
+                    c =>
+                    {
+                        if (!int.TryParse(c.NameWithoutExtension, out int itemId)) return;
+                        int reqJob = c.ResolveFor<int>("info/level") ?? 0;
+                        string mobType = c.ResolveForOrNull<string>("info/mobType");
+                        bool isBoss = c.ResolveFor<bool>("info/boss") ?? false;
+                        regionData.TryAdd(
+                            itemId,
+                            new Tuple<string, int, bool>(
+                                mobType,
+                                reqJob,
+                                isBoss
+                            )
+                        );
+                    }
+                ).IsCompleted) Thread.Sleep(1);
+
+                File.WriteAllText(mobMetaPath, JsonConvert.SerializeObject(regionData));
+                MobMeta = regionData;
             });
         }
 

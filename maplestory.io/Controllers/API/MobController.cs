@@ -12,8 +12,11 @@ namespace maplestory.io.Controllers.API
         [HttpGet]
         public IActionResult List(
             [FromQuery] int startPosition = 0, 
-            [FromQuery] int? count = null
-        ) => Json(MobFactory.GetMobs(startPosition, count));
+            [FromQuery] int? count = null,
+                        [FromQuery] int? minLevelFilter = null,
+            [FromQuery] int? maxLevelFilter = null,
+            [FromQuery] string searchFor = null
+        ) => Json(MobFactory.GetMobs(startPosition, count, minLevelFilter, maxLevelFilter, searchFor));
 
         [Route("{mobId}")]
         [HttpGet]
