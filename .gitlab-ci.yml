@@ -44,8 +44,10 @@ build:
 aspnet_image:
     stage: image
     tags:
-        - docker
+        - docker  
+    services:
+        - docker:dind
     script:
-        - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN registry.crr.io
-        - docker build -t registry.crr.io/maplestory.io
-        - docker push registry.crr.io/maplestory.io
+        - docker login -u gitlab-ci-token -p ${CI_JOB_TOKEN} registry.crr.io
+        - docker build -t registry.crr.io/maplestory/maplestory.io
+        - docker push registry.crr.io/maplestory/maplestory.io
