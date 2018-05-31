@@ -8,6 +8,7 @@ before_script:
 
 stages:
     - build
+    - image
 
 ubuntu-14_04:
     stage: build
@@ -148,3 +149,12 @@ osx_release:
         name: "NETCoreApp-ubuntu.16.04-x64"
         paths:
             - /builds/maplestory/maplestory.io/maplestory.io/bin/Release/netcoreapp1.1/osx.10.12-x64/publish
+
+aspnet_image:
+    stage: image
+    tags:
+        - docker
+    script:
+        - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN registry.crr.io
+        - docker build -t registry.crr.io/maplestory.io
+        - docker push registry.crr.io/maplestory.io
