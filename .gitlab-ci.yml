@@ -49,5 +49,8 @@ aspnet_image:
         - docker:dind
     script:
         - docker login -u gitlab-ci-token -p ${CI_JOB_TOKEN} registry.crr.io
-        - docker build -t registry.crr.io/maplestory/maplestory.io .
-        - docker push registry.crr.io/maplestory/maplestory.io
+        - docker build -t registry.crr.io/maplestory/maplestory.io:latest .
+        - docker push registry.crr.io/maplestory/maplestory.io:latest
+        - echo $CI_COMMIT_SHA
+        - docker tag registry.crr.io/maplestory/maplestory.io:latest registry.crr.io/maplestory/maplestory.io:$CI_COMMIT_SHA
+        - docker push registry.crr.io/maplestory/maplestory.io:$CI_COMMIT_SHA
