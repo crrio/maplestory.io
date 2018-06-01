@@ -7,7 +7,7 @@ stages:
     - deploy
 
 variables:
-    CI_SHORT_HASH: echo $CI_COMMIT_SHA | cut -c0-8
+    CI_SHORT_HASH: `echo $CI_COMMIT_SHA | cut -c0-8`
 
 build:
     stage: build
