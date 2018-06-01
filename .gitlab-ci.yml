@@ -4,6 +4,7 @@ variables:
 stages:
     - build
     - image
+    - deploy
 
 build:
     stage: build
