@@ -62,9 +62,9 @@ kubernetes_deploy:
     services:
         - docker:dind
     script:
-        - kubectl config set-cluster my-cluster --server="$K8S_URL" --insecure-skip-tls-verify=true
+        - kubectl config set-cluster zakum --server="$K8S_URL" --insecure-skip-tls-verify=true
         - kubectl config set-credentials admin --token="$K8S_TOKEN"
-        - kubectl config set-context default-context --cluster=my-cluster --user=admin
+        - kubectl config set-context default-context --cluster=zakum --user=admin
         - kubectl config use-context default-context
         - kubectl get deploy --namespace io
         - kubectl set image deployment/maplestory-io maplestory-io=registry.crr.io/maplestory/maplestory.io:$CI_COMMIT_SHA --namespace=io
