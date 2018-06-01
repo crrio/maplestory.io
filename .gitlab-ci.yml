@@ -48,6 +48,7 @@ aspnet_image:
     services:
         - docker:dind
     script:
+        - docker ps -a
         - docker login -u gitlab-ci-token -p ${CI_JOB_TOKEN} registry.crr.io
         - docker build -t registry.crr.io/maplestory/maplestory.io .
         - docker push registry.crr.io/maplestory/maplestory.io
