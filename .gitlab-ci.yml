@@ -52,9 +52,9 @@ docker_image:
         - docker login -u gitlab-ci-token -p ${CI_JOB_TOKEN} registry.crr.io
         - docker build -t registry.crr.io/maplestory/maplestory.io:latest .
         - docker push registry.crr.io/maplestory/maplestory.io:latest
-        - echo $CI_COMMIT_SHA
-        - docker tag registry.crr.io/maplestory/maplestory.io:latest registry.crr.io/maplestory/maplestory.io:$CI_COMMIT_SHA
-        - docker push registry.crr.io/maplestory/maplestory.io:$CI_COMMIT_SHA
+        - echo `echo $CI_COMMIT_SHA | cut -c0-8`
+        - docker tag registry.crr.io/maplestory/maplestory.io:latest registry.crr.io/maplestory/maplestory.io:`echo $CI_COMMIT_SHA | cut -c0-8`
+        - docker push registry.crr.io/maplestory/maplestory.io:`echo $CI_COMMIT_SHA | cut -c0-8`
 
 kubernetes_deploy:
     stage: deploy
@@ -64,4 +64,4 @@ kubernetes_deploy:
     script:
         - wget https://storage.googleapis.com/kubernetes-release/release/v1.9.1/bin/linux/amd64/kubectl -O ~/kubectl
         - chmod +x ~/kubectl
-        - ~/kubectl set image deployment/maplestory-io maplestory-io=registry.crr.io/maplestory/maplestory.io:$CI_COMMIT_SHA --namespace=io
+        - ~/kubectl set image deployment/maplestory-io maplestory-io=registry.crr.io/maplestory/maplestory.io:`echo $CI_COMMIT_SHA | cut -c0-8` --namespace=io
