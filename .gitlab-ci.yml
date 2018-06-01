@@ -41,7 +41,7 @@ build:
             - /builds/maplestory/maplestory.io/maplestory.io/bin/Release/netcoreapp1.1/osx.10.12-x64/publish
             - /builds/maplestory/maplestory.io/maplestory.io/bin/Debug/netcoreapp1.1/ubuntu.14.04-x64/publish
 
-aspnet_image:
+docker_image:
     stage: image
     tags:
         - docker  
@@ -54,3 +54,16 @@ aspnet_image:
         - echo $CI_COMMIT_SHA
         - docker tag registry.crr.io/maplestory/maplestory.io:latest registry.crr.io/maplestory/maplestory.io:$CI_COMMIT_SHA
         - docker push registry.crr.io/maplestory/maplestory.io:$CI_COMMIT_SHA
+
+kubernetes_deploy:
+    stage: deploy
+    image: lwolf/kubectl_deployer:latest
+    services:
+        - docker:dind
+    script:
+        - kubectl config set-cluster my-cluster -server=”$K8S_URL” -insecure-skip-tls-verify=true
+        - kubectl config set-credentials admin -token=”$K8S_TOKEN”
+        - kubectl config set-context default-context -cluster=my-cluster -user=admin
+        - kubectl config use-context default-context
+        - kubectl get cs
+        - kubectl set image deployment/maplestory-io maplestory-io=registry.crr.io/maplestory/maplestory.io:$CI_COMMIT_SHA --namespace=io
