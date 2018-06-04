@@ -40,6 +40,7 @@ namespace maplestory.io.Data.Quests
         public IEnumerable<int> ValidMaps; // validField
         public bool? ShowEffect; // showEffect
         public IEnumerable<int> DeleteItems; // deleteItem
+        public IEnumerable<QuestRequirements> QuestsAvailableOnComplete;
 
         public QuestRewards RewardOnStart;
         public QuestRewards RewardOnComplete;
@@ -113,6 +114,11 @@ namespace maplestory.io.Data.Quests
                 .Where(c => c.Length > 0)
                 .ToDictionary(c => c.First().Id, c => c);
 
+            Tuple<int, QuestRequirements>[] allStartRequirements = requirements.Values.Select(c => c.FirstOrDefault(b => b.State == QuestState.Start)).SelectMany(c => {
+                return c.Quests?.Where(b => b.Id.HasValue).Select(b => new Tuple<int, QuestRequirements>(b.Id.Value, c));
+            }).ToArray();
+            ILookup<int, QuestRequirements> availableOnComplete = allStartRequirements.ToLookup(c => c.Item1, c => c.Item2);
+
             return questWz.Resolve("QuestInfo").Children
                 .AsParallel()
                 .Select(Quest.Parse)
@@ -125,6 +131,7 @@ namespace maplestory.io.Data.Quests
                     c.RequirementToStart = questRequirements?.Where(b => b.State == QuestState.Start).FirstOrDefault();
                     c.RewardOnStart = questRewards?.Where(b => b.State == QuestState.Start).FirstOrDefault();
                     c.RewardOnComplete= questRewards?.Where(b => b.State == QuestState.Complete).FirstOrDefault();
+                    c.QuestsAvailableOnComplete = availableOnComplete[c.Id];
 
                     return c;
                 });
