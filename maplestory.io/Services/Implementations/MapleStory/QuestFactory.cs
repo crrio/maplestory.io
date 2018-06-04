@@ -14,7 +14,7 @@ namespace maplestory.io.Services.Implementations.MapleStory
             => Quest.GetQuest(WZ.Resolve("Quest"), id);
         public IEnumerable<QuestMeta> GetQuests(int startPosition = 0, int? count = null) {
             IEnumerable<Quest> quests = Quest.GetQuests(WZ.Resolve("Quest")).Skip(startPosition).Take(count ?? int.MaxValue).OrderBy(c => c.Id);
-            return quests.Select(q => {
+            return quests.Select(q =>
                 new QuestMeta(
                     q.Id,
                     q.Name,
@@ -22,7 +22,7 @@ namespace maplestory.io.Services.Implementations.MapleStory
                     q.RequirementToStart?.StartTime,
                     q.RequirementToStart?.EndTime
                 )
-            });
+            );
         }
     }
 }
