@@ -62,6 +62,7 @@ kubernetes_deploy:
         name: Public
         url: https://maplestory.io/
     script:
+        - apt install -y wget
         - wget https://storage.googleapis.com/kubernetes-release/release/v1.9.1/bin/linux/amd64/kubectl -O ~/kubectl
         - chmod +x ~/kubectl
         - ~/kubectl set image deployment/maplestory-io maplestory-io=registry.crr.io/maplestory/maplestory.io:${CI_COMMIT_SHA:0:8} --namespace=io

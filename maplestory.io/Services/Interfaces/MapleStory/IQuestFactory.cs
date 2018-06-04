@@ -19,14 +19,16 @@ namespace maplestory.io.Services.Interfaces.MapleStory
         public string Name;
         public byte? MinLevel;
         public DateTime? AvailabilityStart, AvailabilityEnd;
+        public IEnumerable<int> QuestsAvailableAfterComplete;
 
-        public QuestMeta(int id, string name, byte? minLevel, DateTime? availabilityStart, DateTime? availabilityEnd)
+        public QuestMeta(int id, string name, byte? minLevel, DateTime? availabilityStart, DateTime? availabilityEnd, IEnumerable<int> questsAvailableOnComplete)
         {
             Id = id;
             Name = name;
             MinLevel = minLevel;
             AvailabilityStart = availabilityStart;
             AvailabilityEnd = availabilityEnd;
+            QuestsAvailableAfterComplete = questsAvailableOnComplete;
         }
     }
 }

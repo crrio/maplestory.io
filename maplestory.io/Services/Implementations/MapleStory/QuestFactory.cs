@@ -19,7 +19,8 @@ namespace maplestory.io.Services.Implementations.MapleStory
                 q.Name,
                 q.RequirementToStart?.LevelMinimum,
                 q.RequirementToStart?.StartTime,
-                q.RequirementToStart?.EndTime
+                q.RequirementToStart?.EndTime,
+                quests.Where(c => c.RequirementToStart?.Quests?.Any(b => b.Id == q.Id) ?? false).Select(c => c.Id)
             ));
         }
     }
