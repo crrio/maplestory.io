@@ -58,6 +58,8 @@ docker_image:
 
 kubernetes_deploy:
     stage: deploy
+    tags:
+        - ubuntu.16.04-x64
     environment:
         name: Public
         url: https://maplestory.io/
