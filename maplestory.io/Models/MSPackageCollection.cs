@@ -1,4 +1,5 @@
-﻿using maplestory.io.Entities;
+﻿using maplestory.io.Data.Quests;
+using maplestory.io.Entities;
 using maplestory.io.Entities.Models;
 using Microsoft.Extensions.Logging;
 using MySql.Data.MySqlClient;
@@ -33,6 +34,7 @@ namespace maplestory.io.Models
         public IDictionary<int, Tuple<string[], byte?, bool>> EquipMeta;
         public IDictionary<int, Tuple<string, int, bool>> MobMeta;
         public IDictionary<int, int[]> ItemDrops;
+        public IDictionary<int, QuestRequirements[]> AvailableOnCompleteTable;
         public MSPackageCollection() { }
         public MSPackageCollection(string baseFilePath, ushort? versionId = null, Region region = Region.GMS) : base(baseFilePath, versionId, region) { }
         public MSPackageCollection(MapleVersion versionInfo, ushort? versionId = null, Region region = Region.GMS) 
@@ -64,6 +66,11 @@ namespace maplestory.io.Models
             if (File.Exists(dropPath))
                 ItemDrops = JsonConvert.DeserializeObject<Dictionary<int, int[]>>(File.ReadAllText(dropPath));
             else loading.Add(CacheDropLookup(dropPath));
+
+            string questPath = Path.Combine(versionInfo.Location, "questAvailableOnComplete.json");
+            if (File.Exists(questPath))
+                AvailableOnCompleteTable = JsonConvert.DeserializeObject<Dictionary<int, QuestRequirements[]>>(File.ReadAllText(questPath));
+            else loading.Add(CacheQuestsAvailableOnComplete(questPath));
 
             if (loading.Count > 0) Task.WaitAll(loading.ToArray());
         }
@@ -180,7 +187,32 @@ ORDER BY ANY_VALUE(`folder`)", (MySqlConnection)con);
                 File.WriteAllText(dropPath, JsonConvert.SerializeObject(dropBy));
                 ItemDrops = dropBy;
             });
-       }
+        }
+
+        Task CacheQuestsAvailableOnComplete(string path)
+        {
+            return Task.Run(() =>
+            {
+                Logger.LogInformation("Caching quests available on complete for {0}", MapleVersion.Location);
+
+                Dictionary<int, QuestRequirements[]> requirements = Resolve("Quest/Check").Children
+                    .AsParallel()
+                    .Select(QuestRequirements.Parse)
+                    .Select(c => c.Where(b => b != null).ToArray())
+                    .Where(c => c.Length > 0)
+                    .ToDictionary(c => c.First().Id, c => c);
+
+                Tuple<int, QuestRequirements>[] allStartRequirements = requirements.Values.Select(c => c?.FirstOrDefault(b => b.State == QuestState.Start)).SelectMany(c =>
+                {
+                    return c?.Quests?.Where(b => b.Id.HasValue).Select(b => new Tuple<int, QuestRequirements>(b.Id.Value, c));
+                }).ToArray();
+                ILookup<int, QuestRequirements> availableOnComplete = allStartRequirements.ToLookup(c => c.Item1, c => c.Item2);
+                IDictionary<int, QuestRequirements[]> availableOnCompleteTable = availableOnComplete.ToDictionary(c => c.Key, c => c.ToArray());
+
+                File.WriteAllText(path, JsonConvert.SerializeObject(availableOnComplete));
+                AvailableOnCompleteTable = availableOnCompleteTable;
+            });
+        }
 
         public class LookupSerializer : JsonConverter
         {
