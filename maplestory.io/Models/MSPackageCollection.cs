@@ -202,10 +202,13 @@ ORDER BY ANY_VALUE(`folder`)", (MySqlConnection)con);
                     .Where(c => c.Length > 0)
                     .ToDictionary(c => c.First().Id, c => c);
 
-                Tuple<int, QuestRequirements>[] allStartRequirements = requirements.Values.Select(c => c?.FirstOrDefault(b => b.State == QuestState.Start)).SelectMany(c =>
+                Tuple<int, QuestRequirements>[] allStartRequirements = requirements.Values.Where(c => c != null)
+                .Select(c => c.FirstOrDefault(b => b.State == QuestState.Start))
+                .Where(c => c != null)
+                .SelectMany(c =>
                 {
-                    return c?.Quests?.Where(b => b.Id.HasValue).Select(b => new Tuple<int, QuestRequirements>(b.Id.Value, c));
-                }).ToArray();
+                    return c.Quests?.Where(b => b.Id.HasValue).Select(b => new Tuple<int, QuestRequirements>(b.Id.Value, c));
+                }).Where(c => c != null).ToArray();
                 ILookup<int, QuestRequirements> availableOnComplete = allStartRequirements.ToLookup(c => c.Item1, c => c.Item2);
                 IDictionary<int, QuestRequirements[]> availableOnCompleteTable = availableOnComplete.ToDictionary(c => c.Key, c => c.ToArray());
 
