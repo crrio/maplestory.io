@@ -202,14 +202,14 @@ ORDER BY ANY_VALUE(`folder`)", (MySqlConnection)con);
                     .Where(c => c.Length > 0)
                     .ToDictionary(c => c.First().Id, c => c);
 
-                Tuple<int, QuestRequirements>[] allStartRequirements = requirements.Values.Where(c => c != null)
+                IEnumerable<Tuple<int, QuestRequirements>> allStartRequirements = requirements.Values.Where(c => c != null)
                 .Select(c => c.Where(b => b != null).FirstOrDefault(b => b.State == QuestState.Start))
                 .Where(c => c != null && c.Quests != null && c.Quests.All(b => b.Id.HasValue))
                 .SelectMany(c => c.Quests.Select(b => new Tuple<int, QuestRequirements>(b.Id.Value, c)))
-                .Where(c => c != null)
-                .ToArray();
+                .Where(c => c != null);
                 ILookup<int, QuestRequirements> availableOnComplete = allStartRequirements.ToLookup(c => c.Item1, c => c.Item2);
-                IDictionary<int, QuestRequirements[]> availableOnCompleteTable = availableOnComplete.ToDictionary(c => c.Key, c => c.ToArray());
+                ConcurrentDictionary<int, QuestRequirements[]> availableOnCompleteTable = new ConcurrentDictionary<int, QuestRequirements[]>();
+                Parallel.ForEach(availableOnComplete, c => availableOnCompleteTable.TryAdd(c.Key, c.ToArray()));
 
                 File.WriteAllText(path, JsonConvert.SerializeObject(availableOnComplete));
                 AvailableOnCompleteTable = availableOnCompleteTable;
