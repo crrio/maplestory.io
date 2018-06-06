@@ -53,7 +53,7 @@ namespace maplestory.io.Data.Quests
             result.Items = data.Resolve("item")?.Children.Select(c => Requirement.Parse(c));
             result.Quests = data.Resolve("quest")?.Children.Select(c => Requirement.Parse(c));
             result.NPCId = data.ResolveFor<int>("npc");
-            result.OnDayOfWeek = (DayOfWeek?)ResolveDayOfWeek(data.ResolveForOrNull<string>("dayOfWeek") ?? data.Resolve("dayOfWeek")?.Children?.First()?.NameWithoutExtension); // dayOfWeek
+            result.OnDayOfWeek = (DayOfWeek?)ResolveDayOfWeek(data.ResolveForOrNull<string>("dayOfWeek") ?? data.Resolve("dayOfWeek")?.Children?.FirstOrDefault()?.NameWithoutExtension); // dayOfWeek
             result.Pet = data.Resolve("pet")?.Children.Select(c => Requirement.Parse(c));
             result.PetTamenessMin = data.ResolveFor<int>("pettamenessmin");
             result.DayByDay = data.ResolveFor<bool>("dayByDay");
