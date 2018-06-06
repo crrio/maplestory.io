@@ -211,7 +211,7 @@ ORDER BY ANY_VALUE(`folder`)", (MySqlConnection)con);
                 ConcurrentDictionary<int, QuestRequirements[]> availableOnCompleteTable = new ConcurrentDictionary<int, QuestRequirements[]>();
                 Parallel.ForEach(availableOnComplete, c => availableOnCompleteTable.TryAdd(c.Key, c.ToArray()));
 
-                File.WriteAllText(path, JsonConvert.SerializeObject(availableOnComplete));
+                File.WriteAllText(path, JsonConvert.SerializeObject(availableOnCompleteTable));
                 AvailableOnCompleteTable = availableOnCompleteTable;
             });
         }
