@@ -9,9 +9,10 @@ namespace maplestory.io.Controllers.API
         [Route("")]
         [HttpGet]
         public IActionResult List(
+            [FromQuery] string searchFor = null,
             [FromQuery] int startPosition = 0,
             [FromQuery] int? count = null
-        ) => Json(MapFactory.GetMapNames(startPosition, count));
+        ) => Json(MapFactory.GetMapNames(searchFor, startPosition, count));
 
         [Route("{mapId}")]
         [HttpGet]

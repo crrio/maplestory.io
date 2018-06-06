@@ -7,7 +7,11 @@ namespace maplestory.io.Controllers.API
     {
         [Route("")]
         [HttpGet]
-        public IActionResult List() => Json(QuestFactory.GetQuests());
+        public IActionResult List(
+            [FromQuery] string searchFor = null,
+            [FromQuery] int startPosition = 0,
+            [FromQuery] int? count = null
+        ) => Json(QuestFactory.GetQuests(searchFor, startPosition, count));
 
         [Route("{questId}")]
         [HttpGet]

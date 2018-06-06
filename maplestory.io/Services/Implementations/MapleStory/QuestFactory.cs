@@ -12,8 +12,8 @@ namespace maplestory.io.Services.Implementations.MapleStory
     {
         public Quest GetQuest(int id)
             => Quest.GetQuest(WZ.Resolve("Quest"), id);
-        public IEnumerable<QuestMeta> GetQuests(int startPosition = 0, int? count = null) {
-            IEnumerable<Quest> quests = Quest.GetQuests(WZ.Resolve("Quest")).Skip(startPosition).Take(count ?? int.MaxValue).OrderBy(c => c.Id);
+        public IEnumerable<QuestMeta> GetQuests(string searchFor = null, int startPosition = 0, int? count = null) {
+            IEnumerable<Quest> quests = Quest.GetQuests(WZ.Resolve("Quest")).OrderBy(c => c.Id);
             return quests.Select(q =>
                 new QuestMeta(
                     q.Id,
@@ -22,7 +22,10 @@ namespace maplestory.io.Services.Implementations.MapleStory
                     q.RequirementToStart?.StartTime,
                     q.RequirementToStart?.EndTime
                 )
-            );
+            )
+            .Where(c => string.IsNullOrEmpty(searchFor) || (!string.IsNullOrEmpty(c.Name) && c.Name.ToLower().Contains(searchFor)))
+            .Skip(startPosition)
+            .Take(count ?? int.MaxValue);
         }
     }
 }

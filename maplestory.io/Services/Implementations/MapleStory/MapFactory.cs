@@ -23,7 +23,8 @@ namespace maplestory.io.Services.Implementations.MapleStory
             return map;
         }
         public MapMark GetMapMark(string markName) => MapMark.Parse(WZ.Resolve($"Map/MapHelper.img/mark/{markName}"));
-        public IEnumerable<MapName> GetMapNames(int startPosition = 0, int? count = null) {
+        public IEnumerable<MapName> GetMapNames(string searchFor = null, int startPosition = 0, int? count = null) {
+            searchFor = searchFor.ToLower();
             return WZ.Resolve("String/Map").Children
                 .SelectMany(c => c.Children)
                 .Where(c =>
@@ -37,9 +38,10 @@ namespace maplestory.io.Services.Implementations.MapleStory
                     return (eightDigits?.Children?.Any(m => m.NameWithoutExtension.Equals(eightDigitId) || m.NameWithoutExtension.Equals(nineDigitId)) ?? false) || (nineDigits?.Children?.Any(m => m.NameWithoutExtension.Equals(eightDigitId) || m.NameWithoutExtension.Equals(nineDigitId)) ?? false);
                 })
                 .Where(c => c != null)
+                .Select(c => MapName.Parse(c))
+                .Where(c => string.IsNullOrEmpty(searchFor) || (!string.IsNullOrEmpty(c.Name) && c.Name.ToLower().Contains(searchFor)) || (!string.IsNullOrEmpty(c.StreetName) && c.StreetName.ToLower().Contains(searchFor)))
                 .Skip(startPosition)
-                .Take(count ?? int.MaxValue)
-                .Select(c => MapName.Parse(c));
+                .Take(count ?? int.MaxValue);
         }
         public MapName GetMapName(int id) {
             WZProperty mapName = WZ.Resolve("String/Map").Children
