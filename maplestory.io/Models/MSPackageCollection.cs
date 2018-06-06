@@ -203,7 +203,7 @@ ORDER BY ANY_VALUE(`folder`)", (MySqlConnection)con);
                     .ToDictionary(c => c.First().Id, c => c);
 
                 Tuple<int, QuestRequirements>[] allStartRequirements = requirements.Values.Where(c => c != null)
-                .Select(c => c.FirstOrDefault(b => b.State == QuestState.Start))
+                .Select(c => c.Where(b => b != null).FirstOrDefault(b => b.State == QuestState.Start))
                 .Where(c => c != null)
                 .SelectMany(c =>
                 {
