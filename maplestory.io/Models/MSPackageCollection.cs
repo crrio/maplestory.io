@@ -72,7 +72,13 @@ namespace maplestory.io.Models
                 AvailableOnCompleteTable = JsonConvert.DeserializeObject<Dictionary<int, QuestRequirements[]>>(File.ReadAllText(questPath));
             else loading.Add(CacheQuestsAvailableOnComplete(questPath));
 
-            if (loading.Count > 0) Task.WaitAll(loading.ToArray());
+            if (loading.Count > 0)
+            {
+                Task all = Task.WhenAll(loading.ToArray());
+                Task.WaitAll(all);
+
+                if (all.Exception != null) Logger.LogCritical($"Exception when loading WZ: {versionInfo.Location}\r\n{all.Exception.ToString()}");
+            }
         }
 
         Task CacheCharacterFolders(string characterFoldersPath)
