@@ -109,6 +109,8 @@ namespace maplestory.io
             app.UseStaticFiles();
 
             app.UseCors(builder => builder.AllowAnyOrigin().AllowAnyMethod());
+            app.UseResponseCompression();
+            app.UseResponseBuffering();
 
             // ===== Use Authentication ======
             app.UseAuthentication();
