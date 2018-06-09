@@ -63,6 +63,7 @@ namespace maplestory.io
                 .AddJsonOptions(options => options.SerializerSettings.Converters.Add(new ImageConverter()));
 
             services.AddCors();
+            services.AddResponseCompression();
 
             //services.Configure<RethinkDbOptions>(Configuration.GetSection("RethinkDb"));
             //services.Configure<WZOptions>(Configuration.GetSection("WZ"));
