@@ -30,7 +30,7 @@ docker_image:
         - docker login -u gitlab-ci-token -p ${CI_JOB_TOKEN} registry.crr.io
         - docker build -t registry.crr.io/maplestory/maplestory.io:latest .
         - docker push registry.crr.io/maplestory/maplestory.io:latest
-        - echo ${CI_COMMIT_SHA:0:8}
+        - echo ${CI_COMMIT_SHA:0:8} > SHA1.hash
         - docker tag registry.crr.io/maplestory/maplestory.io:latest registry.crr.io/maplestory/maplestory.io:${CI_COMMIT_SHA:0:8}
         - docker push registry.crr.io/maplestory/maplestory.io:${CI_COMMIT_SHA:0:8}
 

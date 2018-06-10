@@ -11,6 +11,7 @@ RUN dotnet restore maplestory.io
 # Copy everything else and build
 COPY . ./
 RUN dotnet publish -c Release -o out maplestory.io
+COPY SHA1.hash /app/maplestory.io/out/SHA1.hash
 
 # Build runtime image
 FROM microsoft/aspnetcore:2.0

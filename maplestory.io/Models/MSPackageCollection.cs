@@ -36,38 +36,42 @@ namespace maplestory.io.Models
         public IDictionary<int, int[]> ItemDrops;
         public IDictionary<int, QuestRequirements[]> AvailableOnCompleteTable;
         public MSPackageCollection() { }
-        public MSPackageCollection(string baseFilePath, ushort? versionId = null, Region region = Region.GMS) : base(baseFilePath, versionId, region) { }
+        public MSPackageCollection(string baseFilePath, ushort? versionId = null, Region region = Region.GMS) : base(baseFilePath, versionId, region) => Load();
         public MSPackageCollection(MapleVersion versionInfo, ushort? versionId = null, Region region = Region.GMS) 
             : base(File.Exists(Path.Combine(versionInfo.Location, $"{versionInfo.BaseFile}.rebuilt.wz")) ? Path.Combine(versionInfo.Location, $"{versionInfo.BaseFile}.rebuilt.wz") : Path.Combine(versionInfo.Location, $"{versionInfo.BaseFile}.wz"), versionId, region)
         {
             this.MapleVersion = versionInfo;
+            Load();
+        }
 
+        void Load()
+        {
             List<Task> loading = new List<Task>();
 
-            string characterFoldersPath = Path.Combine(versionInfo.Location, "characterFolders.json");
+            string characterFoldersPath = Path.Combine(base.Folder, "characterFolders.json");
             if (File.Exists(characterFoldersPath))
                 categoryFolders = new Dictionary<int, string>(JsonConvert.DeserializeObject<Dictionary<int, string>>(File.ReadAllText(characterFoldersPath)));
             else
                 loading.Add(CacheCharacterFolders(characterFoldersPath));
 
-            string equipMetaPath = Path.Combine(versionInfo.Location, "equipMeta.json");
+            string equipMetaPath = Path.Combine(base.Folder, "equipMeta.json");
             if (File.Exists(equipMetaPath))
                 EquipMeta = new Dictionary<int, Tuple<string[], byte?, bool>>(JsonConvert.DeserializeObject<Dictionary<int, Tuple<string[], byte?, bool>>>(File.ReadAllText(equipMetaPath)));
             else
                 loading.Add(CacheEquipMeta(equipMetaPath));
 
-            string mobMetaPath = Path.Combine(versionInfo.Location, "mobMeta.json");
+            string mobMetaPath = Path.Combine(base.Folder, "mobMeta.json");
             if (File.Exists(mobMetaPath))
                 MobMeta = new Dictionary<int, Tuple<string, int, bool>>(JsonConvert.DeserializeObject<Dictionary<int, Tuple<string, int, bool>>>(File.ReadAllText(mobMetaPath)));
             else
                 loading.Add(CacheMobMeta(mobMetaPath));
 
-            string dropPath = Path.Combine(versionInfo.Location, "itemDrops.json");
+            string dropPath = Path.Combine(base.Folder, "itemDrops.json");
             if (File.Exists(dropPath))
                 ItemDrops = JsonConvert.DeserializeObject<Dictionary<int, int[]>>(File.ReadAllText(dropPath));
             else loading.Add(CacheDropLookup(dropPath));
 
-            string questPath = Path.Combine(versionInfo.Location, "questAvailableOnComplete.json");
+            string questPath = Path.Combine(base.Folder, "questAvailableOnComplete.json");
             if (File.Exists(questPath))
                 AvailableOnCompleteTable = JsonConvert.DeserializeObject<Dictionary<int, QuestRequirements[]>>(File.ReadAllText(questPath));
             else loading.Add(CacheQuestsAvailableOnComplete(questPath));
@@ -77,7 +81,7 @@ namespace maplestory.io.Models
                 Task all = Task.WhenAll(loading.ToArray());
                 Task.WaitAll(all);
 
-                if (all.Exception != null) Logger.LogCritical($"Exception when loading WZ: {versionInfo.Location}\r\n{all.Exception.ToString()}");
+                if (all.Exception != null) Logger.LogCritical($"Exception when loading WZ: {base.Folder}\r\n{all.Exception.ToString()}");
             }
         }
 
@@ -85,8 +89,10 @@ namespace maplestory.io.Models
         {
             return Task.Run(() =>
             {
-            Logger.LogInformation("Caching character folders for {0}", MapleVersion.Location);
-            categoryFolders = new Dictionary<int, string>();
+                if (Environment.GetEnvironmentVariable("MYSQL_HOST") == null) return;
+
+                Logger.LogInformation("Caching character folders for {0}", base.Folder);
+                categoryFolders = new Dictionary<int, string>();
                 using (MySqlConnection con = new MySqlConnection(ApplicationDbContext.GetConnectionString()))
                 {
                     if (con.State == System.Data.ConnectionState.Closed) con.Open();
@@ -117,7 +123,7 @@ ORDER BY ANY_VALUE(`folder`)", (MySqlConnection)con);
         {
             return Task.Run(() =>
             {
-                Logger.LogInformation("Caching equip meta for {0}", MapleVersion.Location);
+                Logger.LogInformation("Caching equip meta for {0}", base.Folder);
                 ConcurrentDictionary<int, Tuple<string, int, bool>> regionData = new ConcurrentDictionary<int, Tuple<string, int, bool>>();
 
                 while (!Parallel.ForEach(
@@ -148,7 +154,7 @@ ORDER BY ANY_VALUE(`folder`)", (MySqlConnection)con);
         {
             return Task.Run(() =>
             {
-                Logger.LogInformation("Caching equip meta for {0}", MapleVersion.Location);
+                Logger.LogInformation("Caching equip meta for {0}", base.Folder);
                 ConcurrentDictionary<int, Tuple<string[], byte?, bool>> regionData = new ConcurrentDictionary<int, Tuple<string[], byte?, bool>>();
 
                 while (!Parallel.ForEach(
@@ -178,7 +184,7 @@ ORDER BY ANY_VALUE(`folder`)", (MySqlConnection)con);
         {
             return Task.Run(() =>
             {
-                Logger.LogInformation("Caching drops for {0}", MapleVersion.Location);
+                Logger.LogInformation("Caching drops for {0}", base.Folder);
                 IDictionary<int, int[]> dropBy = Resolve("String/MonsterBook")?
                 .Children
                 .AsParallel()
@@ -199,7 +205,7 @@ ORDER BY ANY_VALUE(`folder`)", (MySqlConnection)con);
         {
             return Task.Run(() =>
             {
-                Logger.LogInformation("Caching quests available on complete for {0}", MapleVersion.Location);
+                Logger.LogInformation("Caching quests available on complete for {0}", base.Folder);
 
                 Dictionary<int, QuestRequirements[]> requirements = Resolve("Quest/Check").Children
                     .AsParallel()

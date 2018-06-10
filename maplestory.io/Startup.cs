@@ -6,15 +6,21 @@ using maplestory.io.Services.Rethink;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Configuration.Json;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 using Swashbuckle.AspNetCore.Swagger;
 using System;
 using System.IdentityModel.Tokens.Jwt;
+using System.IO;
+using System.Linq;
+using System.Net;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace maplestory.io
 {
@@ -22,13 +28,21 @@ namespace maplestory.io
     {
         public static bool Ready;
         public static bool Started;
+        public static string Hostname;
+        public static string SHA1 = "Unknown";
 
         public Startup(IHostingEnvironment env)
         {
+            Hostname = Dns.GetHostName();
+
+            if (File.Exists("SHA1.hash"))
+            {
+                SHA1 = File.ReadAllText("SHA1.hash");
+            }
+
             var builder = new ConfigurationBuilder()
                 .SetBasePath(env.ContentRootPath)
                 .AddJsonFile("appsettings.json", true, true)
-                .AddJsonFile($"appsettings.{env.EnvironmentName}.json", optional: true)
                 .AddEnvironmentVariables();
             Configuration = builder.Build();
         }
@@ -38,21 +52,8 @@ namespace maplestory.io
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            // ===== Add our DbContext ========
-            services.AddDbContext<ApplicationDbContext>();
-
-            // ===== Add Identity ========
-            services.AddIdentity<IdentityUser, IdentityRole>(options =>
-            {
-                options.Password.RequireDigit = false;
-                options.Password.RequiredLength = 1;
-                options.Password.RequiredUniqueChars = 1;
-                options.Password.RequireLowercase = false;
-                options.Password.RequireNonAlphanumeric = false;
-                options.Password.RequireUppercase = false;
-            })
-                .AddEntityFrameworkStores<ApplicationDbContext>()
-                .AddDefaultTokenProviders();
+            services.AddOptions();
+            services.AddResponseCompression();
 
             // Add framework services.
             services.AddMvc()
@@ -63,13 +64,37 @@ namespace maplestory.io
                 .AddJsonOptions(options => options.SerializerSettings.Converters.Add(new ImageConverter()));
 
             services.AddCors();
-            services.AddResponseCompression();
 
             //services.Configure<RethinkDbOptions>(Configuration.GetSection("RethinkDb"));
-            //services.Configure<WZOptions>(Configuration.GetSection("WZ"));
             //services.AddSingleton<IRethinkDbConnectionFactory, RethinkDbConnectionFactory>();
             services.AddSingleton<IConfiguration>(Configuration);
-            services.AddTransient<IWZFactory, WZFactory>();
+
+            if (Configuration.GetChildren().FirstOrDefault(c => c.Key == "WZ") != null)
+            {
+                services.Configure<WZOptions>(Configuration.GetSection("WZ"));
+                services.AddSingleton<IWZFactory, WZAppSettingsFactory>();
+            }
+
+            if (Environment.GetEnvironmentVariable("MYSQL_HOST") != null)
+            {
+                // ===== Add our DbContext ========
+                services.AddDbContext<ApplicationDbContext>();
+
+                // ===== Add Identity ========
+                services.AddIdentity<IdentityUser, IdentityRole>(options =>
+                {
+                    options.Password.RequireDigit = false;
+                    options.Password.RequiredLength = 1;
+                    options.Password.RequiredUniqueChars = 1;
+                    options.Password.RequireLowercase = false;
+                    options.Password.RequireNonAlphanumeric = false;
+                    options.Password.RequireUppercase = false;
+                })
+                    .AddEntityFrameworkStores<ApplicationDbContext>()
+                    .AddDefaultTokenProviders();
+
+                services.AddTransient<IWZFactory, WZFactory>();
+            }
             services.AddTransient<IItemFactory, ItemFactory>();
             services.AddTransient<ISkillFactory, SkillFactory>();
             services.AddTransient<IMusicFactory, MusicFactory>();
@@ -95,6 +120,23 @@ namespace maplestory.io
         {
             loggerFactory.AddConsole(Configuration.GetSection("Logging"));
 
+            app.UseResponseCompression();
+            app.UseResponseBuffering();
+            app.UseCors(builder => builder.AllowAnyOrigin().AllowAnyMethod());
+            app.Use((ctx, next) =>
+            {
+                ctx.Response.OnStarting(state =>
+                {
+                    HttpContext realContext = (HttpContext)state;
+
+                    realContext.Response.Headers.Add("X-Processed-By", $"{Hostname} / {SHA1}");
+
+                    return Task.FromResult(0);
+                }, ctx);
+
+                return next();
+            });
+
             if (env.IsDevelopment())
             {
                 loggerFactory.AddDebug(LogLevel.Debug);
@@ -108,10 +150,6 @@ namespace maplestory.io
             }
 
             app.UseStaticFiles();
-
-            app.UseCors(builder => builder.AllowAnyOrigin().AllowAnyMethod());
-            app.UseResponseCompression();
-            app.UseResponseBuffering();
 
             // ===== Use Authentication ======
             app.UseAuthentication();

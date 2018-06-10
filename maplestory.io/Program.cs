@@ -28,6 +28,7 @@ namespace maplestory.io
 
             MSPackageCollection.Logger = logging.CreateLogger<MSPackageCollection>();
             WZFactory.Logger = logging.CreateLogger<WZFactory>();
+            WZAppSettingsFactory.Logger = logging.CreateLogger<WZAppSettingsFactory>();
             PackageCollection.Logging = (s) => packageCollectionLogger.LogInformation(s);
             VersionGuesser.Logging = (s) => versionGuesserLogger.LogInformation(s);
             Package.Logging = (s) => packageLogger.LogInformation(s);

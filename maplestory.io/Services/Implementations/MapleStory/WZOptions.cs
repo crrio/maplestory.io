@@ -8,12 +8,12 @@ namespace maplestory.io.Services.Implementations.MapleStory
 {
     public class WZOptions
     {
-        public WZVersion[] versions;
+        public WZVersion[] versions { get; set; }
     }
 
     public class WZVersion {
-        public string path;
-        public Region region;
-        public string version;
+        public string path { get; set; }
+        public Region region { get; set; }
+        public string version { get; set; }
     }
 }
