@@ -145,7 +145,7 @@ namespace maplestory.io
             }
             else
             {
-                loggerFactory.AddDebug();
+                loggerFactory.AddDebug(LogLevel.Debug);
                 app.UseExceptionHandler("/Home/Error");
             }
 

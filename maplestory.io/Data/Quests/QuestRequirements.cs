@@ -1,8 +1,7 @@
-﻿using System;
+﻿using PKG1;
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using PKG1;
 
 namespace maplestory.io.Data.Quests
 {
