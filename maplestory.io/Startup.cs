@@ -118,7 +118,12 @@ namespace maplestory.io
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory)
         {
-            loggerFactory.AddConsole(Configuration.GetSection("Logging"));
+            if (Configuration.GetChildren().FirstOrDefault(c => c.Key == "Logging") != null)
+                loggerFactory.AddConsole(Configuration.GetSection("Logging"));
+            else if (Environment.GetEnvironmentVariable("LOG_LEVEL") != null)
+                loggerFactory.AddConsole(Enum.TryParse(typeof(LogLevel), Environment.GetEnvironmentVariable("LOG_LEVEL"), out object level) ? (LogLevel)level : LogLevel.Information);
+            else
+                loggerFactory.AddConsole();
 
             app.UseResponseCompression();
             app.UseResponseBuffering();
