@@ -37,7 +37,8 @@ namespace maplestory.io
 
             if (File.Exists("SHA1.hash"))
             {
-                SHA1 = File.ReadAllText("SHA1.hash");
+                SHA1 = File.ReadAllText("SHA1.hash").Trim('\t', '\r', '\n', ' ');
+                Console.WriteLine($"SHA1: {SHA1}");
             }
 
             var builder = new ConfigurationBuilder()
@@ -125,6 +126,8 @@ namespace maplestory.io
             else
                 loggerFactory.AddConsole();
 
+            ILogger logging = loggerFactory.CreateLogger<Startup>();
+
             app.UseResponseCompression();
             app.UseResponseBuffering();
             app.UseCors(builder => builder.AllowAnyOrigin().AllowAnyMethod());
@@ -134,7 +137,7 @@ namespace maplestory.io
                 {
                     HttpContext realContext = (HttpContext)state;
 
-                    realContext.Response.Headers.Add("X-Processed-By", $"{Hostname} / {SHA1}");
+                    realContext.Response.Headers.Add("X-Processed-By", $"{Hostname}/{SHA1}");
 
                     return Task.FromResult(0);
                 }, ctx);
