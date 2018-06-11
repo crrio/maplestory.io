@@ -75,7 +75,7 @@ namespace maplestory.io
                 services.AddSingleton<IWZFactory, WZAppSettingsFactory>();
             }
 
-            if (Environment.GetEnvironmentVariable("MYSQL_HOST") != null)
+            if (Environment.GetEnvironmentVariable("MYSQL_DBHOST") != null)
             {
                 // ===== Add our DbContext ========
                 services.AddDbContext<ApplicationDbContext>();

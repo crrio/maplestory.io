@@ -89,7 +89,7 @@ namespace maplestory.io.Models
         {
             return Task.Run(() =>
             {
-                if (Environment.GetEnvironmentVariable("MYSQL_HOST") == null) return;
+                if (Environment.GetEnvironmentVariable("MYSQL_DBHOST") == null) return;
 
                 Logger.LogInformation("Caching character folders for {0}", base.Folder);
                 categoryFolders = new Dictionary<int, string>();
