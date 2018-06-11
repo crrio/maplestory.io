@@ -7,6 +7,7 @@ using PKG1;
 using maplestory.io.Data.Maps;
 using maplestory.io.Data.Items;
 using maplestory.io.Data.Images;
+using MoreLinq;
 
 namespace maplestory.io.Data.Mobs
 {
@@ -47,6 +48,7 @@ namespace maplestory.io.Data.Mobs
 
             result.Framebooks = result.mobImage.Children
                 .Where(c => c.NameWithoutExtension != "info")
+                .DistinctBy(c => c.NameWithoutExtension)
                 .ToDictionary(c => c.NameWithoutExtension, c => FrameBook.GetFrameCount(c));
 
             WZProperty familiarEntry = stringWz.ResolveOutlink($"String/MonsterBook/{id}");
