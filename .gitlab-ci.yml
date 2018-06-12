@@ -29,20 +29,16 @@ docker_image:
     script:
         - docker login -u gitlab-ci-token -p ${CI_JOB_TOKEN} registry.crr.io
         - echo ${CI_COMMIT_SHA:0:8} > SHA1.hash
-        - docker build -t registry.crr.io/maplestory/maplestory.io:latest .
-        - docker push registry.crr.io/maplestory/maplestory.io:latest
-        - docker tag registry.crr.io/maplestory/maplestory.io:latest registry.crr.io/maplestory/maplestory.io:${CI_COMMIT_SHA:0:8}
-        - docker push registry.crr.io/maplestory/maplestory.io:${CI_COMMIT_SHA:0:8}
+        - docker build -t registry.crr.io/${CI_PROJECT_PATH}:latest .
+        - docker push registry.crr.io/${CI_PROJECT_PATH}:latest
+        - docker tag registry.crr.io/${CI_PROJECT_PATH}:latest registry.crr.io/${CI_PROJECT_PATH}:${CI_COMMIT_SHA:0:8}
+        - docker push registry.crr.io/${CI_PROJECT_PATH}:${CI_COMMIT_SHA:0:8}
 
 kubernetes_deploy:
     stage: deploy
-    tags:
-        - ubuntu.16.04-x64
+    image: registry.crr.io/crrio/kubernetes-deploy:latest
     environment:
         name: Public
         url: https://maplestory.io/
     script:
-        - apt update && apt install -y wget
-        - wget https://storage.googleapis.com/kubernetes-release/release/v1.9.1/bin/linux/amd64/kubectl -O ~/kubectl
-        - chmod +x ~/kubectl
         - ~/kubectl set image deployment/maplestory-io maplestory-io=registry.crr.io/maplestory/maplestory.io:${CI_COMMIT_SHA:0:8} --namespace=io
