@@ -38,7 +38,7 @@ kubernetes_deploy:
     stage: deploy
     image: registry.crr.io/crrio/kubernetes-deploy:latest
     environment:
-        name: Public
+        name: maplestory.io
         url: https://maplestory.io/
     script:
-        - ~/kubectl set image deployment/maplestory-io maplestory-io=registry.crr.io/maplestory/maplestory.io:${CI_COMMIT_SHA:0:8} --namespace=io
+        - ~/kubectl set image deployment/maplestory-io maplestory-io=registry.crr.io/maplestory/maplestory.io:${CI_COMMIT_SHA:0:8} --namespace=maplestory-public
