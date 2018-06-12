@@ -76,7 +76,7 @@ namespace maplestory.io.Data.Quests
             switch (dt.Length)
             {
                 case 12:
-                    return new DateTime(int.Parse(dt.Substring(0, 4)), int.Parse(dt.Substring(4, 2)), int.Parse(dt.Substring(6, 2)), int.Parse(dt.Substring(8, 2)), int.Parse(dt.Substring(10, 2)), 0);
+                    return new DateTime(int.Parse(dt.Substring(0, 4)), int.Parse(dt.Substring(4, 2)), int.Parse(dt.Substring(6, 2)), int.Parse(dt.Substring(8, 2)) % 24, int.Parse(dt.Substring(10, 2)) % 60, 0);
                 case 8:
                     return new DateTime(int.Parse(dt.Substring(0, 4)), int.Parse(dt.Substring(4, 2)), int.Parse(dt.Substring(6, 2)));
             }
