@@ -24,7 +24,7 @@ namespace maplestory.io.Services.Implementations.MapleStory
         }
         public MapMark GetMapMark(string markName) => MapMark.Parse(WZ.Resolve($"Map/MapHelper.img/mark/{markName}"));
         public IEnumerable<MapName> GetMapNames(string searchFor = null, int startPosition = 0, int? count = null) {
-            searchFor = searchFor.ToLower();
+            if (!string.IsNullOrEmpty(searchFor)) searchFor.ToLower();
             return WZ.Resolve("String/Map").Children
                 .SelectMany(c => c.Children)
                 .Where(c =>

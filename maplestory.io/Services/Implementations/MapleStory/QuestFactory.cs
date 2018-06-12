@@ -13,6 +13,7 @@ namespace maplestory.io.Services.Implementations.MapleStory
         public Quest GetQuest(int id)
             => Quest.GetQuest(WZ.Resolve("Quest"), id);
         public IEnumerable<QuestMeta> GetQuests(string searchFor = null, int startPosition = 0, int? count = null) {
+            if (!string.IsNullOrEmpty(searchFor)) searchFor.ToLower();
             IEnumerable<Quest> quests = Quest.GetQuests(WZ.Resolve("Quest")).OrderBy(c => c.Id);
             return quests.Select(q =>
                 new QuestMeta(
