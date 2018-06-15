@@ -2,6 +2,7 @@
 using maplestory.io.Entities;
 using maplestory.io.Entities.Models;
 using Microsoft.Extensions.Logging;
+using MoreLinq;
 using MySql.Data.MySqlClient;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -89,14 +90,28 @@ namespace maplestory.io.Models
         {
             return Task.Run(() =>
             {
-                if (Environment.GetEnvironmentVariable("MYSQL_DBHOST") == null) return;
-
                 Logger.LogInformation("Caching character folders for {0}", base.Folder);
-                categoryFolders = new Dictionary<int, string>();
-                using (MySqlConnection con = new MySqlConnection(ApplicationDbContext.GetConnectionString()))
+
+                if (Environment.GetEnvironmentVariable("MYSQL_DBHOST") == null)
                 {
-                    if (con.State == System.Data.ConnectionState.Closed) con.Open();
-                    MySqlCommand com = new MySqlCommand(@"SELECT CONVERT(`categoryId`, UNSIGNED), ANY_VALUE(folder) FROM (SELECT 
+                    WZProperty characterWz = base.Resolve("Character");
+
+                    categoryFolders = characterWz.Children.Where(c => c.Type != PropertyType.Image).SelectMany(c => c.Children).Select(c =>
+                    {
+                        if (c.Name.Length >= 8 && int.TryParse(c.Name.Substring(0, 8), out int itemId))
+                            return new Tuple<int, string>((int)Math.Floor(itemId / 100f), c.Parent.Name);
+                        else
+                            return null;
+                    }).Where(c => c != null).DistinctBy(c => c.Item1).ToDictionary(c => c.Item1, c => c.Item2);
+                    File.WriteAllText(characterFoldersPath, JsonConvert.SerializeObject(categoryFolders));
+                }
+                else
+                {
+                    categoryFolders = new Dictionary<int, string>();
+                    using (MySqlConnection con = new MySqlConnection(ApplicationDbContext.GetConnectionString()))
+                    {
+                        if (con.State == System.Data.ConnectionState.Closed) con.Open();
+                        MySqlCommand com = new MySqlCommand(@"SELECT CONVERT(`categoryId`, UNSIGNED), ANY_VALUE(folder) FROM (SELECT 
     *,
     @Num:= CONVERT(`ImgName`, UNSIGNED) as Num,
     floor(@Num / 100) categoryId,
@@ -111,10 +126,11 @@ AND `PackageName` = 'Character'
 WHERE `categoryId` IS NOT NULL
 GROUP BY `categoryId`
 ORDER BY ANY_VALUE(`folder`)", (MySqlConnection)con);
-                    using (MySqlDataReader reader = com.ExecuteReader())
-                        while (reader.Read())
-                            categoryFolders.Add(Convert.ToInt32(reader[0]), (string)reader[1]);
-                    File.WriteAllText(characterFoldersPath, JsonConvert.SerializeObject(categoryFolders));
+                        using (MySqlDataReader reader = com.ExecuteReader())
+                            while (reader.Read())
+                                categoryFolders.Add(Convert.ToInt32(reader[0]), (string)reader[1]);
+                        File.WriteAllText(characterFoldersPath, JsonConvert.SerializeObject(categoryFolders));
+                    }
                 }
             });
         }

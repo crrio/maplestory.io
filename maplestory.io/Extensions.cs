@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Http;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Formats;
+using SixLabors.ImageSharp.Formats.Gif;
 using SixLabors.ImageSharp.Formats.Png;
 using SixLabors.ImageSharp.MetaData;
 using SixLabors.ImageSharp.MetaData.Profiles.Exif;
@@ -13,13 +14,16 @@ namespace maplestory.io
 {
     public static class Extensions
     {
-        static PngEncoder encoder;
+        static PngEncoder pngEncoder;
+        static GifEncoder gifEncoder;
+
         static Extensions()
         {
-            encoder = new PngEncoder()
+            pngEncoder = new PngEncoder()
             {
                 CompressionLevel = 1
             };
+            gifEncoder = new GifEncoder() { };
         }
 
         public static byte[] ImageToByte(this Image<Rgba32> img, HttpRequest context, bool autoResize = true, IImageFormat format = null, bool autoDispose = false)
@@ -47,7 +51,12 @@ namespace maplestory.io
                     img.MetaData.ExifProfile = new ExifProfile();
                     img.MetaData.ExifProfile.SetValue(ExifTag.Software, $"Generated at {"https://maplestory.io" + context.Path}");
                 }
-                encoder.Encode(img, mem);
+                if (format == ImageFormats.Png)
+                    pngEncoder.Encode(img, mem);
+                else if (format == ImageFormats.Gif)
+                    gifEncoder.Encode(img, mem);
+                else
+                    img.Save(mem, format);
 
                 if (autoDispose) ThreadPool.QueueUserWorkItem((s) => img.Dispose());
                 return mem.ToArray();
