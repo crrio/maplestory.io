@@ -35,6 +35,8 @@ docker_image:
         - docker push registry.crr.io/${CI_PROJECT_PATH}:${CI_COMMIT_SHA:0:8}
 
 kubernetes_deploy:
+    only:
+        - master
     stage: deploy
     image: registry.crr.io/crrio/kubernetes-deploy:latest
     environment:
