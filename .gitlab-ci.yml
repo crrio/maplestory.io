@@ -43,4 +43,4 @@ kubernetes_deploy:
         name: maplestory.io
         url: https://maplestory.io/
     script:
-        - ~/kubectl set image deployment/maplestory-io maplestory-io=registry.crr.io/${CI_PROJECT_PATH}:${CI_COMMIT_SHA:0:8} --namespace=maplestory-public
+        - ~/kubectl set image deployment/io io=registry.crr.io/${CI_PROJECT_PATH}:${CI_COMMIT_SHA:0:8} --namespace=maplestory
