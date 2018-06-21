@@ -8,8 +8,7 @@ stages:
 
 build:
     stage: build
-    tags:
-        - dotnet-2.0
+    image: microsoft/dotnet:2.0-sdk-jessie
     script:
         - dotnet --info
         - cd /builds/maplestory/maplestory.io
@@ -22,8 +21,6 @@ build:
 
 docker_image:
     stage: image
-    tags:
-        - docker  
     services:
         - docker:dind
     script:
