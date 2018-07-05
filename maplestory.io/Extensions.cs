@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Http;
+using PKG1;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Formats;
 using SixLabors.ImageSharp.Formats.Gif;
@@ -7,6 +8,8 @@ using SixLabors.ImageSharp.MetaData;
 using SixLabors.ImageSharp.MetaData.Profiles.Exif;
 using SixLabors.ImageSharp.Processing;
 using SixLabors.Primitives;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 
@@ -60,6 +63,18 @@ namespace maplestory.io
 
                 if (autoDispose) ThreadPool.QueueUserWorkItem((s) => img.Dispose());
                 return mem.ToArray();
+            }
+        }
+
+        public static IEnumerable<WZProperty> Traverse(this IEnumerable<WZProperty> that)
+        {
+            ConcurrentStack<WZProperty> t = new ConcurrentStack<WZProperty>();
+            foreach (WZProperty prop in that) t.Push(prop);
+
+            while (t.TryPop(out WZProperty current))
+            {
+                yield return current;
+                foreach (WZProperty child in current.Children) t.Push(child);
             }
         }
     }

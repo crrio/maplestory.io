@@ -54,7 +54,6 @@ namespace maplestory.io
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddOptions();
-            services.AddResponseCompression();
 
             // Add framework services.
             services.AddMvc()
@@ -128,8 +127,6 @@ namespace maplestory.io
 
             ILogger logging = loggerFactory.CreateLogger<Startup>();
 
-            app.UseResponseCompression();
-            app.UseResponseBuffering();
             app.UseCors(builder => builder.AllowAnyOrigin().AllowAnyMethod());
             app.Use((ctx, next) =>
             {
@@ -168,16 +165,14 @@ namespace maplestory.io
                     template: "{controller=Home}/{action=Index}/{id?}");
             });
 
-            // Enable middleware to serve generated Swagger as a JSON endVector2.
+            // Enable middleware to serve generated Swagger as a JSON endpoint.
             app.UseSwagger();
 
-            // Enable middleware to serve swagger-ui (HTML, JS, CSS etc.), specifying the Swagger JSON endVector2.
+            // Enable middleware to serve swagger-ui (HTML, JS, CSS etc.), specifying the Swagger JSON endpoint.
             app.UseSwaggerUI(c =>
             {
                 c.SwaggerEndpoint("/swagger/V2/swagger.json", "MapleStory.IO V2");
             });
-            //using (var con = connectionFactory.CreateConnection())
-            //    con.CheckOpen();
         }
     }
 }
