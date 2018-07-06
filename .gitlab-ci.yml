@@ -8,7 +8,7 @@ stages:
 
 build:
     stage: build
-    image: microsoft/dotnet:2.0-sdk-jessie
+    image: microsoft/dotnet:2.1-sdk-jessie
     script:
         - dotnet --info
         - cd /builds/maplestory/maplestory.io
