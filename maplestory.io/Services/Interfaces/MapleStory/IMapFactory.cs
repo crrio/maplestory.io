@@ -1,6 +1,7 @@
-﻿using SixLabors.ImageSharp;
+﻿using maplestory.io.Data.Maps;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.PixelFormats;
 using System.Collections.Generic;
-using maplestory.io.Data.Maps;
 
 namespace maplestory.io.Services.Interfaces.MapleStory
 {

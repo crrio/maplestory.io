@@ -4,12 +4,14 @@ using PKG1;
 using SixLabors.Fonts;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
+using SixLabors.ImageSharp.Processing;
+using SixLabors.ImageSharp.Processing.Drawing;
+using SixLabors.ImageSharp.Processing.Text;
+using SixLabors.ImageSharp.Processing.Transforms;
 using SixLabors.Primitives;
 using SixLabors.Shapes;
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 
 namespace maplestory.io.Controllers.API
 {
@@ -57,14 +59,15 @@ namespace maplestory.io.Controllers.API
                 {
                     x.Fill(new Rgba32(0, 0, 0, 128), nameTagSize);
                     IPathCollection iPath = BuildCorners(0, 0, nameTagSize.Width, nameTagSize.Height, 4);
-                    x.Fill(new Rgba32(0, 0, 0, 0), iPath, new GraphicsOptions() { BlenderMode = PixelBlenderMode.Src });
+                    x.Fill(new Rgba32(0, 0, 0, 0), iPath);
                     x.DrawText(Name, MaplestoryFont, nameColor, new PointF(4, 2));
                 }
                 else
                 {
-                    x.DrawImage(w, 1, new Size(w.Width, w.Height), new Point(0, startY - wOrigin.Y));
-                    x.DrawImage(c, 1, new Size((int)realNameSize.Width, c.Height), new Point(w.Width, startY - cOrigin.Y));
-                    x.DrawImage(e, 1, new Size(e.Width, e.Height), new Point((int)(nameTagSize.Width - (e.Width - eOrigin.X)), startY - eOrigin.Y));
+                    x.DrawImage(w, 1, new Point(0, startY - wOrigin.Y));
+                    using (var cv = c.Clone(v => v.Resize(new Size((int)realNameSize.Width, c.Height))))
+                        x.DrawImage(cv, 1, new Point(w.Width, startY - cOrigin.Y));
+                    x.DrawImage(e, 1, new Point((int)(nameTagSize.Width - (e.Width - eOrigin.X)), startY - eOrigin.Y));
                     x.DrawText(Name, MaplestoryFont, nameColor, new PointF(w.Width, startY + 2 - cOrigin.Y));
                 }
             });
@@ -75,7 +78,7 @@ namespace maplestory.io.Controllers.API
         IPathCollection BuildCorners(int x, int y, int width, int height, float cornerRadius)
         {
             // first create a square
-            var rect = new RectangularePolygon(x - 0.5f, y - 0.5f, cornerRadius, cornerRadius);
+            var rect = new RectangularPolygon(x - 0.5f, y - 0.5f, cornerRadius, cornerRadius);
 
             // then cut out of the square a circle so we are left with a corner
             IPath cornerToptLeft = rect.Clip(new EllipsePolygon(x + (cornerRadius - 0.5f), y + (cornerRadius - 0.5f), cornerRadius));

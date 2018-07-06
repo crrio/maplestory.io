@@ -1,18 +1,15 @@
-﻿using maplestory.io.Services.Interfaces.MapleStory;
-using Microsoft.Extensions.Logging;
+﻿using maplestory.io.Data;
+using maplestory.io.Data.Images;
+using maplestory.io.Data.Items;
+using maplestory.io.Services.Interfaces.MapleStory;
 using MoreLinq;
 using PKG1;
 using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.PixelFormats;
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
-using maplestory.io.Data;
-using maplestory.io.Data.Items;
-using maplestory.io.Data.Images;
-using maplestory.io.Data.Items;
 
 namespace maplestory.io.Services.Implementations.MapleStory
 {

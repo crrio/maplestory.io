@@ -10,6 +10,7 @@ using SixLabors.ImageSharp.Processing;
 using SixLabors.Primitives;
 using SixLabors.ImageSharp.PixelFormats;
 using Newtonsoft.Json;
+using SixLabors.ImageSharp.Processing.Transforms;
 
 namespace maplestory.io.Data.Maps
 {
@@ -70,7 +71,7 @@ namespace maplestory.io.Data.Maps
             result.Canvas = Frame.Parse(objCanvas.Resolve((frame % (frameCount + 1)).ToString()) ?? objCanvas);
             result.Flip = data.ResolveFor<bool>("f") ?? false;
             if (result.Flip && result.Canvas != null && result.Canvas.Image != null)
-                result.Canvas.Image = result.Canvas.Image.Clone(c => c.Flip(FlipType.Horizontal));
+                result.Canvas.Image = result.Canvas.Image.Clone(c => c.Flip(FlipMode.Horizontal));
 
             return result;
         }

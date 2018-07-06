@@ -1,14 +1,15 @@
-﻿using PKG1;
+﻿using maplestory.io.Data.Images;
+using maplestory.io.Data.Items;
+using maplestory.io.Services.Interfaces.MapleStory;
+using PKG1;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.PixelFormats;
+using SixLabors.ImageSharp.Processing;
+using SixLabors.ImageSharp.Processing.Drawing;
+using SixLabors.Primitives;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
-using maplestory.io.Data.Items;
-using Microsoft.AspNetCore.Mvc;
-using SixLabors.ImageSharp;
-using maplestory.io.Data.Images;
-using SixLabors.Primitives;
-using maplestory.io.Services.Interfaces.MapleStory;
 
 namespace maplestory.io.Services.Implementations.MapleStory
 {
@@ -54,8 +55,8 @@ namespace maplestory.io.Services.Implementations.MapleStory
                 Image<Rgba32> result = new Image<Rgba32>(maxX - minX, maxY - minY);
                 result.Mutate(x =>
                 {
-                    x.DrawImage(petFrame.Image, 1, new Size(petFrame.Image.Width, petFrame.Image.Height), new Point(0 - minX, 0 - minY));
-                    x.DrawImage(equipFrame.Image, 1, new Size(equipFrame.Image.Width, equipFrame.Image.Height), new Point(renderEquipAt.X - minX, renderEquipAt.Y - minY));
+                    x.DrawImage(petFrame.Image, 1, new Point(0 - minX, 0 - minY));
+                    x.DrawImage(equipFrame.Image, 1, new Point(renderEquipAt.X - minX, renderEquipAt.Y - minY));
                 });
                 return result;
             }

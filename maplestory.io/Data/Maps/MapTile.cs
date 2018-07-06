@@ -8,6 +8,7 @@ using System.Numerics;
 using maplestory.io.Data.Images;
 using SixLabors.ImageSharp.Processing;
 using SixLabors.Primitives;
+using SixLabors.ImageSharp.Processing.Transforms;
 
 namespace maplestory.io.Data.Maps
 {
@@ -37,7 +38,7 @@ namespace maplestory.io.Data.Maps
             result.FrontMost = data.ResolveFor<bool>("front") ?? false;
             result.Flip = data.ResolveFor<bool>("f") ?? false;
             if (result.Flip && result.Canvas != null && result.Canvas.Image != null)
-                result.Canvas.Image = result.Canvas.Image.Clone(c => c.Flip(FlipType.Horizontal));
+                result.Canvas.Image = result.Canvas.Image.Clone(c => c.Flip(FlipMode.Horizontal));
             result.Position = new Vector3(
                 data.ResolveFor<int>("x") ?? 0,
                 data.ResolveFor<int>("y") ?? 0,

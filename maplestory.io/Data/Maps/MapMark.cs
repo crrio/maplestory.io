@@ -1,9 +1,8 @@
-﻿using SixLabors.ImageSharp;
-using System;
+﻿using PKG1;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.PixelFormats;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using PKG1;
 
 namespace maplestory.io.Data.Maps
 {

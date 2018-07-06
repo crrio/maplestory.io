@@ -5,6 +5,9 @@ using SixLabors.Fonts;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
+using SixLabors.ImageSharp.Processing.Drawing;
+using SixLabors.ImageSharp.Processing.Text;
+using SixLabors.ImageSharp.Processing.Transforms;
 using SixLabors.Primitives;
 using SixLabors.Shapes;
 using System;
@@ -117,7 +120,7 @@ namespace maplestory.io.Data.Maps
                                 MapOffset = parsedFrame.MapOffset,
                                 Origin = parsedFrame.Origin,
                                 Position = parsedFrame.Position,
-                                Image = parsedFrame.Image.Clone(c => c.Flip(FlipType.Horizontal))
+                                Image = parsedFrame.Image.Clone(c => c.Flip(FlipMode.Horizontal))
                             };
                             parsedFlippedFrames.TryAdd(elementPath, parsedFrame);
                         }
@@ -141,7 +144,7 @@ namespace maplestory.io.Data.Maps
                         tileZIndexes.TryAdd(elementPath, tileZ);
                         if (flip)
                         {
-                            parsedFrame.Image = parsedFrame.Image.Clone(c => c.Flip(FlipType.Horizontal));
+                            parsedFrame.Image = parsedFrame.Image.Clone(c => c.Flip(FlipMode.Horizontal));
                             parsedFlippedFrames.TryAdd(elementPath, parsedFrame);
                         }
                         else parsedFrames.TryAdd(elementPath, parsedFrame);
@@ -208,7 +211,7 @@ namespace maplestory.io.Data.Maps
                                 MapOffset = parsedFrame.MapOffset,
                                 Origin = parsedFrame.Origin,
                                 Position = parsedFrame.Position,
-                                Image = parsedFrame.Image.Clone(c => c.Flip(FlipType.Horizontal))
+                                Image = parsedFrame.Image.Clone(c => c.Flip(FlipMode.Horizontal))
                             };
                             parsedFlippedFrames.TryAdd(elementPath, parsedFrame);
                         }
@@ -229,7 +232,7 @@ namespace maplestory.io.Data.Maps
 
                         if (flip)
                         {
-                            parsedFrame.Image = parsedFrame.Image.Clone(c => c.Flip(FlipType.Horizontal));
+                            parsedFrame.Image = parsedFrame.Image.Clone(c => c.Flip(FlipMode.Horizontal));
                             parsedFlippedFrames.TryAdd(elementPath, parsedFrame);
                         }
                         else parsedFrames.TryAdd(elementPath, parsedFrame);
@@ -350,7 +353,7 @@ namespace maplestory.io.Data.Maps
                         .OrderBy(c => c.Key)
                         .Select(c => c.Value)
                         .ForEach(
-                            layer => x.DrawImage(layer, 1, new Size(width, height), new Point(0, 0))
+                            layer => x.DrawImage(layer, 1, new Point(0, 0))
                         )
             );
 
@@ -363,7 +366,7 @@ namespace maplestory.io.Data.Maps
         IPathCollection BuildCorners(int x, int y, int width, int height, float cornerRadius)
         {
             // first create a square
-            var rect = new RectangularePolygon(x - 0.5f, y - 0.5f, cornerRadius, cornerRadius);
+            var rect = new RectangularPolygon(x - 0.5f, y - 0.5f, cornerRadius, cornerRadius);
 
             // then cut out of the square a circle so we are left with a corner
             IPath cornerToptLeft = rect.Clip(new EllipsePolygon(x + (cornerRadius - 0.5f), y + (cornerRadius - 0.5f), cornerRadius));
@@ -397,7 +400,7 @@ namespace maplestory.io.Data.Maps
             Rectangle boxPosition = new Rectangle((int)((npc.Position.X - (nameSize.Width / 2)) - 2) - minX, (int)(npc.Position.Y - minY) + 5, (int)nameSize.Width + 5, (int)nameSize.Height + 4);
             x.Fill(new Rgba32(0, 0, 0, 128), boxPosition);
             IPathCollection iPath = BuildCorners(boxPosition.X, boxPosition.Y, boxPosition.Width, boxPosition.Height, 4);
-            x.Fill(new Rgba32(0, 0, 0, 0), iPath, new GraphicsOptions() { BlenderMode = PixelBlenderMode.Src });
+            x.Fill(new Rgba32(0, 0, 0, 0), iPath);
             x.DrawText(npc.Name, MaplestoryFont, npc.Type == LifeType.NPC ? new Rgba32(223, 220, 109, byte.MaxValue) : new Rgba32(255, 255, 255, byte.MaxValue), new PointF(boxPosition.X + 2, boxPosition.Y - 1));
         }
 
@@ -506,10 +509,9 @@ namespace maplestory.io.Data.Maps
                                 (int)((frameContainer.Position.Y - origin.Y) - minY)
                             );
                             if (!layerBounds.Contains(drawAt)) continue;
-                            using (Image<Rgba32> flipped = frameContainer.Canvas.Image.Clone(sub => sub.Flip(FlipType.Horizontal)))
+                            using (Image<Rgba32> flipped = frameContainer.Canvas.Image.Clone(sub => sub.Flip(FlipMode.Horizontal)))
                                 c.DrawImage(
                                     flipped, 1,
-                                    new Size(frameContainer.Canvas.Image.Width, frameContainer.Canvas.Image.Height),
                                     drawAt
                                 );
                         }
@@ -522,7 +524,6 @@ namespace maplestory.io.Data.Maps
                             if (!layerBounds.Contains(drawAt)) continue;
                             c.DrawImage(
                                 frameContainer.Canvas.Image, 1,
-                                new Size(frameContainer.Canvas.Image.Width, frameContainer.Canvas.Image.Height),
                                 drawAt
                             );
                         }
@@ -537,7 +538,6 @@ namespace maplestory.io.Data.Maps
                         if (!layerBounds.Contains(drawAt)) continue;
                         c.DrawImage(
                             frameContainer.Canvas.Image, 1,
-                            new Size(frameContainer.Canvas.Image.Width, frameContainer.Canvas.Image.Height),
                             drawAt
                         );
                     }

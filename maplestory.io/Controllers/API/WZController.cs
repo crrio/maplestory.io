@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using PKG1;
 using SixLabors.ImageSharp;
-using System.Collections;
+using SixLabors.ImageSharp.PixelFormats;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;

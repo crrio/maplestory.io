@@ -1,17 +1,16 @@
-﻿using maplestory.io.Data;
-using maplestory.io.Data.Characters;
+﻿using maplestory.io.Data.Characters;
 using Microsoft.AspNetCore.Mvc;
 using MoreLinq;
 using PKG1;
 using SixLabors.Fonts;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
+using SixLabors.ImageSharp.Processing;
+using SixLabors.ImageSharp.Processing.Drawing;
+using SixLabors.ImageSharp.Processing.Text;
 using SixLabors.Primitives;
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace maplestory.io.Controllers.API
 {
@@ -138,20 +137,20 @@ namespace maplestory.io.Controllers.API
             {
                 for (int x = leftPadding; x < textWidth + leftPadding; x += c.Width)
                     for (int y = topPadding; y < textHeight + topPadding; y += c.Height)
-                        image.DrawImage(c, 1, new Size(c.Width, c.Height), new Point(x, y));
+                        image.DrawImage(c, 1, new Point(x, y));
                 foreach (var side in sides)
                 {
                     for (int x = side.Item3.X; x <= side.Item4.X; x += (side.Item1.Width))
                     {
                         for (int y = side.Item3.Y; y <= side.Item4.Y; y += (side.Item1.Height))
                         {
-                            image.DrawImage(side.Item1, 1, new Size(side.Item1.Width, side.Item1.Height), new Point(x - side.Item2.X, y - side.Item2.Y));
+                            image.DrawImage(side.Item1, 1, new Point(x - side.Item2.X, y - side.Item2.Y));
                             if (side.Item3.Y == side.Item4.Y || (y + side.Item1.Height >= side.Item4.Y)) break;
                         }
                         if (side.Item3.X == side.Item4.X || (x + side.Item1.Width >= side.Item4.X)) break;
                     }
                 }
-                foreach (var corner in corners) image.DrawImage(corner.Item1, PixelBlenderMode.Src, 1, new Size(corner.Item1.Width, corner.Item1.Height), new Point(corner.Item3.X - corner.Item2.X, corner.Item3.Y - corner.Item2.Y));
+                foreach (var corner in corners) image.DrawImage(corner.Item1, PixelBlenderMode.Src, 1, new Point(corner.Item3.X - corner.Item2.X, corner.Item3.Y - corner.Item2.Y));
                 for (int i = 0; i < lines.Length; ++i)
                 {
                     int x = center.X - ((int)lineSizes[i].Width / 2);
@@ -159,7 +158,7 @@ namespace maplestory.io.Controllers.API
                     image.DrawText(lines[i], font, nameColor, new Point(x, y + adjustTextY / 2));
                 }
 
-                image.DrawImage(arrow, 1, new Size(arrow.Width, arrow.Height), new Point(center.X - arrowOrigin.X, swPos.Y - arrowOrigin.Y));
+                image.DrawImage(arrow, 1, new Point(center.X - arrowOrigin.X, swPos.Y - arrowOrigin.Y));
             });
 
             return File(result.ImageToByte(Request), "image/png");

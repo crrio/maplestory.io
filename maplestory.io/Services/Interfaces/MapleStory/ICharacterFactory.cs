@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using maplestory.io.Data.Characters;
 using maplestory.io.Data.Images;
+using SixLabors.ImageSharp.PixelFormats;
 
 namespace maplestory.io.Services.Interfaces.MapleStory
 {

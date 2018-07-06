@@ -1,18 +1,20 @@
+using maplestory.io.Data.Characters;
 using maplestory.io.Services.Implementations.MapleStory;
 using maplestory.io.Services.Interfaces.MapleStory;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using MoreLinq;
-using PKG1;
 using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.PixelFormats;
+using SixLabors.ImageSharp.Processing;
+using SixLabors.ImageSharp.Processing.Drawing;
+using SixLabors.ImageSharp.Processing.Transforms;
 using SixLabors.Primitives;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
-using maplestory.io.Data.Characters;
-using maplestory.io.Data.Images;
 using System.Threading.Tasks;
-using System.Collections.Concurrent;
 
 namespace maplestory.io.Controllers.API
 {
@@ -221,7 +223,7 @@ namespace maplestory.io.Controllers.API
                     Image<Rgba32> offsetFrameImage = new Image<Rgba32>(gif.Width, gif.Height);
                     offsetFrameImage.Mutate(x =>
                     {
-                        x.DrawImage(frameImage, 1, new Size(frameImage.Width, frameImage.Height), offset);
+                        x.DrawImage(frameImage, 1, offset);
                     });
                     frameImage = offsetFrameImage;
                 }
@@ -237,7 +239,7 @@ namespace maplestory.io.Controllers.API
                     frameWithBackground.Mutate(x =>
                     {
                         x.Fill(background);
-                        x.DrawImage(frameImage, 1, new Size(frameImage.Width, frameImage.Height), Point.Empty);
+                        x.DrawImage(frameImage, 1, Point.Empty);
                     });
 
                     if (frameImage != frames[i].Item1) frameImage.Dispose();

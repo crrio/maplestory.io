@@ -6,12 +6,16 @@ using SixLabors.Fonts;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
+using SixLabors.ImageSharp.Processing.Drawing;
+using SixLabors.ImageSharp.Processing.Filters;
+using SixLabors.ImageSharp.Processing.Text;
+using SixLabors.ImageSharp.Processing.Transforms;
+using SixLabors.ImageSharp.Processing.Transforms.Resamplers;
 using SixLabors.Primitives;
 using SixLabors.Shapes;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
@@ -197,10 +201,6 @@ namespace maplestory.io.Data.Characters
                     x.DrawImage(
                         framePart,
                         1,
-                        new Size(
-                            frame.Item1.Image.Width,
-                            frame.Item1.Image.Height
-                        ),
                         new Point(
                             (int)(frame.Item2.X - minX),
                             (int)(frame.Item2.Y - minY)
@@ -258,10 +258,6 @@ namespace maplestory.io.Data.Characters
                 x.DrawImage(
                     framePart,
                     1,
-                    new Size(
-                        frame.Item1.Image.Width,
-                        frame.Item1.Image.Height
-                    ),
                     new Point(
                         (int)(frame.Item2.X - minX),
                         (int)(frame.Item2.Y - minY)
@@ -301,10 +297,6 @@ namespace maplestory.io.Data.Characters
                 x.DrawImage(
                     framePart,
                     1,
-                    new Size(
-                        frame.Item1.Image.Width,
-                        frame.Item1.Image.Height
-                    ),
                     new Point(
                         (int)(frame.Item2.X - minX),
                         (int)(frame.Item2.Y - minY)
@@ -366,7 +358,7 @@ namespace maplestory.io.Data.Characters
                 compact.Mutate(c => c.DrawImage(
                     destination,
                     1,
-                    new Size(cropArea.Width, cropArea.Height),
+                    //new Size(cropArea.Width, cropArea.Height), // I *think* this will just be omitted anyways as it should basically be the same as compact size or cropArea size
                     new Point((int)cropOffsetFromOrigin.X, (int)cropOffsetFromOrigin.Y)
                 ));
                 destination.Dispose();
@@ -381,7 +373,7 @@ namespace maplestory.io.Data.Characters
                 Point distanceFromCen = Point.Subtract(imageCenter, bodyCenter);
                 Point distanceFromCenter = new Point(distanceFromCen.X * 2, distanceFromCen.Y * 2);
                 Image<Rgba32> centered = new Image<Rgba32>(destination.Width + (int)Math.Abs(distanceFromCenter.X), destination.Height + (int)Math.Abs(distanceFromCenter.Y));
-                centered.Mutate(c => c.DrawImage(destination, 1, new Size(destination.Width, destination.Height), new Point((int)Math.Max(distanceFromCenter.X, 0), (int)Math.Max(distanceFromCenter.Y, 0))));
+                centered.Mutate(c => c.DrawImage(destination, 1, new Point((int)Math.Max(distanceFromCenter.X, 0), (int)Math.Max(distanceFromCenter.Y, 0))));
                 destination.Dispose();
 
                 return centered;
@@ -392,7 +384,7 @@ namespace maplestory.io.Data.Characters
                 Point distanceFromCen = Point.Add(imageCenter, new Size((int)minX, (int)minY));
                 Point distanceFromCenter = new Point(distanceFromCen.X * 2, distanceFromCen.Y * 2);
                 Image<Rgba32> centered = new Image<Rgba32>(destination.Width + (int)Math.Abs(distanceFromCenter.X), destination.Height + (int)Math.Abs(distanceFromCenter.Y));
-                centered.Mutate(c => c.DrawImage(destination, 1, new Size(destination.Width, destination.Height), new Point((int)Math.Max(distanceFromCenter.X, 0), (int)Math.Max(distanceFromCenter.Y, 0))));
+                centered.Mutate(c => c.DrawImage(destination, 1, new Point((int)Math.Max(distanceFromCenter.X, 0), (int)Math.Max(distanceFromCenter.Y, 0))));
                 destination.Dispose();
 
                 return centered;
@@ -404,7 +396,7 @@ namespace maplestory.io.Data.Characters
                 Point distanceFromCen = Point.Subtract(imageCenter, bodyCenter);
                 Point distanceFromCenter = new Point(distanceFromCen.X * 2, distanceFromCen.Y * 2);
                 Image<Rgba32> centered = new Image<Rgba32>(destination.Width + (int)Math.Abs(distanceFromCenter.X), destination.Height + (int)Math.Abs(distanceFromCenter.Y));
-                centered.Mutate(c => c.DrawImage(destination, 1, new Size(destination.Width, destination.Height), new Point((int)Math.Max(distanceFromCenter.X, 0), (int)Math.Max(distanceFromCenter.Y, 0))));
+                centered.Mutate(c => c.DrawImage(destination, 1, new Point((int)Math.Max(distanceFromCenter.X, 0), (int)Math.Max(distanceFromCenter.Y, 0))));
                 destination.Dispose();
 
                 return centered;
@@ -412,7 +404,7 @@ namespace maplestory.io.Data.Characters
 
             if (FlipX || Zoom != 1)
             {
-                if (FlipX) destination.Mutate(x => { if (FlipX) x.Flip(FlipType.Horizontal); });
+                if (FlipX) destination.Mutate(x => { if (FlipX) x.Flip(FlipMode.Horizontal); });
                 if (Zoom != 1 && Zoom != 0)
                 {
                     if ((destination.Height * Zoom) < 50000 && (destination.Width * Zoom) < 50000)
@@ -472,19 +464,20 @@ namespace maplestory.io.Data.Characters
                     {
                         x.Fill(new Rgba32(0, 0, 0, 128), boxPosition);
                         IPathCollection iPath = BuildCorners(boxPosition.X, boxPosition.Y, boxPosition.Width, boxPosition.Height, 4);
-                        x.Fill(new Rgba32(0, 0, 0, 0), iPath, new GraphicsOptions() { BlenderMode = PixelBlenderMode.Src });
+                        x.Fill(new Rgba32(0, 0, 0, 0), iPath);
                         x.DrawText(Name, MaplestoryFont, nameColor, textPosition);
                     }
                     else
                     {
-                        x.DrawImage(w, 1, new Size(w.Width, w.Height), new Point((int)textPosition.X - wOrigin.X, (int)textPosition.Y - wOrigin.Y));
-                        x.DrawImage(c, 1, new Size((boxPosition.Width) - (w.Width + e.Width), c.Height), new Point((int)(textPosition.X) - cOrigin.X, (int)textPosition.Y - cOrigin.Y));
-                        x.DrawImage(e, 1, new Size(e.Width, e.Height), new Point((int)(textPosition.X + boxPosition.Width - (w.Width + e.Width)), (int)textPosition.Y - eOrigin.Y));
+                        x.DrawImage(w, 1, new Point((int)textPosition.X - wOrigin.X, (int)textPosition.Y - wOrigin.Y));
+                        using (var cv = c.Clone(v => v.Resize(new Size((boxPosition.Width) - (w.Width + e.Width), c.Height))))
+                            x.DrawImage(cv, 1, new Point((int)(textPosition.X) - cOrigin.X, (int)textPosition.Y - cOrigin.Y));
+                        x.DrawImage(e, 1, new Point((int)(textPosition.X + boxPosition.Width - (w.Width + e.Width)), (int)textPosition.Y - eOrigin.Y));
                         textPosition.Y = textPosition.Y - 3;
                         textPosition.X = textPosition.X + 2;
                         x.DrawText(Name, MaplestoryFont, nameColor, textPosition);
                     }
-                    x.DrawImage(destination, 1, new Size(destination.Width, destination.Height), new Point((int)Math.Round(-nMinX), 0));
+                    x.DrawImage(destination, 1, new Point((int)Math.Round(-nMinX), 0));
                 });
                 destination.Dispose();
 
@@ -497,7 +490,7 @@ namespace maplestory.io.Data.Characters
         IPathCollection BuildCorners(int x, int y, int width, int height, float cornerRadius)
         {
             // first create a square
-            var rect = new RectangularePolygon(x-0.5f, y-0.5f, cornerRadius, cornerRadius);
+            var rect = new RectangularPolygon(x-0.5f, y-0.5f, cornerRadius, cornerRadius);
 
             // then cut out of the square a circle so we are left with a corner
             IPath cornerToptLeft = rect.Clip(new EllipsePolygon(x + (cornerRadius - 0.5f), y + (cornerRadius - 0.5f), cornerRadius));
