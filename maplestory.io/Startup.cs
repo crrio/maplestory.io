@@ -54,6 +54,7 @@ namespace maplestory.io
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddOptions();
+            services.AddResponseCompression();
 
             // Add framework services.
             services.AddMvc()
@@ -127,6 +128,8 @@ namespace maplestory.io
 
             ILogger logging = loggerFactory.CreateLogger<Startup>();
 
+            app.UseResponseCompression();
+            app.UseResponseBuffering();
             app.UseCors(builder => builder.AllowAnyOrigin().AllowAnyMethod());
             app.Use((ctx, next) =>
             {

@@ -7,6 +7,12 @@ namespace maplestory.io.Controllers.API
     [Route("api/crafting/effects")]
     public class CraftingEffectsController : APIController
     {
+        public CraftingEffectsController()
+        {
+            this.Region = Region.GMS;
+            this.Version = "latest";
+        }
+
         [Route("")]
         [HttpGet]
         public IActionResult GetListing() => Json(CraftingEffectFactory.EffectList());

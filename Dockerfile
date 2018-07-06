@@ -1,4 +1,4 @@
-FROM microsoft/aspnetcore-build:2.0 AS build-env
+FROM microsoft/aspnetcore-build:2.1 AS build-env
 WORKDIR /app
 
 COPY PKG1/PKG1.csproj ./PKG1/
@@ -14,7 +14,7 @@ RUN dotnet publish -c Release -o out maplestory.io
 COPY SHA1.hash /app/maplestory.io/out/SHA1.hash
 
 # Build runtime image
-FROM microsoft/aspnetcore:2.0
+FROM microsoft/aspnetcore:2.1
 WORKDIR /app
 COPY maplestory.io/run.sh .
 RUN chmod +x /app/run.sh
