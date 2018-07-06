@@ -9,6 +9,10 @@
     <DocumentationFile>bin\Debug\netcoreapp2.1\maplestory.io.xml</DocumentationFile>
   </PropertyGroup>
 
+  <PropertyGroup>
+    <PublishWithAspNetCoreTargetManifest>false</PublishWithAspNetCoreTargetManifest>
+  </PropertyGroup>
+
   <ItemGroup>
     <Compile Remove="wwwroot\api\**" />
     <Content Remove="wwwroot\api\**" />
