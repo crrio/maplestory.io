@@ -11,13 +11,14 @@ build:
     image: microsoft/dotnet:2.1-sdk
     script:
         - dotnet --info
-        - cd /builds/maplestory/maplestory.io
-        - dotnet restore -r ubuntu.16.04-x64
-        - dotnet publish -r ubuntu.16.04-x64 -c Release
+        - cd $CI_PROJECT_DIR
+        - ls -lh
+        - dotnet restore
+        - dotnet publish -c Release
     artifacts:
         name: "MapleStory.IO"
         paths:
-            - /builds/maplestory/maplestory.io/maplestory.io/bin/Release/netcoreapp2.1/ubuntu.16.04-x64/publish
+            - /builds/maplestory/maplestory.io/maplestory.io/bin/Release/netcoreapp2.1/
 
 docker_image:
     only:
