@@ -1,165 +1,36 @@
-﻿<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>maplestory.io - @ViewData["Title"]</title>
-    <link href="https://fonts.googleapis.com/css?family=Roboto|Titillium+Web" rel="stylesheet">
-    <style>
-        body, html {
-            margin: 0px;
-            background: white;
-            color: rgba(30,30,30,.9);
-            text-rendering: optimizeLegibility;
-        }
-
-        h1, h2, h3, h4, h5 {
-            font-family: 'Roboto', sans-serif;
-        }
-
-        p {
-            font-family: 'Titillium Web', sans-serif;
-            line-height: 24px;
-        }
-
-        a.fancy {
-            padding: 16px 64px;
-            box-shadow: 0 0 2px #111;
-            display: inline-block;
-            text-decoration: none;
-        }
-
-        a.fancy:not(.rainbowBackground) {
-            background: white;
-        }
-
-        .rainbowBackground, a.fancy:not(.rainbowBackground):not(.noRainbow) div, .rainbowText {
-            background: #61b1ce;
-            background: -moz-linear-gradient(left, #61b1ce 0%, #6ac4a9 100%);
-            background: -webkit-linear-gradient(left, #61b1ce 0%,#6ac4a9 100%);
-            background: linear-gradient(to right, #1e5799 0%,#ff0000 100%);
-            filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#61b1ce', endColorstr='#6ac4a9',GradientType=1 );
-        }
-
-        a.fancy:not(.rainbowBackground):not(.noRainbow) div, .rainbowText {
-            color: transparent;
-            -webkit-background-clip: text;
-            background-clip: text;
-        }
-
-        a.fancy div, .rainbowText {
-            font-size: 14px;
-            font-family: 'Roboto';
-            text-transform: uppercase;
-            text-decoration: none;
-        }
-
-        * {
-            box-sizing: border-box;
-        }
-
-        body > * {
-            padding: 32px 64px;
-        }
-
-        .header {
-            color: rgba(230,230,230,1);
-            overflow: hidden;
-            min-height: 600px;
-            /* Permalink - use to edit and share this gradient: http://colorzilla.com/gradient-editor/#1e5799+0,7db9e8+100 */
-            background: #1e5799; /* Old browsers */
-            background: -moz-linear-gradient(left, #1e5799 0%, #7db9e8 100%); /* FF3.6-15 */
-            background: -webkit-linear-gradient(left, #1e5799 0%,#7db9e8 100%); /* Chrome10-25,Safari5.1-6 */
-            background: linear-gradient(to right, #1e5799 0%,#7db9e8 100%); /* W3C, IE10+, FF16+, Chrome26+, Opera12+, Safari7+ */
-            filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#1e5799', endColorstr='#7db9e8',GradientType=1 ); /* IE6-9 */
-            position: relative;
-            -webkit-clip-path: polygon(0 0, 100% 0, 100% 85%, 0 100%);
-            clip-path: polygon(0 0, 100% 0, 100% 85%, 0 100%);
-            align-items: center;
-            display: flex;
-            justify-content: space-around;
-        }
-
-        .header > div.content {
-            display: flex;
-            width: 50%;
-            flex-direction: column;
-            max-width: 600px;
-        }
-
-        .header > div.icons {
-            position: relative;
-            width: 50%;
-            max-width: 600px;
-            text-align: center;
-        }
-
-        .header > div.icons > * {
-            display: inline-flex;
-            padding: 8px;
-            background: rgba(245, 245, 245, 1);
-            border-radius: 4px;
-            box-shadow: 0 0 10px rgba(10, 10, 10, 0.5);
-            position: absolute;
-        }
-
-        .icons > *:nth-child(1) { top: -50px; left: 60%; }
-        .icons > *:nth-child(2) { top: 0px; left: 50%; }
-        .icons > *:nth-child(3) { top: -100px; left: 5%; }
-        .icons > *:nth-child(4) { top: -150px; left: 20%; }
-        .icons > *:nth-child(5) { top: -40px; left: 45%; }
-        .icons > *:nth-child(6) { top: 100px; left: 30%; }
-        .icons > *:nth-child(7) { top: 150px; left: 70%; }
-        .icons > *:nth-child(8) { top: -200px; left: 0px; }
-        .icons > *:nth-child(9) { top: -150px; left: 50%; }
-        .icons > *:nth-child(10) { top: 50px; left: 20%; }
-        .icons > *:nth-child(11) { top: 20px; left: 80%; }
-
-        .header > div > div {
-            margin-top: 2em;
-        }
-
-        .about {
-            display: flex;
-            flex-direction: row;
-            min-height: 600px;
-        }
-
-        .about > div {
-            width: 50%;
-        }
-
-        .about .mapRendering {
-            background-image:url('https://labs.maplestory.io/api/gms/latest/map/2000111/render');
-            background-position: 35% 40%;
-            background-repeat: no-repeat;
-            border-radius: 5px;
-            box-shadow: 0 0 5px rgba(10,10,10, 0.5);
-            margin-left: 15px;
-        }
-
-        .about a.viewAll { margin-top: 48px; background-color: #3366cc; }
-        .about a.viewAll div { color: rgba(240,240,240,1); }
-
-        .info {
-            margin-top: 128px;
-            text-align: center;
-        }
-
-        .footer {
-            background-image: url(https://labs.maplestory.io/api/kms/latest/map/402000200/render);
-            min-height: 400px;
-            background-position: 50% 85%;
-            background-repeat: no-repeat;
-        }
-
-        .copyright {
-            text-align: center;
-        }
-    </style>
-</head>
+﻿<!doctype html>
+<html lang="en">
+  <head>
+    <title>Maplestory: IO - @ViewData["Title"]</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="stylesheet" href="/css/site.min.css">
+    <link href="https://fonts.googleapis.com/css?family=Montserrat:500,600,800" rel="stylesheet">
+    <link rel="stylesheet" href="https://pro.fontawesome.com/releases/v5.1.1/css/all.css" integrity="sha384-xyMU7RufUdPGVOZRrc2z2nRWVWBONzqa0NFctWglHmt5q5ukL22+lvHAqhqsIm3h" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.2/css/bootstrap.min.css" integrity="sha384-Smlep5jCw/wG7hdkwQ/Z5nLIefveQRIY9nfy6xoR1uRYBtpZgI6339F5dgvm/e9B" crossorigin="anonymous">
+  </head>
 <body>
-    @RenderBody()
-    <p class='copyright'>Item names, icons, descriptions, and character information thereof are the sole property of NEXON and therefor applies to their Terms of Use.</p>
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-12">
+                <div class="welcome text-center">
+                    <img src="/images/mwikilogo.png" class="mb-4" style="width:400px;max-width:100%;"/>
+                    <h1>Meet the new Maplestory: IO</h1>
+                    <p class="lead mb-4">The <u>unofficial</u> worldwide Maplestory developer platform,<br/>
+                        created by maplers, <b>for maplers</b>.</p>
+                    <a href="https://maplestory.io/swagger/index.html" class="btn btn-primary mr-2 text-white"><i class="fa fa-book fa-fw"></i> View Documentation</a>
+                    <a href="https://discord.gg/sQQChmv" class="btn btn-secondary text-white" style="background:#7289DA"><i class="fab fa-discord fa-fw"></i> Join the Discussion</a>
+                </div>
+            </div>
+            <div class="col-md-6">
+                @RenderBody()
+                <div class="box">
+                    <h4 class="mb-0">Disclaimer</h4>
+                    <p>All aforementioned media, icons, descriptions, and character information provided by this service thereof are the sole property of <a href="https://www.nexon.net">NEXON</a> and therefor applies to their <a href="https://www.nexon.com/main/en/legal/tou" target="_blank">Terms of Service</a>.</p>
+                    <p>This service is provided out of love towards the Maplestory community and with a focus on building positive gaming experiences.</p>
+                </div>
+            </div>
+        </div>
+    </div>
 </body>
 </html>

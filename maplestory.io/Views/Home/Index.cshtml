@@ -1,51 +1,41 @@
 ﻿@{
-    ViewData["Title"] = "Home Page";
+    ViewData["Title"] = "Welcome";
 }
 
-<div class='header'>
-  <div class='content'>
-    <h1>The best resource for MapleStory related assets.</h1>
-    <p>Got a cool idea for a MapleStory related project? We're here to help! We take the hassle out of trying to get raw assets and ship them directly to you for no charge.</p>
-    <div>
-      <a href="/swagger/" class='fancy'>
-        <div>Get started now</div>
-      </a>
-    </div>
-  </div>
-  <div class='icons'>
-    <a href='https://maplestory.io/api/gms/latest/item/1442273'><img src='https://maplestory.io/api/gms/latest/item/1442273/icon' /></a>
-    <a href='https://maplestory.io/api/gms/latest/character/2000/1073145,21192:default,1053045,38505/stand1'><img src='https://maplestory.io/api/gms/latest/character/2000/1073145,21192:default,1053045,38505/stand1' /></a>
-    <a href='https://maplestory.io/api/gms/latest/mob/100006'><img src='https://maplestory.io/api/gms/latest/mob/100006/icon' /></a>
-    <a href='https://maplestory.io/api/gms/latest/npc/1033233'><img src='https://maplestory.io/api/gms/latest/npc/1033233/icon' /></a>
-    <a href='https://maplestory.io/api/gms/latest/item/1113250'><img src='https://maplestory.io/api/gms/latest/item/1113250/icon' /></a>
-    <a href='https://maplestory.io/api/gms/latest/map/100010000'><img src='https://maplestory.io/api/gms/latest/map/100010000/icon' /></a>
-    <a href='https://maplestory.io/api/server/khaini/icon'><img src='https://maplestory.io/api/server/khaini/icon' /></a>
-    <span></span>
-    <span></span>
-    <span></span>
-    <span></span>
-  </div>
-</div>
-<div class='about'>
-  <div class='content'>
-    <b class='rainbowText'>Super simple</b>
-    <h3>We make all the complicated parts fade into the background allowing you to focus on building awesome things</h3>
-    <p>Our APIs are incredibly simple and use a standard pattern for retrieving MapleStory related assets. When there's more complicated resources like rendering a full map, or trying to see what your character would look like with new items, we do all of that behind the scenes. This saves you time and effort when you're trying to quickly look at something.</p>
-    <p>Our APIs read directly from the game files themselves, allowing us to always quickly and efficiently update our APIs if something changes or isn't quite right. This also allows us to quickly update to new versions when updates come out. All of this allows you to use our APIs without having to worry about needing to extract these resources on your own.</p>
-    <p>Our APIs support multiple regions with ease. We support multiple regions and will be adding multiple versions in the near future, this will allow us to serve any resource from any version of MapleStory. No more hassle of trying to download Korean MapleStory just to try to get a glimpse at those new Cadena skills!</p>
-    <a href='/swagger/' class='fancy noRainbow viewAll'>
-      <div>View all of our APIs</div>
-    </a>
-  </div>
-  <div class='mapRendering'>&nbsp;</div>
-</div>
-<div class='info'>
-  <b class='rainbowText'>Built for developers</b>
-  <p>Our APIs are built explicitly with developers in mind, we understand that building out services and handling getting the required assets is a difficult task. Our purpose is simply to take one step out of the process of creating a service that helps the MapleStory community.</p>
-</div>
-<div class='start'>
+<div class="box">
+    <h1>The whole Maple World at your fingertips.</h1><img src="https://maplestory.io/api/gms/latest/mob/100006/icon?resize=2" class="asset1"/>
+    <p class="lead mb-4">Our APIs provide developers the tools to craft innovative and inspiring services aimed to help grow and support the Maplestory community. The best part? We are <b>always up-to-date</b>.</b></p>
 
+    <h4><span class="text-success"><i class="fas fa-check-circle fa-fw"></i></span> Preview new Cash Shop items and design characters</h4>
+    <h4><span class="text-success"><i class="fas fa-check-circle fa-fw"></i></span> Analyze monster, boss, and item data</h4>
+    <h4><span class="text-success"><i class="fas fa-check-circle fa-fw"></i></span> Render maps (including their NPCs)</h4>
+    <h4><span class="text-success"><i class="fas fa-check-circle fa-fw"></i></span> View ranking information</h4>
+    <h4><span class="text-success"><i class="fas fa-check-circle fa-fw"></i></span> Listen to Maplestory music</h4>
+    <h4><a href="https://maplestory.io/swagger/index.html"><i class="fas fa-ellipsis-h fa-fw"></i> And much more..</a></h4>
+    <img src="https://maplestory.io/api/gms/latest/item/1442273/icon?resize=3" class="asset2"/>
 </div>
-<div class='footer'>
-
+<div class="box">
+    <h1><i class="fas fa-globe-americas fa-fw"></i> We support maplers worldwide.</h1>
+    <p class="lead mb-4">Whether you're mapling from the United States, South Korea, Europe, or anywhere else, <b>you matter to our team</b>.</p>
+    <p class="lead">We currently support most regions where Maplestory is accessible (GMS, KMS, JMS, CMS, and SEA). Depending on timezones, some regions may experience slight delays in updating.</p>
+    <img src="https://maplestory.io/api/gms/latest/npc/9000020/icon?resize=2" class="asset3 d-none d-md-block"/>
+    <h4 class="mt-4">100,000+ unique visitors a month</h4>
+    <h4>400,000,000+ API requests a month</h4>
+</div>
+<div class="box">
+    <h1><i class="fas fa-question-circle fa-fw"></i> Frequently Asked Questions</h1>
+    <p class="lead mb-4">
+        <b>Q. How do you access (and provide) all of this data?</b><br/>
+        We've developed an automated way of processing, optimizing, and delivering Maplestory assets without extracting each individually.<br/><br/>
+        This allows us to serve real-time rendering APIs for every region, with no hassle on the developer's end.
+    </p>
+    <p class="lead mb-4">
+        <b>Q. What <u>can't</u> I do with these APIs?</b><br/>
+        We ask that you are mindful of Nexon America's <a href="https://www.nexon.com/main/en/legal/tou" target="_blank">Terms of Service</a>, by only using our APIs for <u>non-commercial</u> reasons.<br/><br/>
+        You are not allowed to profit in any way from the assets provided by our APIs, and must provide credit to Nexon where and when appropriate (see our footer for an example).
+    </p>
+    <p class="lead mb-4">
+        <b>Q. Where can I report something broken?</b><br/>
+        Let us know on <a href="https://discord.gg/sQQChmv" target="_blank"><i class="fab fa-discord"></i> Discord</a> or send an email to <a href="mailto:hello@crr.io">hello@crr.io</a>.
+    </p>
 </div>
