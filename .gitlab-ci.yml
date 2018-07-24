@@ -20,6 +20,8 @@ build:
             - /builds/maplestory/maplestory.io/maplestory.io/bin/Release/netcoreapp2.1/ubuntu.16.04-x64/publish
 
 docker_image:
+    only:
+        - master
     stage: image
     image: docker:stable
     services:
