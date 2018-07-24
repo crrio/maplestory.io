@@ -1,37 +1,72 @@
-﻿body {
-    padding-top: 50px;
-    padding-bottom: 20px;
+﻿html {
+    background: #f8f8f8;
+    color: #202124;
+}
+html > body {
+    background: transparent;
+    font-family: 'Montserrat', sans-serif;
 }
 
-/* Wrapping element */
-/* Set some basic padding to keep content from hitting the edges */
-.body-content {
-    padding-left: 15px;
-    padding-right: 15px;
+.container a {
+    color: #488AC7;
 }
 
-/* Set widths on the form inputs since otherwise they're 100% wide */
-input,
-select,
-textarea {
-    max-width: 280px;
+.container b {
+    font-weight: 700;
 }
 
-/* Carousel */
-.carousel-caption p {
-    font-size: 20px;
-    line-height: 1.4;
+.welcome, .box {
+    margin-top: 200px;
+    position: relative;
 }
 
-/* Make .svg files in the carousel display properly in older browsers */
-.carousel-inner .item img[src$=".svg"] {
-    width: 100%;
+.smol {
+    margin-top: 50px;
 }
 
-/* Hide/rearrange for smaller screens */
-@media screen and (max-width: 767px) {
-    /* Hide captions */
-    .carousel-caption {
-        display: none;
-    }
+.welcome h1, .box h1 {
+    font-weight: bold;
+    letter-spacing: -1px;
+}
+
+.welcome .lead, .box h4 {
+    font-weight: 600;
+}
+
+.welcome .btn {
+    padding: 12px 20px;
+}
+
+.welcome h1 {
+    font-size: 50px;
+}
+
+.box h1 {
+    font-size: 30px;
+}
+
+.box h4 {
+    margin-bottom: 20px;
+}
+
+.asset1 {
+    z-index: 1;
+    float:right;
+    margin-left:10px;
+}
+
+.asset2 {
+    z-index: 2;
+    position: absolute;
+    left: -130px;
+    bottom: -110px;
+    transform: rotate(0deg);
+}
+
+.asset3 {
+    z-index: 3;
+    position: absolute;
+    right: -130px;
+    top: 40px;
+    transform: rotate(0deg);
 }
