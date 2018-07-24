@@ -11,7 +11,7 @@ build:
     image: microsoft/dotnet:2.1-sdk
     script:
         - dotnet --info
-        - cd /builds/maplestory/maplestory.io
+        - cd /builds/maplestory
         - dotnet restore -r ubuntu.16.04-x64
         - dotnet publish -r ubuntu.16.04-x64 -c Release
     artifacts:
