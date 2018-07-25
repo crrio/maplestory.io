@@ -10,7 +10,7 @@ namespace maplestory.io.Controllers
     {
         [Route("")]
         [HttpGet]
-        public IActionResult List([FromQuery] int startAt = 0, [FromQuery]int count = 50, [FromQuery]string searchFor = "") => Json(NPCFactory.GetNPCs(startAt, count, searchFor));
+        public IActionResult List([FromQuery] int startAt = 0, [FromQuery]int count = int.MaxValue, [FromQuery]string searchFor = "") => Json(NPCFactory.GetNPCs(startAt, count, searchFor));
 
         [Route("{npcId}")]
         [HttpGet]
