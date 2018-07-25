@@ -17,6 +17,8 @@ namespace maplestory.io.Data.Images
             // If we are a UOL, resolve, otherwise it'll return itself
             container = container.Resolve();
 
+            if (container == null) return null;
+
             bool isSingle = container.Children.Any(c => c.Type == PropertyType.Canvas);
 
             if (!isSingle)

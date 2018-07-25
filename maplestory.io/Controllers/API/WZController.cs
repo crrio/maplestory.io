@@ -52,6 +52,7 @@ namespace maplestory.io.Controllers
                 return Json(new
                 {
                     children = wz.Packages.Keys.ToArray(),
+                    location = wz.Folder,
                     type = -1
                 });
 
