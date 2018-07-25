@@ -53,6 +53,7 @@ namespace maplestory.io.Controllers
                 {
                     children = wz.Packages.Keys.ToArray(),
                     location = wz.Folder,
+                    version = wz.MapleVersion?.MapleVersionId,
                     type = -1
                 });
 
