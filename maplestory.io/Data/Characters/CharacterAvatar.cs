@@ -454,7 +454,7 @@ namespace maplestory.io.Data.Characters
                 float nMinX = NameWidthAdjustmentX = (float)Math.Round(Math.Min(0, feetCenter.X - halfSize.Width));
                 if (NameWidthAdjustmentX % 2 != 0) nMinX = NameWidthAdjustmentX = NameWidthAdjustmentX + 1;
                 float nMaxX = Math.Max(destination.Width, feetCenter.X + halfSize.Width);
-                Rectangle boxPosition = new Rectangle((int)((feetCenter.X - halfSize.Width) - nMinX) + 2, (int)feetCenter.Y + 4, (int)realNameSize.Width + 5 + (w?.Width ?? 0) + (e?.Width ?? 0), (int)realNameSize.Height + 3);
+                Rectangle boxPosition = new Rectangle((int)((feetCenter.X - halfSize.Width) - nMinX) + 2, (int)feetCenter.Y + 4, (int)realNameSize.Width + (w?.Width ?? 0) + (e?.Width ?? 0), (int)realNameSize.Height);
                 PointF textPosition = new PointF(boxPosition.X + 2 + (w?.Width ?? 0), (boxPosition.Y - 1) + (tagHeight > 0 ? tagHeight - 16 : 0) / 2);
                 Image<Rgba32> withName = new Image<Rgba32>((int)Math.Max(nMaxX - nMinX, destination.Width), (int)Math.Max(feetCenter.Y + nameSize.Height, destination.Height + nameSize.Height));
 
@@ -462,10 +462,11 @@ namespace maplestory.io.Data.Characters
                 {
                     if (nameTag == null)
                     {
+                        boxPosition.Width = boxPosition.Width + 5;
                         x.Fill(new Rgba32(0, 0, 0, 128), boxPosition);
                         IPathCollection iPath = BuildCorners(boxPosition.X, boxPosition.Y, boxPosition.Width, boxPosition.Height, 4);
                         x.Fill(new Rgba32(0, 0, 0, 0), iPath);
-                        x.DrawText(Name, MaplestoryFont, nameColor, textPosition);
+                        x.DrawText(new TextGraphicsOptions() { VerticalAlignment = VerticalAlignment.Center }, Name, MaplestoryFont, nameColor, PointF.Add(textPosition, new PointF(0, realNameSize.Height / 2f + 1)));
                     }
                     else
                     {
@@ -473,9 +474,7 @@ namespace maplestory.io.Data.Characters
                         using (var cv = c.Clone(v => v.Resize(new Size((boxPosition.Width) - (w.Width + e.Width), c.Height))))
                             x.DrawImage(cv, 1, new Point((int)(textPosition.X) - cOrigin.X, (int)textPosition.Y - cOrigin.Y));
                         x.DrawImage(e, 1, new Point((int)(textPosition.X + boxPosition.Width - (w.Width + e.Width)), (int)textPosition.Y - eOrigin.Y));
-                        textPosition.Y = textPosition.Y - 3;
-                        textPosition.X = textPosition.X + 2;
-                        x.DrawText(Name, MaplestoryFont, nameColor, textPosition);
+                        x.DrawText(new TextGraphicsOptions() { VerticalAlignment = VerticalAlignment.Center }, Name, MaplestoryFont, nameColor, PointF.Add(textPosition, new PointF(0, realNameSize.Height / 2f - 1)));
                     }
                     x.DrawImage(destination, 1, new Point((int)Math.Round(-nMinX), 0));
                 });
