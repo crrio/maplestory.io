@@ -37,16 +37,28 @@ namespace maplestory.io.Data.NPC
             NPC result = new NPC();
             result.Id = id;
 
+            result.npcImg = stringWz.ResolveOutlink($"Npc/{id.ToString("D7")}");
+            result.Link = result.npcImg.ResolveFor<int>("info/link") ?? result.npcImg.ResolveFor<int>("link");
+            List<int> linkFollowed = new List<int>();
+            NPC linked = result;
+            while (followLink && linked.Link.HasValue && !linkFollowed.Contains(linked.Link.Value))
+            {
+                linkFollowed.Add(linked.Link.Value);
+                linked = Parse(stringWz.ResolveOutlink($"String/Npc/{linked.Link.Value}"), false);
+            }
+
+            if (linked != result)
+            {
+                result.Extend(linked);
+            }
+
             result.Function = stringWz.ResolveForOrNull<string>("func");
             result.Name = stringWz.ResolveForOrNull<string>("name");
             result.Dialogue = stringWz.Children
                 .Where(c => c.NameWithoutExtension != "func" && c.NameWithoutExtension != "name" && c.NameWithoutExtension != "dialogue")
                 .ToDictionary(c => c.NameWithoutExtension, c => ((IWZPropertyVal)c).GetValue().ToString());
 
-            result.npcImg = stringWz.ResolveOutlink($"Npc/{id.ToString("D7")}");
-
             result.IsShop = result.npcImg?.ResolveFor<bool>("info/shop") ?? false;
-            result.Link = result.npcImg.ResolveFor<int>("link");
 
             result.Framebooks = result.npcImg.Children
                 .Where(c => c.NameWithoutExtension != "info")
@@ -65,17 +77,6 @@ namespace maplestory.io.Data.NPC
                 .Children.Where(c => int.TryParse(c.NameWithoutExtension, out int blah))
                 .Select(c => MapName.GetMapNameLookup(result.npcImg)[int.Parse(c.NameWithoutExtension)].FirstOrDefault())
                 .Where(c => c != null).ToArray();
-
-            List<int> linkFollowed = new List<int>();
-            NPC linked = result;
-            while (followLink && linked.Link.HasValue && !linkFollowed.Contains(linked.Link.Value)) {
-                linkFollowed.Add(linked.Link.Value);
-                linked = Parse(stringWz.ResolveOutlink($"String/Npc/{linked.Link.Value}"), false);
-            }
-
-            if (linked != result) {
-                result.Extend(linked);
-            }
 
             return result;
         }
