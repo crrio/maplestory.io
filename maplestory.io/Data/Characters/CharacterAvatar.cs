@@ -536,7 +536,10 @@ namespace maplestory.io.Data.Characters
 
             Equips.ForEach(c =>
             {
-                HasMount = (HasMount || (c.ItemId >= 1902000 && c.ItemId <= 1993000));
+                if (c.ItemId >= 1902000 && c.ItemId <= 1993000)
+                {
+                    HasMount = true;
+                }
                 if ((c.ItemId / 10000) == 301)
                 {
                     HasChair = true;
@@ -658,9 +661,10 @@ namespace maplestory.io.Data.Characters
                     WZProperty animationNode = null;
                     bool hasRequiredStance = HasChair || HasMount, isNotMount = c.Item2.ItemId < 1902000 || c.Item2.ItemId > 1993000;
                     string animationNameOrAction = c.Item2.AnimationName ?? action;
+                    string forcedStance = HasChair ? chairSitAction : (HasMount && (AnimationName != "rope" && AnimationName != "ladder" && AnimationName != "sit") ? "sit" : AnimationName);
 
-                    if (children.ContainsKey((hasRequiredStance && isNotMount) ? chairSitAction : action))
-                        animationNode = children[(hasRequiredStance && isNotMount) ? chairSitAction : action];
+                    if (children.ContainsKey((hasRequiredStance && isNotMount) ? forcedStance : action))
+                        animationNode = children[(hasRequiredStance && isNotMount) ? forcedStance : action];
                     else if (children.ContainsKey(hasRequiredStance ? animationNameOrAction : "default"))
                         animationNode = children[hasRequiredStance ? animationNameOrAction : "default"];
                     else if (children.ContainsKey(animationNameOrAction))
