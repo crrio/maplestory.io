@@ -543,7 +543,7 @@ namespace maplestory.io.Data.Characters
                 if ((c.ItemId / 10000) == 301)
                 {
                     HasChair = true;
-                    chairSitAction = wz.Resolve($"Item/Install/0301.img/{c.ItemId.ToString("D8")}/info/sitAction").ResolveForOrNull<string>() ?? "sit";
+                    chairSitAction = wz.Resolve($"Item/Install/0301.img/{c.ItemId.ToString("D8")}/info/sitAction")?.ResolveForOrNull<string>() ?? "sit";
                 }
             });
 
