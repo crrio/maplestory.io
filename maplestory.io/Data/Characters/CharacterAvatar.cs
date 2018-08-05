@@ -663,16 +663,13 @@ namespace maplestory.io.Data.Characters
                     string animationNameOrAction = c.Item2.AnimationName ?? action;
                     string forcedStance = HasChair ? chairSitAction : (HasMount && (AnimationName != "rope" && AnimationName != "ladder" && AnimationName != "sit") ? "sit" : AnimationName);
 
-                    if (children.ContainsKey((hasRequiredStance && isNotMount) ? forcedStance : action))
-                        animationNode = children[(hasRequiredStance && isNotMount) ? forcedStance : action];
-                    else if (children.ContainsKey(hasRequiredStance ? animationNameOrAction : "default"))
-                        animationNode = children[hasRequiredStance ? animationNameOrAction : "default"];
-                    else if (children.ContainsKey(animationNameOrAction))
-                        animationNode = children[animationNameOrAction];
-                    else if (children.ContainsKey("default"))
-                        animationNode = children["default"] ?? node.Resolve();
-                    else
-                        return null;
+                    if (children.TryGetValue((hasRequiredStance && isNotMount) ? forcedStance : action, out animationNode)) { }
+                    else if (children.TryGetValue(hasRequiredStance ? animationNameOrAction : "default", out animationNode)) { }
+                    else if (children.TryGetValue(animationNameOrAction, out animationNode)) { }
+                    else if (children.TryGetValue("default", out animationNode))
+                    {
+                        if (animationNode == null) animationNode = node.Resolve();
+                    } else return null;
 
                     if (animationNode == null && !(c.Item2.ItemId >= 1902000 && c.Item2.ItemId <= 1993000 && (animationNode = node.Resolve("sit")) != null))
                             return null;
