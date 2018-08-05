@@ -46,13 +46,16 @@ namespace maplestory.io.Data.Characters
         public Tuple<WZProperty, EquipSelection>[] equipped;
         private bool preloaded;
         private WZProperty body;
-        public bool MustSit;
         public string Name;
         public float Zoom;
         public bool FlipX;
         public float NameWidthAdjustmentX;
+        public bool HasChair = false;
+        public bool HasMount = false;
 
         internal static FontCollection fonts;
+        private string chairSitAction = "sit";
+
         static CharacterAvatar()
         {
             fonts = new FontCollection();
@@ -84,6 +87,9 @@ namespace maplestory.io.Data.Characters
             this.preloaded = old.preloaded;
             this.FrameCounts = old.FrameCounts;
             this.FrameDelays = old.FrameDelays;
+            this.HasChair = old.HasChair;
+            this.HasMount = old.HasMount;
+            this.chairSitAction = old.chairSitAction;
         }
 
         public Tuple<Frame, Point, float?>[] GetFrameParts(Dictionary<string, Point> anchorPositions = null)
@@ -321,11 +327,22 @@ namespace maplestory.io.Data.Characters
 
             offsets.Add("feetCenter", calcFeetCenter(body, minX, minY, destination));
 
+            int delay = 120;
+            if (HasMount)
+            {
+                string requiredAnimation = AnimationName;
+                if (AnimationName != "rope" && AnimationName != "ladder" && AnimationName != "sit") requiredAnimation = "sit";
+
+                delay = FrameDelays[requiredAnimation][FrameNumber % FrameDelays[requiredAnimation].Length];
+            }
+            else if (!HasChair)
+                delay = FrameDelays[AnimationName][FrameNumber % FrameDelays[AnimationName].Length];
+
             return new Tuple<Image<Rgba32>, Dictionary<string, Point>, Dictionary<string, int>, int>(
                 destination,
                 offsets,
                 FrameCounts,
-                MustSit ? FrameDelays["sit"][FrameNumber % FrameDelays["sit"].Length] : FrameDelays[AnimationName][FrameNumber % FrameDelays[AnimationName].Length]
+                delay
             );
         }
 
@@ -517,7 +534,16 @@ namespace maplestory.io.Data.Characters
             WZProperty itemEff = wz.Resolve("Effect/ItemEff");
             WZProperty installItem = wz.Resolve("Item/Install/0301");
 
-            MustSit = Equips.Any(c => (c.ItemId >= 1902000 && c.ItemId <= 1993000) || (c.ItemId / 10000) == 301);
+            Equips.ForEach(c =>
+            {
+                HasMount = (HasMount || (c.ItemId >= 1902000 && c.ItemId <= 1993000));
+                if ((c.ItemId / 10000) == 301)
+                {
+                    HasChair = true;
+                    chairSitAction = wz.Resolve($"Item/Install/0301.img/{c.ItemId.ToString("D8")}/info/sitAction").ResolveForOrNull<string>() ?? "sit";
+                }
+            });
+
             string bodyId = SkinId.ToString("D8");
             string headId = (SkinId + 10000).ToString("D8");
             this.body = character.Resolve(bodyId);
@@ -630,12 +656,15 @@ namespace maplestory.io.Data.Characters
                 return actions.Select(action =>
                 {
                     WZProperty animationNode = null;
-                    if (children.ContainsKey((MustSit && (c.Item2.ItemId < 1902000 || c.Item2.ItemId > 1993000)) ? "sit" : action))
-                        animationNode = children[(MustSit && (c.Item2.ItemId < 1902000 || c.Item2.ItemId > 1993000)) ? "sit" : action];
-                    else if (children.ContainsKey(MustSit ? (c.Item2.AnimationName ?? action) : "default"))
-                        animationNode = children[MustSit ? (c.Item2.AnimationName ?? action) : "default"];
-                    else if (children.ContainsKey((c.Item2.AnimationName ?? action)))
-                        animationNode = children[(c.Item2.AnimationName ?? action)];
+                    bool hasRequiredStance = HasChair || HasMount, isNotMount = c.Item2.ItemId < 1902000 || c.Item2.ItemId > 1993000;
+                    string animationNameOrAction = c.Item2.AnimationName ?? action;
+
+                    if (children.ContainsKey((hasRequiredStance && isNotMount) ? chairSitAction : action))
+                        animationNode = children[(hasRequiredStance && isNotMount) ? chairSitAction : action];
+                    else if (children.ContainsKey(hasRequiredStance ? animationNameOrAction : "default"))
+                        animationNode = children[hasRequiredStance ? animationNameOrAction : "default"];
+                    else if (children.ContainsKey(animationNameOrAction))
+                        animationNode = children[animationNameOrAction];
                     else if (children.ContainsKey("default"))
                         animationNode = children["default"] ?? node.Resolve();
                     else
@@ -813,11 +842,15 @@ namespace maplestory.io.Data.Characters
 
                 if (node == null) return null;
 
-                WZProperty animationNode = node.Resolve((MustSit && (c.Item2.ItemId < 1902000 || c.Item2.ItemId > 1993000)) ? "sit" : (c.Item2.AnimationName ?? AnimationName)) ??
-                    (MustSit ? node.Resolve(c.Item2.AnimationName ?? AnimationName) : node.Resolve("default")) ?? node.Resolve("default");
+                string requiredAnimation = AnimationName;
+                if (HasMount && (AnimationName != "rope" && AnimationName != "ladder" && AnimationName != "sit")) requiredAnimation = "sit";
+                if (HasChair) requiredAnimation = chairSitAction;
+
+                WZProperty animationNode = node.Resolve((requiredAnimation != null && (c.Item2.ItemId < 1902000 || c.Item2.ItemId > 1993000)) ? requiredAnimation : (c.Item2.AnimationName ?? AnimationName)) ??
+                    (requiredAnimation != null ? node.Resolve(c.Item2.AnimationName ?? AnimationName) : node.Resolve("default")) ?? node.Resolve("default");
                 if (animationNode == null)
                 {
-                    if (!(c.Item2.ItemId >= 1902000 && c.Item2.ItemId <= 1993000 && (animationNode = node.Resolve("sit")) != null))
+                    if (!(c.Item2.ItemId >= 1902000 && c.Item2.ItemId <= 1993000 && (animationNode = node.Resolve(requiredAnimation ?? "sit")) != null))
                         return null;
                 }
                 // Resolve to animation's frame

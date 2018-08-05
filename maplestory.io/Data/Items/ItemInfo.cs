@@ -1,11 +1,8 @@
-﻿using System;
+﻿using maplestory.io.Data.Items;
+using maplestory.io.Data.Mobs;
+using PKG1;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
-using maplestory.io.Data.Items;
-using PKG1;
-using maplestory.io.Data.Mobs;
-using maplestory.io.Data.Items;
 
 namespace maplestory.io.Data
 {
