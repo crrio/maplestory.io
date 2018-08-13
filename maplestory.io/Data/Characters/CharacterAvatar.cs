@@ -168,10 +168,10 @@ namespace maplestory.io.Data.Characters
 
         public byte[] Render(SpriteSheetFormat format, Func<Image<Rgba32>, byte[]> convertImg)
         {
-            if (format == SpriteSheetFormat.Plain)
-                return convertImg(Render());
-            else
+            if ((format & SpriteSheetFormat.PDNZip) == SpriteSheetFormat.PDNZip)
                 return RenderZipPDN(convertImg);
+            else
+                return convertImg(Render());
         }
 
         private byte[] RenderZipPDN(Func<Image<Rgba32>, byte[]> convertImg)
@@ -961,6 +961,7 @@ namespace maplestory.io.Data.Characters
     public enum SpriteSheetFormat
     {
         Plain = 0,
-        PDNZip = 1
+        PDNZip = 1,
+        Minimal = 2
     }
 }
