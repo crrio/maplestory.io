@@ -23,6 +23,8 @@ build:
 docker_image:
     only:
         - master
+    tags:
+        - docker
     stage: image
     image: docker:stable
     services:

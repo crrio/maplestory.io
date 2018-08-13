@@ -127,15 +127,16 @@ namespace maplestory.io.Services.Implementations.MapleStory
             avatar.Preload();
 
             string fileExtension = "png";
-            if (format == SpriteSheetFormat.PDNZip) fileExtension = "zip";
+            if ((format & SpriteSheetFormat.PDNZip) == SpriteSheetFormat.PDNZip) fileExtension = "zip";
 
             string[] actions = GetActions(itemEntries.Select(c => c.Item1).ToArray());
 
             List<Func<Tuple<string, byte[]>>> allImages = new List<Func<Tuple<string, byte[]>>>();
+            bool isMinimal = (format & SpriteSheetFormat.Minimal) == SpriteSheetFormat.Minimal;
 
-            foreach (string emotion in face?.FrameBooks?.Keys?.ToArray() ?? new[] { "default" })
+            foreach (string emotion in isMinimal ? new[] { "default" } : face?.FrameBooks?.Keys?.ToArray() ?? new[] { "default" })
             {
-                int emotionFrames = face?.FrameBooks[emotion]?.frames?.Count() ?? 1;
+                int emotionFrames = isMinimal ? 1 : face?.FrameBooks[emotion]?.frames?.Count() ?? 1;
                 foreach(int emotionFrame in Enumerable.Range(0, emotionFrames)) {
                     foreach (string animation in actions)
                     {
@@ -145,10 +146,11 @@ namespace maplestory.io.Services.Implementations.MapleStory
                         {
                             if (watch.ElapsedMilliseconds > 120000) return null;
                             allImages.Add(() => {
-                                Tuple<int, string, int?>[] items = itemEntries
+                                Tuple<int, string, int?>[] itcems = itemEntries
                                     .Select(c => new Tuple<int, string, int?>(c.Item1, (c.Item1 == face?.id) ? emotion : null, (c.Item1 == face?.id) ? (int?)emotionFrame : null))
                                     .ToArray();
-                                string path = $"{emotion}/{emotionFrame}/{animation}_{frame}.{fileExtension}";
+                                string path = $"{animation}_{frame}.{fileExtension}";
+                                if (!isMinimal) path = $"{emotion}/{emotionFrame}/" + path;
                                 try {
                                     CharacterAvatar frameAvatar = new CharacterAvatar(avatar);
                                     frameAvatar.AnimationName = animation;
@@ -176,6 +178,24 @@ namespace maplestory.io.Services.Implementations.MapleStory
                                 }
                             });
                         }
+                    }
+                }
+            }
+
+            if (isMinimal) {
+                foreach (string emotion in face?.FrameBooks?.Keys?.ToArray() ?? new[] { "default" })
+                {
+                    int frameNumber = 0;
+                    foreach (EquipFrame frame in face?.FrameBooks[emotion]?.frames) {
+                        foreach (KeyValuePair<string, Frame> framePart in frame.Effects) {
+                            int iFrameNumber = frameNumber;
+                            allImages.Add(() => {
+                                byte[] bytes = framePart.Value.Image.ImageToByte(request);
+                                string path = $"faces/{emotion}_{iFrameNumber}_{framePart.Key}.png";
+                                return new Tuple<string, byte[]>(path, bytes);
+                            });
+                        }
+                        ++frameNumber;
                     }
                 }
             }
