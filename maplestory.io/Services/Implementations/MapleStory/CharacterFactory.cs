@@ -182,7 +182,7 @@ namespace maplestory.io.Services.Implementations.MapleStory
                 }
             }
 
-            if (isMinimal) {
+            if (isMinimal && face != null) {
                 foreach (string emotion in face?.FrameBooks?.Keys?.ToArray() ?? new[] { "default" })
                 {
                     int frameNumber = 0;
