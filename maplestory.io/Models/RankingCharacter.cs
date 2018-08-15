@@ -8,9 +8,9 @@ using System.Collections.Concurrent;
 
 namespace maplestory.io.Models
 {
-    public class Character
+    public class RankingCharacter
     {
-        static ConcurrentDictionary<string, Tuple<Character, DateTime>> cache = new ConcurrentDictionary<string, Tuple<Character, DateTime>>();
+        static ConcurrentDictionary<string, Tuple<RankingCharacter, DateTime>> cache = new ConcurrentDictionary<string, Tuple<RankingCharacter, DateTime>>();
 
         public string Name, Job, World, RankDirection, Avatar;
         public DateTime Got;
@@ -22,7 +22,7 @@ namespace maplestory.io.Models
 
         public static bool IsCached(string characterName, string rankingMode = "overall", string rankAttribute = "legendary")
         {
-            Tuple<Character, DateTime> cachedEntry;
+            Tuple<RankingCharacter, DateTime> cachedEntry;
             return cache.TryGetValue(string.Join("-", characterName.ToLower(), rankingMode.ToLower(), rankAttribute.ToLower()), out cachedEntry) && cachedEntry.Item2 > DateTime.Now;
         }
 
@@ -31,11 +31,11 @@ namespace maplestory.io.Models
             return rx.Replace(target, match => ((char)int.Parse(match.Value.Substring(2, match.Value.Length - 3))).ToString());
         }
 
-        public static async Task<Character> GetCharacter(string characterName, string rankingMode = "overall", string rankAttribute = "legendary")
+        public static async Task<RankingCharacter> GetCharacter(string characterName, string rankingMode = "overall", string rankAttribute = "legendary")
         {
             string cacheName = string.Join("-", characterName.ToLower(), rankingMode.ToLower(), rankAttribute.ToLower());
 
-            Tuple<Character, DateTime> cachedEntry = null;
+            Tuple<RankingCharacter, DateTime> cachedEntry = null;
             if (cache.TryGetValue(cacheName, out cachedEntry) && cachedEntry.Item2 > DateTime.Now) return cachedEntry.Item1;
 
             string rankingResponse = null;
@@ -72,13 +72,13 @@ namespace maplestory.io.Models
 
             Match matches = search.Match(rankingResponse);
 
-            List<Character> characters = new List<Character>();
+            List<RankingCharacter> characters = new List<RankingCharacter>();
             do
             {
                 GroupCollection captures = matches.Groups;
                 if (captures.Count != 14) throw new InvalidOperationException($"Expected 14 captures, got {captures.Count}");
 
-                var parsed = new Character()
+                var parsed = new RankingCharacter()
                 {
                     Ranking = long.Parse(captures[1].Value),
                     realAvatarUrl = captures[2].Value,
@@ -97,7 +97,7 @@ namespace maplestory.io.Models
 
                 characters.Add(parsed);
 
-                Tuple<Character, DateTime> cacheEntry = new Tuple<Character, DateTime>(parsed, got.AddDays(1));
+                Tuple<RankingCharacter, DateTime> cacheEntry = new Tuple<RankingCharacter, DateTime>(parsed, got.AddDays(1));
 
                 cache.AddOrUpdate(string.Join("-", parsed.Name.ToLower(), rankingMode.ToLower(), rankAttribute.ToLower()), s => { return cacheEntry; }, (s, old) => { return cacheEntry; });
             } while ((matches = matches.NextMatch()) != null && matches.Success);

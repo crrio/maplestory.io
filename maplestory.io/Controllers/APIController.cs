@@ -16,6 +16,7 @@ namespace maplestory.io.Controllers
         public MSPackageCollection WZ { get => WZFactory.GetWZ(Region, Version); }
         protected IWZFactory WZFactory { get => Request.HttpContext.RequestServices.GetService<IWZFactory>(); }
         protected IAndroidFactory AndroidFactory { get => GetWithWZ(Request.HttpContext.RequestServices.GetService<IAndroidFactory>()); }
+        protected IAvatarFactory AvatarFactory { get => GetWithWZ(Request.HttpContext.RequestServices.GetService<IAvatarFactory>()); }
         protected ICharacterFactory CharacterFactory { get => GetWithWZ(Request.HttpContext.RequestServices.GetService<ICharacterFactory>()); }
         protected ICraftingEffectFactory CraftingEffectFactory { get => GetWithWZ(Request.HttpContext.RequestServices.GetService<ICraftingEffectFactory>()); }
         protected IItemFactory ItemFactory { get => GetWithWZ(Request.HttpContext.RequestServices.GetService<IItemFactory>()); }
