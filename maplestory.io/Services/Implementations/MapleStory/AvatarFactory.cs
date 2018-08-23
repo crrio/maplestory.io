@@ -33,6 +33,8 @@ namespace maplestory.io.Services.Implementations.MapleStory
 {
     public class AvatarFactory : IAvatarFactory
     {
+        public string[] RequiresFace = new string[] { "face", "capeOverHead", "accessoryEye" };
+
         public static readonly FontCollection fonts;
         static AvatarFactory()
         {
@@ -257,7 +259,7 @@ namespace maplestory.io.Services.Implementations.MapleStory
 
                 RankedFrame<AvatarItemEntry> ranked = new RankedFrame<AvatarItemEntry>(Frame.Parse(c.Item1), zPosition, c.Item2);
 
-                if (ranked?.frame?.Position == "face" && !HasFace) return;
+                if (RequiresFace.Any(b => b.Equals(ranked?.frame?.Position ?? "", StringComparison.CurrentCultureIgnoreCase)) && !HasFace) return;
 
                 rankedFrames.Add(ranked);
             }).IsCompleted) Thread.Sleep(1);
