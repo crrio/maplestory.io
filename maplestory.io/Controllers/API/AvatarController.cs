@@ -28,10 +28,13 @@ namespace maplestory.io.Controllers.API
         [FromQuery] public string name { get; set; } = null;
         [FromQuery] public float resize { get; set; } = 1;
         [FromQuery] public bool flipX { get; set; } = false;
-        public string items = "{itemId:1102039}";
-        public AvatarItemEntry[] itemEntries { get => items.Split(',').Select(c => JsonConvert.DeserializeObject<AvatarItemEntry>(c)).ToArray(); }
-        public string animation = "stand1";
-        public int frame = 0;
+        [FromRoute]
+        public string items { get; set; } = "{itemId:1102039}";
+        public AvatarItemEntry[] itemEntries { get => JsonConvert.DeserializeObject<AvatarItemEntry[]>($"[{items}]"); }
+        [FromRoute]
+        public string animation { get; set; } = "stand1";
+        [FromRoute]
+        public int frame { get; set; } 
         public Character Character 
         {
             get => new Character() {
