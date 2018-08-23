@@ -78,14 +78,14 @@ namespace maplestory.io.Controllers.API
                 Padding = padding,
                 ItemEntries = new AvatarItemEntry[]
                  {
-                     new AvatarItemEntry(){ ItemId = skinId },
-                     new AvatarItemEntry(){ ItemId = skinId + 10000 },
+                     new AvatarItemEntry(){ ItemId = skinId, Region = Region, Version = Version },
+                     new AvatarItemEntry(){ ItemId = skinId + 10000, Region = Region, Version = Version },
                  }.Concat(items.Split(new string[] { "," }, StringSplitOptions.RemoveEmptyEntries)
                 .Select(c => c.Split(':', ';'))
                 .Where(c => c.Length > 0 && int.TryParse(c[0], out int blah))
                 .Select(c => new Tuple<int, string, float?>(int.Parse(c[0]), c.Length > 1 && !float.TryParse(c[1], out float blah) ? c[1] : animation, c.Length > 2 && float.TryParse(c[2], out float huehuehue) ? (float?)huehuehue : (c.Length > 1 && float.TryParse(c[1], out huehuehue) ? (float?)huehuehue : null)))
                 .OrderBy(c => c.Item1, OrderByDirection.Descending)
-                .Select(c => new AvatarItemEntry() { ItemId = c.Item1, AnimationName = c.Item2, Hue = c.Item3 })).ToArray()
+                .Select(c => new AvatarItemEntry() { ItemId = c.Item1, AnimationName = c.Item2, Hue = c.Item3, Region = Region, Version = Version })).ToArray()
             }).ImageToByte(Request, false, null, true), "image/png");
 
         [Route("compact/{skinId}/{items?}/{animation?}/{frame?}")]
@@ -123,14 +123,14 @@ namespace maplestory.io.Controllers.API
                 Padding = padding,
                 ItemEntries = new AvatarItemEntry[]
                  {
-                     new AvatarItemEntry(){ ItemId = skinId },
-                     new AvatarItemEntry(){ ItemId = skinId + 10000 },
+                     new AvatarItemEntry(){ ItemId = skinId, Region = Region, Version = Version },
+                     new AvatarItemEntry(){ ItemId = skinId + 10000, Region = Region, Version = Version },
                  }.Concat(items.Split(new string[] { "," }, StringSplitOptions.RemoveEmptyEntries)
                 .Select(c => c.Split(':', ';'))
                 .Where(c => c.Length > 0 && int.TryParse(c[0], out int blah))
                 .Select(c => new Tuple<int, string, float?>(int.Parse(c[0]), c.Length > 1 && !float.TryParse(c[1], out float blah) ? c[1] : animation, c.Length > 2 && float.TryParse(c[2], out float huehuehue) ? (float?)huehuehue : (c.Length > 1 && float.TryParse(c[1], out huehuehue) ? (float?)huehuehue : null)))
                 .OrderBy(c => c.Item1, OrderByDirection.Descending)
-                .Select(c => new AvatarItemEntry() { ItemId = c.Item1, AnimationName = c.Item2, Hue = c.Item3 })).ToArray()
+                .Select(c => new AvatarItemEntry() { ItemId = c.Item1, AnimationName = c.Item2, Hue = c.Item3, Region = Region, Version = Version })).ToArray()
             }));
         [Route("multidetailed/{skinId}/{items}")]
         [HttpGet]
@@ -175,14 +175,14 @@ namespace maplestory.io.Controllers.API
                         Padding = padding,
                         ItemEntries = new AvatarItemEntry[]
                          {
-                             new AvatarItemEntry(){ ItemId = skinId },
-                             new AvatarItemEntry(){ ItemId = skinId + 10000 },
+                             new AvatarItemEntry(){ ItemId = skinId, Region = Region, Version = Version },
+                             new AvatarItemEntry(){ ItemId = skinId + 10000, Region = Region, Version = Version },
                          }.Concat(items.Split(new string[] { "," }, StringSplitOptions.RemoveEmptyEntries)
                         .Select(c => c.Split(':', ';'))
                         .Where(c => c.Length > 0 && int.TryParse(c[0], out int blah))
                         .Select(c => new Tuple<int, string, float?>(int.Parse(c[0]), c.Length > 1 && !float.TryParse(c[1], out float blah) ? c[1] : animation, c.Length > 2 && float.TryParse(c[2], out float huehuehue) ? (float?)huehuehue : (c.Length > 1 && float.TryParse(c[1], out huehuehue) ? (float?)huehuehue : null)))
                         .OrderBy(c => c.Item1, OrderByDirection.Descending)
-                        .Select(c => new AvatarItemEntry() { ItemId = c.Item1, AnimationName = c.Item2, Hue = c.Item3 })).ToArray()
+                        .Select(c => new AvatarItemEntry() { ItemId = c.Item1, AnimationName = c.Item2, Hue = c.Item3, Region = Region, Version = Version })).ToArray()
                     });
                     allDetails.TryAdd($"{animation}-{face}-{frame}", new Tuple<Image<Rgba32>, Dictionary<string, Point>, int>(detailed.Item1, detailed.Item2, detailed.Item4));
 
@@ -220,14 +220,14 @@ namespace maplestory.io.Controllers.API
                 Padding = padding,
                 ItemEntries = new AvatarItemEntry[]
                  {
-                     new AvatarItemEntry(){ ItemId = skinId },
-                     new AvatarItemEntry(){ ItemId = skinId + 10000 },
+                     new AvatarItemEntry(){ ItemId = skinId, Region = Region, Version = Version },
+                     new AvatarItemEntry(){ ItemId = skinId + 10000, Region = Region, Version = Version },
                  }.Concat(items.Split(new string[] { "," }, StringSplitOptions.RemoveEmptyEntries)
                 .Select(c => c.Split(':', ';'))
                 .Where(c => c.Length > 0 && int.TryParse(c[0], out int blah))
                 .Select(c => new Tuple<int, string, float?>(int.Parse(c[0]), c.Length > 1 && !float.TryParse(c[1], out float blah) ? c[1] : animation, c.Length > 2 && float.TryParse(c[2], out float huehuehue) ? (float?)huehuehue : (c.Length > 1 && float.TryParse(c[1], out huehuehue) ? (float?)huehuehue : null)))
                 .OrderBy(c => c.Item1, OrderByDirection.Descending)
-                .Select(c => new AvatarItemEntry() { ItemId = c.Item1, AnimationName = c.Item2, Hue = c.Item3 })).ToArray()
+                .Select(c => new AvatarItemEntry() { ItemId = c.Item1, AnimationName = c.Item2, Hue = c.Item3, Region = Region, Version = Version })).ToArray()
             }, background).ImageToByte(Request, false, ImageFormats.Gif, true), "image/gif");
         }
 
@@ -271,14 +271,14 @@ namespace maplestory.io.Controllers.API
                 Padding = padding,
                 ItemEntries = new AvatarItemEntry[]
                  {
-                     new AvatarItemEntry(){ ItemId = skinId },
-                     new AvatarItemEntry(){ ItemId = skinId + 10000 },
+                     new AvatarItemEntry(){ ItemId = skinId, Region = Region, Version = Version },
+                     new AvatarItemEntry(){ ItemId = skinId + 10000, Region = Region, Version = Version },
                  }.Concat(items.Split(new string[] { "," }, StringSplitOptions.RemoveEmptyEntries)
                 .Select(c => c.Split(':', ';'))
                 .Where(c => c.Length > 0 && int.TryParse(c[0], out int blah))
                 .Select(c => new Tuple<int, string, float?>(int.Parse(c[0]), c.Length > 1 && !float.TryParse(c[1], out float blah) ? c[1] : null, c.Length > 2 && float.TryParse(c[2], out float huehuehue) ? (float?)huehuehue : (c.Length > 1 && float.TryParse(c[1], out huehuehue) ? (float?)huehuehue : null)))
                 .OrderBy(c => c.Item1, OrderByDirection.Descending)
-                .Select(c => new AvatarItemEntry() { ItemId = c.Item1, AnimationName = c.Item2, Hue = c.Item3 })).ToArray()
+                .Select(c => new AvatarItemEntry() { ItemId = c.Item1, AnimationName = c.Item2, Hue = c.Item3, Region = Region, Version = Version })).ToArray()
             }), "application/zip", "CharacterSpriteSheet.zip");
     }
 }
