@@ -21,7 +21,7 @@ namespace maplestory.io.Controllers.API
         [HttpGet]
         public async Task<IActionResult> GetCharacter(string characterName)
         {
-            var character = await Character.GetCharacter(characterName);
+            var character = await RankingCharacter.GetCharacter(characterName);
             return Json(character);
         }
 
@@ -29,7 +29,7 @@ namespace maplestory.io.Controllers.API
         [HttpGet]
         public async Task<IActionResult> GetCharacterAvatar(string characterName)
         {
-            var character = await Character.GetCharacter(characterName);
+            var character = await RankingCharacter.GetCharacter(characterName);
             byte[] avatarData = System.IO.File.ReadAllBytes(Path.Combine(ContentRootPath, "wwwroot", "images/no-avatar.png"));
 
             try
@@ -48,7 +48,7 @@ namespace maplestory.io.Controllers.API
         [HttpGet]
         public async Task<IActionResult> GetFullCharacterAvatar(string characterName)
         {
-            var character = await Character.GetCharacter(characterName);
+            var character = await RankingCharacter.GetCharacter(characterName);
             CharacterLook look = character.GetAvatarLook();
 
             int[] items = new int[] { look.Cap, look.Cape, look.Coat, look.EarAccessory, look.EyeAccessory, look.Face, look.FaceAccessory, look.Glove, look.Hair, look.Pants, look.Shield, look.Shoes, look.Weapon }

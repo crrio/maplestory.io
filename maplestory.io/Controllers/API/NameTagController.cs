@@ -42,7 +42,7 @@ namespace maplestory.io.Controllers.API
             Rgba32 nameColor = new Rgba32();
             new Argb32((uint)nameColorVal).ToRgba32(ref nameColor);
 
-            Font MaplestoryFont = CharacterAvatar.fonts.Families
+            Font MaplestoryFont = maplestory.io.Services.Implementations.MapleStory.AvatarFactory.fonts.Families
                 .First(f => f.Name.Equals("Arial Unicode MS", StringComparison.CurrentCultureIgnoreCase)).CreateFont(12, FontStyle.Regular);
             SizeF realNameSize = TextMeasurer.Measure(Name, new RendererOptions(MaplestoryFont));
 

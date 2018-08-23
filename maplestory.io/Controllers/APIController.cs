@@ -16,7 +16,7 @@ namespace maplestory.io.Controllers
         public MSPackageCollection WZ { get => WZFactory.GetWZ(Region, Version); }
         protected IWZFactory WZFactory { get => Request.HttpContext.RequestServices.GetService<IWZFactory>(); }
         protected IAndroidFactory AndroidFactory { get => GetWithWZ(Request.HttpContext.RequestServices.GetService<IAndroidFactory>()); }
-        protected ICharacterFactory CharacterFactory { get => GetWithWZ(Request.HttpContext.RequestServices.GetService<ICharacterFactory>()); }
+        protected IAvatarFactory AvatarFactory { get => GetWithWZ(Request.HttpContext.RequestServices.GetService<IAvatarFactory>()); }
         protected ICraftingEffectFactory CraftingEffectFactory { get => GetWithWZ(Request.HttpContext.RequestServices.GetService<ICraftingEffectFactory>()); }
         protected IItemFactory ItemFactory { get => GetWithWZ(Request.HttpContext.RequestServices.GetService<IItemFactory>()); }
         protected IMapFactory MapFactory { get => GetWithWZ(Request.HttpContext.RequestServices.GetService<IMapFactory>()); }
@@ -39,13 +39,6 @@ namespace maplestory.io.Controllers
                 needs.WZ = this.WZ;
                 needs.Region = this.Region;
                 needs.Version = this.Version;
-
-                if (that is CharacterFactory)
-                {
-                    CharacterFactory characterFactory = (CharacterFactory)(object)that;
-                    ItemFactory items = (ItemFactory)characterFactory.itemFactory;
-                    items.CloneWZFrom(needs);
-                }
             }
             return that;
         }
