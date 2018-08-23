@@ -543,7 +543,9 @@ namespace maplestory.io.Services.Implementations.MapleStory
         private byte[] RenderFrameZip(HttpRequest request, RenderMode mode, string animationName, string name, int frameNumber, bool elfEars, bool lefEars, bool flipX, float zoom, int padding, object p, bool hasChair, bool hasMount, string chairSitAction, int weaponType, Dictionary<AvatarItemEntry, WZProperty> resolved, Dictionary<string, int> exclusiveLocks, List<string> zmap, Dictionary<string, string> smap, bool hasFace)
         {
             WZProperty bodyNode = resolved.FirstOrDefault(c => c.Key.ItemId < 10000).Value;
-            WZProperty bodyAnimationNode = bodyNode.Resolve($"{animationName}/{frameNumber}");
+            WZProperty bodyAnimationNode = bodyNode.Resolve($"{animationName}");
+            int maxFrame = bodyAnimationNode.Children.Select(c => int.TryParse(c.Name, out int maxFrameNumber) ? maxFrameNumber : -1).Max();
+            WZProperty bodyFrameNode = bodyAnimationNode.Resolve((frameNumber % (maxFrame + 1)).ToString());
             string bodyAnimation = bodyAnimationNode.ResolveForOrNull<string>("action");
             int? bodyFrameNumber = bodyAnimationNode.ResolveFor<int>("frame");
             bool? bodyFlip = bodyAnimationNode.ResolveFor<bool>("flip");
