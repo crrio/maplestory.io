@@ -76,7 +76,7 @@ namespace maplestory.io.Services.Implementations.MapleStory
         int lcm(int a, int b) => Math.Abs(a * b) / GCD(a, b);
         int GCD(int a, int b) => b == 0 ? a : GCD(b, a % b);
 
-        static Tuple<Frame, Point, AvatarItemEntry>[] GetFrameParts(string animationName, int frameNumber, Dictionary<string, Point> anchorPositions, List<KeyValuePair<string, Point>[]> offsets, IEnumerable<RankedFrame<AvatarItemEntry>> animationParts)
+        Tuple<Frame, Point, AvatarItemEntry>[] GetFrameParts(string animationName, int frameNumber, Dictionary<string, Point> anchorPositions, List<KeyValuePair<string, Point>[]> offsets, IEnumerable<RankedFrame<AvatarItemEntry>> animationParts)
         {
             Tuple<Frame, AvatarItemEntry>[] partsFrames = animationParts.Select(c => new Tuple<Frame, AvatarItemEntry>(c.frame, c.underlyingEquip)).ToArray();
 
@@ -150,6 +150,7 @@ namespace maplestory.io.Services.Implementations.MapleStory
                     c.Item2
                 );
             }).ToArray();
+
             return positionedFrames;
         }
         IEnumerable<RankedFrame<AvatarItemEntry>> GetAnimationParts(string animationName, int frameNumber, bool elfEars, bool lefEars, bool hasChair, bool hasMount, string chairSitAction, int weaponType, Dictionary<AvatarItemEntry, WZProperty> resolved, Dictionary<string, int> exclusiveLocks, List<string> zmap, Dictionary<string, string> smap, bool HasFace, List<KeyValuePair<string, Point>[]> offsets)
@@ -462,7 +463,7 @@ namespace maplestory.io.Services.Implementations.MapleStory
                 {
                     foreach (KeyValuePair<string, int> animation in actions)
                     {
-                        foreach (int frame in Enumerable.Range(0, animation.Value))
+                        foreach (int frame in Enumerable.Range(0, animation.Value + 1))
                         {
                             if (watch.ElapsedMilliseconds > 120000) return null;
                             allImages.Add(() => {
@@ -585,7 +586,8 @@ namespace maplestory.io.Services.Implementations.MapleStory
                     framePart.Dispose();
                 });
 
-                return new Tuple<Frame, Image<Rgba32>>(frame.Item1, Transform(mode, flipX, zoom, name, padding, destination, resolved, bodyFrame, minX, minY, maxX, maxY, ref NameWidthAdjustmentX, index == 0));
+                Point feetCenter = new Point();
+                return new Tuple<Frame, Image<Rgba32>>(frame.Item1, Transform(mode, flipX, zoom, name, padding, destination, resolved, bodyFrame, minX, minY, maxX, maxY, ref NameWidthAdjustmentX, ref feetCenter, index == 0));
             }).ToArray();
 
             using (MemoryStream mem = new MemoryStream())
@@ -660,7 +662,7 @@ namespace maplestory.io.Services.Implementations.MapleStory
             WZProperty bodyAnimationNode = body.Value.Resolve(character.AnimationName) ?? body.Value.Resolve("default");
             int maxFrame = bodyAnimationNode.Children.Select(c => int.TryParse(c.Name, out int frameNumber) ? frameNumber : -1).Max();
 
-            Tuple<Image<Rgba32>, Dictionary<string, Point>, int>[] frames = Enumerable.Range(0, maxFrame).Select(frameNumber => {
+            Tuple<Image<Rgba32>, Dictionary<string, Point>, int>[] frames = Enumerable.Range(0, maxFrame + 1).Select(frameNumber => {
                 Dictionary<string, Point> anchorPositions = new Dictionary<string, Point>();
                 return new Tuple<Image<Rgba32>, Dictionary<string, Point>, int>(
                     RenderFrame(character.Mode, character.AnimationName, character.Name, frameNumber, character.ElfEars, character.LefEars, character.FlipX, character.Zoom, character.Padding, anchorPositions, hasChair, hasMount, chairSitAction, weaponType, resolved, exclusiveLocks, zmap, smap, hasFace),
@@ -668,6 +670,10 @@ namespace maplestory.io.Services.Implementations.MapleStory
                     bodyAnimationNode.ResolveFor<int>($"{frameNumber}/delay") ?? 0
                 );
             }).ToArray();
+
+            // Idle positions 
+            if (character.AnimationName.Equals("alert", StringComparison.CurrentCultureIgnoreCase) || character.AnimationName.StartsWith("stand", StringComparison.CurrentCultureIgnoreCase))
+                frames = frames.Concat(MoreEnumerable.SkipLast(frames.Reverse().Skip(1), 1)).ToArray();
 
             int maxWidth = frames.Max(x => x.Item1.Width);
             int maxHeight = frames.Max(x => x.Item1.Height);
@@ -771,7 +777,11 @@ namespace maplestory.io.Services.Implementations.MapleStory
             Tuple<Frame, Point, AvatarItemEntry> bodyFrame = positionedFrames.Where(c => ((c.Item1.Position?.Equals("body") ?? false) || (c.Item1.Position?.Equals("backBody") ?? false)) && c.Item1.MapOffset.ContainsKey("neck") && c.Item1.MapOffset.ContainsKey("navel")).First();
 
             float NameWidthAdjustmentX = 0;
-            return Transform(mode, flipX, zoom, name, padding, destination, resolved, bodyFrame, minX, minY, maxX, maxY, ref NameWidthAdjustmentX);
+            Point feetCenter = new Point();
+            Image<Rgba32> res = Transform(mode, flipX, zoom, name, padding, destination, resolved, bodyFrame, minX, minY, maxX, maxY, ref NameWidthAdjustmentX, ref feetCenter);
+            anchorPositions.Add("feetCenter", feetCenter);
+
+            return res;
         }
 
         private static Image<Rgba32> DrawFramePart(int padding, IImageProcessingContext<Rgba32> x, Tuple<Frame, Point, AvatarItemEntry> frame, float minX, float minY, Image<Rgba32> framePart)
@@ -817,7 +827,7 @@ namespace maplestory.io.Services.Implementations.MapleStory
             return framePart;
         }
 
-        Image<Rgba32> Transform(RenderMode mode, bool flipX, float zoom, string name, int padding, Image<Rgba32> destination, Dictionary<AvatarItemEntry, WZProperty> resolved, Tuple<Frame, Point, AvatarItemEntry> body, float minX, float minY, float maxX, float maxY, ref float NameWidthAdjustmentX, bool includeName = true)
+        Image<Rgba32> Transform(RenderMode mode, bool flipX, float zoom, string name, int padding, Image<Rgba32> destination, Dictionary<AvatarItemEntry, WZProperty> resolved, Tuple<Frame, Point, AvatarItemEntry> body, float minX, float minY, float maxX, float maxY, ref float NameWidthAdjustmentX, ref Point feetCenter, bool includeName = true)
         {
             if (mode == RenderMode.Compact)
             {
@@ -918,7 +928,7 @@ namespace maplestory.io.Services.Implementations.MapleStory
                 Rgba32 nameColor = new Rgba32();
                 new Argb32((uint)nameColorVal).ToRgba32(ref nameColor);
 
-                Point feetCenter = Point.Add(calcFeetCenter(flipX, zoom, ref NameWidthAdjustmentX, body, minX, minY, destination), new Size((int)(padding * zoom), (int)(padding * zoom)));
+                feetCenter = Point.Add(calcFeetCenter(flipX, zoom, ref NameWidthAdjustmentX, body, minX, minY, destination), new Size((int)(padding * zoom), (int)(padding * zoom)));
                 Font MaplestoryFont = fonts.Families
                     .First(f => f.Name.Equals("Arial Unicode MS", StringComparison.CurrentCultureIgnoreCase)).CreateFont(12, FontStyle.Regular);
                 SizeF realNameSize = TextMeasurer.Measure(name, new RendererOptions(MaplestoryFont));
@@ -958,6 +968,7 @@ namespace maplestory.io.Services.Implementations.MapleStory
 
                 return withName;
             }
+            else feetCenter = Point.Add(calcFeetCenter(flipX, zoom, ref NameWidthAdjustmentX, body, minX, minY, destination), new Size((int)(padding * zoom), (int)(padding * zoom)));
 
             return destination;
         }
