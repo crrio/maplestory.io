@@ -87,6 +87,6 @@ namespace maplestory.io.Controllers.API
         [Route("{animation?}/{frame?}")]
         [HttpGet]
         public IActionResult Render()
-            => File(this.AvatarFactory.Render(Character).ImageToByte(Request), "image/png");
+            => File(this.AvatarFactory.Render(Character).ImageToByte(Request, false), "image/png");
     }
 }

@@ -35,7 +35,7 @@ namespace maplestory.io
         public static byte[] ImageToByte(this Image<Rgba32> img, HttpRequest context, bool autoResize = true, IImageFormat format = null, bool autoDispose = false)
         {
             if (format == null) format = ImageFormats.Png;
-            if (context?.Query.ContainsKey("resize") ?? false && autoResize)
+            if ((context?.Query.ContainsKey("resize") ?? false) && autoResize)
             {
                 string userResizeAmount = context.Query["resize"];
                 decimal resizeAmount = decimal.Parse(userResizeAmount);

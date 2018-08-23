@@ -480,7 +480,7 @@ namespace maplestory.io.Services.Implementations.MapleStory
                                 if ((format & SpriteSheetFormat.PDNZip) == SpriteSheetFormat.PDNZip)
                                     data = RenderFrameZip(request, character.Mode, animation.Key, character.Name, frame, character.ElfEars, character.LefEars, character.FlipX, character.Zoom, character.Padding, null, hasChair, hasMount, chairSitAction, weaponType, realResolved, exclusiveLocks, zmap, smap, hasFace);
                                 else
-                                    data = RenderFrame(character.Mode, animation.Key, character.Name, frame, character.ElfEars, character.LefEars, character.FlipX, character.Zoom, character.Padding, null, hasChair, hasMount, chairSitAction, weaponType, realResolved, exclusiveLocks, zmap, smap, hasFace).ImageToByte(request);
+                                    data = RenderFrame(character.Mode, animation.Key, character.Name, frame, character.ElfEars, character.LefEars, character.FlipX, character.Zoom, character.Padding, null, hasChair, hasMount, chairSitAction, weaponType, realResolved, exclusiveLocks, zmap, smap, hasFace).ImageToByte(request, false);
 
                                 var res = new Tuple<string, byte[]>(
                                     path,
@@ -504,7 +504,7 @@ namespace maplestory.io.Services.Implementations.MapleStory
                         {
                             int iFrameNumber = frameNumber;
                             allImages.Add(() => {
-                                byte[] bytes = framePart.Value.Image.ImageToByte(request);
+                                byte[] bytes = framePart.Value.Image.ImageToByte(request, false);
                                 string path = $"faces/{emotion}_{iFrameNumber}_{framePart.Key}.png";
                                 return new Tuple<string, byte[]>(path, bytes);
                             });
@@ -591,7 +591,7 @@ namespace maplestory.io.Services.Implementations.MapleStory
                     using (Stream sig = PaintDotNet.Open())
                         sig.Write(Encoding.UTF8.GetBytes("PDN3"), 0, 4);
 
-                    ConcurrentBag<Tuple<string, byte[]>> bag = new ConcurrentBag<Tuple<string, byte[]>>(parts.Select((c, i) => new Tuple<string, byte[]>($"L{i + 1},R1,C1,{c.Item1.Position},visible,normal,255.png", c.Item2.ImageToByte(request))));
+                    ConcurrentBag<Tuple<string, byte[]>> bag = new ConcurrentBag<Tuple<string, byte[]>>(parts.Select((c, i) => new Tuple<string, byte[]>($"L{i + 1},R1,C1,{c.Item1.Position},visible,normal,255.png", c.Item2.ImageToByte(request, false))));
 
                     while (bag.TryTake(out Tuple<string, byte[]> frameData))
                     {
