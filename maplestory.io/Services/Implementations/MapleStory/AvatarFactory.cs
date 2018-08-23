@@ -469,31 +469,24 @@ namespace maplestory.io.Services.Implementations.MapleStory
                             allImages.Add(() => {
                                 string path = $"{animation.Key}_{frame}.{fileExtension}";
                                 if (!isMinimal) path = $"{emotion}/{emotionFrame}/" + path;
-                                try
-                                {
-                                    // We can modify the equips array, but if we change the actual contents other than the face there could be problems.
-                                    Dictionary<AvatarItemEntry, WZProperty> realResolved = resolved.ToDictionary(c => {
-                                        var item = new AvatarItemEntry(c.Key);
-                                        item.AnimationName = c.Key.ItemId == face?.id ? emotion : c.Key.AnimationName;
-                                        return item;
-                                    }, c => c.Value);
+                                // We can modify the equips array, but if we change the actual contents other than the face there could be problems.
+                                Dictionary<AvatarItemEntry, WZProperty> realResolved = resolved.ToDictionary(c => {
+                                    var item = new AvatarItemEntry(c.Key);
+                                    item.AnimationName = c.Key.ItemId == face?.id ? emotion : c.Key.AnimationName;
+                                    return item;
+                                }, c => c.Value);
 
-                                    byte[] data = null;
-                                    if ((format & SpriteSheetFormat.PDNZip) == SpriteSheetFormat.PDNZip)
-                                        data = RenderFrameZip(request, character.Mode, animation.Key, character.Name, frame, character.ElfEars, character.LefEars, character.FlipX, character.Zoom, character.Padding, null, hasChair, hasMount, chairSitAction, weaponType, realResolved, exclusiveLocks, zmap, smap, hasFace);
-                                    else
-                                        data = RenderFrame(character.Mode, animation.Key, character.Name, frame, character.ElfEars, character.LefEars, character.FlipX, character.Zoom, character.Padding, null, hasChair, hasMount, chairSitAction, weaponType, realResolved, exclusiveLocks, zmap, smap, hasFace).ImageToByte(request);
+                                byte[] data = null;
+                                if ((format & SpriteSheetFormat.PDNZip) == SpriteSheetFormat.PDNZip)
+                                    data = RenderFrameZip(request, character.Mode, animation.Key, character.Name, frame, character.ElfEars, character.LefEars, character.FlipX, character.Zoom, character.Padding, null, hasChair, hasMount, chairSitAction, weaponType, realResolved, exclusiveLocks, zmap, smap, hasFace);
+                                else
+                                    data = RenderFrame(character.Mode, animation.Key, character.Name, frame, character.ElfEars, character.LefEars, character.FlipX, character.Zoom, character.Padding, null, hasChair, hasMount, chairSitAction, weaponType, realResolved, exclusiveLocks, zmap, smap, hasFace).ImageToByte(request);
 
-                                    var res = new Tuple<string, byte[]>(
-                                        path,
-                                        data
-                                    );
-                                    return res;
-                                }
-                                catch (Exception)
-                                {
-                                    return null;
-                                }
+                                var res = new Tuple<string, byte[]>(
+                                    path,
+                                    data
+                                );
+                                return res;
                             });
                         }
                     }
@@ -744,7 +737,9 @@ namespace maplestory.io.Services.Implementations.MapleStory
             if (animationName == null)
                 animationName = GetPossibleActions(resolved.Keys.ToArray()).Keys.FirstOrDefault(c => c.StartsWith("stand"));
             WZProperty bodyNode = resolved.FirstOrDefault(c => c.Key.ItemId < 10000).Value;
-            WZProperty bodyAnimationNode = bodyNode.Resolve($"{animationName}/{frameNumber}");
+            WZProperty bodyAnimationNode = bodyNode.Resolve($"{animationName}");
+            int maxFrame = bodyAnimationNode.Children.Select(c => int.TryParse(c.Name, out int maxFrameNumber) ? maxFrameNumber : -1).Max();
+            WZProperty bodyFrameNode = bodyAnimationNode.Resolve((frameNumber % (maxFrame + 1)).ToString());
             string bodyAnimation = bodyAnimationNode.ResolveForOrNull<string>("action");
             int? bodyFrameNumber = bodyAnimationNode.ResolveFor<int>("frame");
             bool? bodyFlip = bodyAnimationNode.ResolveFor<bool>("flip");
@@ -779,7 +774,7 @@ namespace maplestory.io.Services.Implementations.MapleStory
             float NameWidthAdjustmentX = 0;
             Point feetCenter = new Point();
             Image<Rgba32> res = Transform(mode, flipX, zoom, name, padding, destination, resolved, bodyFrame, minX, minY, maxX, maxY, ref NameWidthAdjustmentX, ref feetCenter);
-            anchorPositions.Add("feetCenter", feetCenter);
+            anchorPositions?.Add("feetCenter", feetCenter);
 
             return res;
         }
