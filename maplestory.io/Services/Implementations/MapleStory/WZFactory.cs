@@ -35,6 +35,8 @@ namespace maplestory.io.Services.Implementations.MapleStory
 
         public MSPackageCollection GetWZ(Region region, string version)
         {
+            if (version == null) version = "latest";
+
             int regionNum = (int)region;
             version = version.TrimStart('0');
 

@@ -105,10 +105,10 @@ namespace maplestory.io
             services.AddTransient<IQuestFactory, QuestFactory>();
             services.AddTransient<ITipFactory, TipFactory>();
             services.AddTransient<IZMapFactory, ZMapFactory>();
-            services.AddTransient<ICharacterFactory, CharacterFactory>();
             services.AddTransient<ICraftingEffectFactory, CraftingEffectFactory>();
             services.AddTransient<IAndroidFactory, AndroidFactory>();
             services.AddTransient<IPetFactory, PetFactory>();
+            services.AddTransient<IAvatarFactory, AvatarFactory>();
 
             services.AddSwaggerGen(c =>
             {
