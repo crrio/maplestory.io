@@ -33,6 +33,14 @@ namespace maplestory.io.Services.Implementations.MapleStory
 {
     public class AvatarFactory : IAvatarFactory
     {
+        public static readonly FontCollection fonts;
+        static AvatarFactory()
+        {
+            fonts = new FontCollection();
+            using (FileStream arial = File.OpenRead("assets/Fonts/arial.ttf"))
+                fonts.Install(arial);
+        }
+
         public AvatarFactory(IWZFactory wzFactory) => this._wzFactory = wzFactory;
         private IWZFactory _wzFactory;
 
@@ -911,7 +919,7 @@ namespace maplestory.io.Services.Implementations.MapleStory
                 new Argb32((uint)nameColorVal).ToRgba32(ref nameColor);
 
                 Point feetCenter = Point.Add(calcFeetCenter(flipX, zoom, ref NameWidthAdjustmentX, body, minX, minY, destination), new Size((int)(padding * zoom), (int)(padding * zoom)));
-                Font MaplestoryFont = CharacterAvatar.fonts.Families
+                Font MaplestoryFont = fonts.Families
                     .First(f => f.Name.Equals("Arial Unicode MS", StringComparison.CurrentCultureIgnoreCase)).CreateFont(12, FontStyle.Regular);
                 SizeF realNameSize = TextMeasurer.Measure(name, new RendererOptions(MaplestoryFont));
                 realNameSize = new SizeF((int)Math.Round(realNameSize.Width, MidpointRounding.AwayFromZero), (int)Math.Round(realNameSize.Height, MidpointRounding.AwayFromZero));

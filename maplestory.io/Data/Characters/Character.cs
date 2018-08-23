@@ -1,4 +1,6 @@
+using maplestory.io.Data.Images;
 using PKG1;
+using SixLabors.Primitives;
 
 namespace maplestory.io.Data.Characters {
     public class Character {
@@ -48,5 +50,48 @@ namespace maplestory.io.Data.Characters {
         public Region Region;
         public string AnimationName;
         public int? EquipFrame;
+    }
+
+    public class RankedFrame<K>
+        where K : class
+    {
+        public readonly Frame frame;
+        public readonly int ranking;
+        public K underlyingEquip;
+
+        public RankedFrame(Frame frame, int ranking, K underlyingEquip)
+        {
+            this.frame = frame;
+            this.ranking = ranking;
+            this.underlyingEquip = underlyingEquip;
+        }
+    }
+
+    public class PositionedFrame
+    {
+        public readonly Frame frame;
+        public readonly Point position;
+
+        public PositionedFrame(Frame frame, Point position)
+        {
+            this.frame = frame;
+            this.position = position;
+        }
+    }
+
+    public enum RenderMode
+    {
+        Full,
+        Compact,
+        Centered,
+        NavelCenter,
+        FeetCenter
+    }
+
+    public enum SpriteSheetFormat
+    {
+        Plain = 0,
+        PDNZip = 1,
+        Minimal = 2
     }
 }

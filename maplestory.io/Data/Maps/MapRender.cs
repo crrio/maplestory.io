@@ -25,7 +25,7 @@ namespace maplestory.io.Data.Maps
         Map map;
         WZProperty mapNode;
         int minX, minY, maxX, maxY;
-        Font MaplestoryFont = Characters.CharacterAvatar.fonts.Families.First(f => f.Name.Equals("Arial Unicode MS", StringComparison.CurrentCultureIgnoreCase)).CreateFont(12, FontStyle.Regular);
+        Font MaplestoryFont = maplestory.io.Services.Implementations.MapleStory.AvatarFactory.fonts.Families.First(f => f.Name.Equals("Arial Unicode MS", StringComparison.CurrentCultureIgnoreCase)).CreateFont(12, FontStyle.Regular);
 
         public MapRender(Map info,  WZProperty mapNode)
         {

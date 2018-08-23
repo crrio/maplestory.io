@@ -89,7 +89,7 @@ namespace maplestory.io.Controllers.API
             Rgba32 nameColor = new Rgba32();
             new Argb32((uint)color).ToRgba32(ref nameColor);
 
-            Font font = CharacterAvatar.fonts.Families.First(f => f.Name.Equals("Arial Unicode MS", StringComparison.CurrentCultureIgnoreCase)).CreateFont(12, FontStyle.Regular);
+            Font font = maplestory.io.Services.Implementations.MapleStory.AvatarFactory.fonts.Families.First(f => f.Name.Equals("Arial Unicode MS", StringComparison.CurrentCultureIgnoreCase)).CreateFont(12, FontStyle.Regular);
             RendererOptions textOptions = new RendererOptions(font);
 
             string[] lines = message.Batch(32).Select(b => new string(b.ToArray())).ToArray();
