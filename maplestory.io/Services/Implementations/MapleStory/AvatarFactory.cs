@@ -274,7 +274,7 @@ namespace maplestory.io.Services.Implementations.MapleStory
             zmap = null;
             smap = null;
 
-            string[] islots = equipped.Values.Select(c => c.ResolveForOrNull<string>("info/islot")?.Substring(0, 2)).ToArray();
+            string[] islots = equipped.Values.Select(c => c.ResolveForOrNull<string>("info/islot")?.Substring(0, 2)).Where(c => c != null).ToArray();
 
             List<string> zmapLocal = null;
             foreach (KeyValuePair<AvatarItemEntry, WZProperty> c in equipped)
@@ -386,8 +386,8 @@ namespace maplestory.io.Services.Implementations.MapleStory
                 {
                     int category = item.ItemId / 100;
 
-                    if (category == 30100) resolved.Add(item, wz.Resolve($"Item/Install/0301/{item.ItemId.ToString("D8")}"));
-                    else if (category == 50100) resolved.Add(item, wz.Resolve($"Item/Cash/0501/{item.ItemId.ToString("D8")}"));
+                    if (category / 100 == 301) resolved.Add(item, wz.Resolve($"Item/Install/0301/{item.ItemId.ToString("D8")}"));
+                    else if (category / 100 == 50100) resolved.Add(item, wz.Resolve($"Item/Cash/0501/{item.ItemId.ToString("D8")}"));
                     else
                     {
                         if (wz.categoryFolders.TryGetValue(category, out string folder))
@@ -643,6 +643,7 @@ namespace maplestory.io.Services.Implementations.MapleStory
                 if (b.Value == null) return a;
                 else if (a == null) return b.Value.Children.Select(c => c.Name).ToArray();
                 else if (b.Key.ItemId >= 20000 && b.Key.ItemId < 30000) return a;
+                else if (b.Key.ItemId / 10000 == 301) return a;
                 else return b.Value.Children.Count() > 1 ? b.Value.Children.Select(c => c.Name).Where(c => a.Contains(c)).ToArray() : a;
             })).Where(c => c != "info" && c != "heal").ToDictionary(c => c, animationName =>
             {
