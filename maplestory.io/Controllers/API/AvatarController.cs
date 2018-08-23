@@ -19,7 +19,7 @@ using System.Threading.Tasks;
 
 namespace maplestory.io.Controllers.API
 {
-    [Route("api/character/{items}/{animation?}/{frame?}")]
+    [Route("api/character/{items}")]
     public class AvatarController : APIController
     {
         [FromQuery] public bool showEars { get; set; } = false;
@@ -58,9 +58,6 @@ namespace maplestory.io.Controllers.API
             rng = new Random();
         }
 
-        [Route("")]
-        [HttpGet]
-        public IActionResult Render() => File(this.AvatarFactory.Render(Character).ImageToByte(Request), "image/png");
         [Route("detailed")]
         [HttpGet]
         public IActionResult GetCharacterDetails() => Json(this.AvatarFactory.Details(Character));
@@ -86,5 +83,10 @@ namespace maplestory.io.Controllers.API
         [HttpGet]
         public IActionResult GetSpritesheet([FromQuery] SpriteSheetFormat format = SpriteSheetFormat.Plain) 
             => File(AvatarFactory.GetSpriteSheet(Request, format, Character), "application/zip", "CharacterSpriteSheet.zip");
+
+        [Route("{animation?}/{frame?}")]
+        [HttpGet]
+        public IActionResult Render()
+            => File(this.AvatarFactory.Render(Character).ImageToByte(Request), "image/png");
     }
 }
