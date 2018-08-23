@@ -46,7 +46,7 @@ namespace maplestory.io.Services.Implementations.MapleStory
             hasMount = false;
             chairSitAction = "sit";
             weaponType = 30;
-            resolved = ResolveItems(character, ref body, ref head, ref hasChair, ref hasMount, ref chairSitAction);
+            resolved = ResolveItems(character.ItemEntries, ref body, ref head, ref hasChair, ref hasMount, ref chairSitAction);
             // We need the weapon entry so we know what kind of weapon the character has equipped
             // Certain items require the weapon type to determine what kind of animation will be displayed
             KeyValuePair<AvatarItemEntry, WZProperty>? weaponEntry = resolved.FirstOrDefault(c => c.Value.Parent.NameWithoutExtension.Equals("Weapon"));
@@ -344,11 +344,11 @@ namespace maplestory.io.Services.Implementations.MapleStory
 
             return exclusiveLocks;
         }
-        Dictionary<AvatarItemEntry, WZProperty> ResolveItems(Character c, ref WZProperty body, ref WZProperty head, ref bool hasChair, ref bool hasMount, ref string chairSitAction)
+        Dictionary<AvatarItemEntry, WZProperty> ResolveItems(AvatarItemEntry[] itemEntries, ref WZProperty body, ref WZProperty head, ref bool hasChair, ref bool hasMount, ref string chairSitAction)
         {
             Dictionary<AvatarItemEntry, WZProperty> resolved = new Dictionary<AvatarItemEntry, WZProperty>();
             List<AvatarItemEntry> explorativeSearch = new List<AvatarItemEntry>();
-            foreach (AvatarItemEntry item in c.ItemEntries)
+            foreach (AvatarItemEntry item in itemEntries)
             {
                 MSPackageCollection wz = _wzFactory.GetWZ(item.Region, item.Version);
                 hasMount = hasMount || item.ItemId >= 1902000 && item.ItemId <= 1993000;
@@ -408,7 +408,7 @@ namespace maplestory.io.Services.Implementations.MapleStory
                 }
             }
 
-            return resolved;
+            return resolved.Where(c => c.Value.Children.Count() > 1).ToDictionary(c => c.Key, c => c.Value);
         }
 
         public byte[] GetSpriteSheet(HttpRequest request, SpriteSheetFormat format, Character character)
@@ -624,6 +624,25 @@ namespace maplestory.io.Services.Implementations.MapleStory
         }
 
         public Dictionary<string, int> GetBodyFrameCounts(WZProperty bodyNode) => bodyNode.Resolve("../Hair/00030000").Children.Where(c => c.Name != "default" && c.Name != "backDefault" && c.Name != "info" && c.Name != "heal").ToDictionary(c => c.Name, c => c.Children.Count());
+        public Dictionary<string, int> GetPossibleActions(AvatarItemEntry[] items)
+        {
+            WZProperty body = null, head = null;
+            bool hasChair = false, hasMount = false;
+            string chairSitAction = null;
+            Dictionary<AvatarItemEntry, WZProperty> resolved = ResolveItems(items, ref body, ref head, ref hasChair, ref hasMount, ref chairSitAction);
+
+            return resolved.Aggregate(null, new Func<string[], KeyValuePair<AvatarItemEntry, WZProperty>, string[]>((a, b) =>
+            {
+                if (b.Value == null) return a;
+                else if (a == null) return b.Value.Children.Select(c => c.Name).ToArray();
+                else if (b.Key.ItemId >= 20000 && b.Key.ItemId < 30000) return a;
+                else return b.Value.Children.Count() > 1 ? b.Value.Children.Select(c => c.Name).Where(c => a.Contains(c)).ToArray() : a;
+            })).Where(c => c != "info" && c != "heal").ToDictionary(c => c, animationName =>
+            {
+                WZProperty bodyAnimationNode = body.Resolve(animationName);
+                return bodyAnimationNode.Children.Select(c => int.TryParse(c.Name, out int frameNumber) ? frameNumber : -1).Max();
+            });
+        }
 
         public Image<Rgba32> Animate(Character character, Rgba32? background = null)
         {
@@ -708,6 +727,8 @@ namespace maplestory.io.Services.Implementations.MapleStory
 
         private Image<Rgba32> RenderFrame(RenderMode mode, string animationName, string name, int frameNumber, bool elfEars, bool lefEars, bool flipX, float zoom, int padding, Dictionary<string, Point> anchorPositions, bool hasChair, bool hasMount, string chairSitAction, int weaponType, Dictionary<AvatarItemEntry, WZProperty> resolved, Dictionary<string, int> exclusiveLocks, List<string> zmap, Dictionary<string, string> smap, bool hasFace)
         {
+            if (animationName == null)
+                animationName = GetPossibleActions(resolved.Keys.ToArray()).Keys.FirstOrDefault(c => c.StartsWith("stand"));
             WZProperty bodyNode = resolved.FirstOrDefault(c => c.Key.ItemId < 10000).Value;
             WZProperty bodyAnimationNode = bodyNode.Resolve($"{animationName}/{frameNumber}");
             string bodyAnimation = bodyAnimationNode.ResolveForOrNull<string>("action");

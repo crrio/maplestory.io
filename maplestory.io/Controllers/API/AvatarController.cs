@@ -57,17 +57,17 @@ namespace maplestory.io.Controllers.API
         public IActionResult Render([FromQuery] RenderMode renderMode = RenderMode.Full)
             => File(this.AvatarFactory.Render(Character).ImageToByte(Request), "image/png");
 
-        [Route("detailed/{skinId}/{items?}/{animation?}/{frame?}")]
+        [Route("detailed")]
         [HttpGet]
         public IActionResult GetCharacterDetails(int skinId, string items, string animation, int frame, RenderMode renderMode, bool showEars, bool showLefEars, int padding)
             => throw new NotImplementedException();
 
-        [Route("animated/{skinId}/{items?}/{animation?}/{frame?}")]
+        [Route("animated")]
         [HttpGet]
         public IActionResult GetCharacterAnimated(int skinId, string items, string animation, RenderMode renderMode, bool showEars, bool showLefEars, int padding, [FromQuery] string bgColor = "")
             => throw new NotImplementedException();
 
-        [Route("download/{skinId}/{items?}")]
+        [Route("download")]
         [HttpGet]
         public IActionResult GetSpritesheet(int skinId, string items = "1102039", [FromQuery] RenderMode renderMode = RenderMode.Full, [FromQuery] bool showEars = false, [FromQuery] bool showLefEars = false, [FromQuery] int padding = 2, [FromQuery] SpriteSheetFormat format = SpriteSheetFormat.Plain)
             => throw new NotImplementedException();

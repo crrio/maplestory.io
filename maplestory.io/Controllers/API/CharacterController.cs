@@ -60,40 +60,39 @@ namespace maplestory.io.Controllers.API
         [Route("base/{skinId?}")]
         [HttpGet]
         public IActionResult GetBase(int skinId = 2000)
-            => File(CharacterFactory.GetBase(skinId).ImageToByte(Request, true, null, true), "image/png");
-
-        [Route("base/{skinId?}/example")]
-        [HttpGet]
-        public IActionResult GetBaseExample(int skinId = 2000)
-            => File(CharacterFactory.GetBaseWithHair(skinId).ImageToByte(Request, true, null, true), "image/png");
+            => File(AvatarFactory.Render(new Character() { ItemEntries = new int[] { skinId, skinId + 10000 }.Select(c => new AvatarItemEntry() { ItemId = c, Region = Region, Version = Version }).ToArray() }).ImageToByte(Request, true, null, true), "image/png");
 
         [Route("{skinId}/{items?}/{animation?}/{frame?}")]
         [HttpGet]
         public IActionResult GetCharacter(int skinId, string items = "1102039", string animation = null, int frame = 0, [FromQuery] RenderMode renderMode = RenderMode.Full)
-            => File(CharacterFactory.GetCharacter(skinId, animation, frame, showEars, showLefEars, padding, name, resize, flipX, renderMode, items
-                    .Split(new string[] { "," }, StringSplitOptions.RemoveEmptyEntries)
-                    .Select(c => c.Split(':', ';'))
-                    .Where(c => c.Length > 0 && int.TryParse(c[0], out int blah))
-                    .Select(c => new Tuple<int, string, float?>(int.Parse(c[0]), c.Length > 1 && !float.TryParse(c[1], out float blah) ? c[1] : animation, c.Length > 2 && float.TryParse(c[2], out float huehuehue) ? (float?)huehuehue : (c.Length > 1 && float.TryParse(c[1], out huehuehue) ? (float?)huehuehue : null)))
-                    .OrderBy(c => c.Item1, OrderByDirection.Descending)
-                    .ToArray()
-                ).ImageToByte(Request, false, null, true), "image/png");
+            => File(AvatarFactory.Render(new Character()
+            {
+                AnimationName = animation,
+                FrameNumber = frame,
+                FlipX = flipX,
+                ElfEars = showEars,
+                LefEars = showLefEars,
+                Mode = renderMode,
+                Name = name,
+                Zoom = resize,
+                Padding = padding,
+                ItemEntries = new AvatarItemEntry[]
+                 {
+                     new AvatarItemEntry(){ ItemId = skinId },
+                     new AvatarItemEntry(){ ItemId = skinId + 10000 },
+                 }.Concat(items.Split(new string[] { "," }, StringSplitOptions.RemoveEmptyEntries)
+                .Select(c => c.Split(':', ';'))
+                .Where(c => c.Length > 0 && int.TryParse(c[0], out int blah))
+                .Select(c => new Tuple<int, string, float?>(int.Parse(c[0]), c.Length > 1 && !float.TryParse(c[1], out float blah) ? c[1] : animation, c.Length > 2 && float.TryParse(c[2], out float huehuehue) ? (float?)huehuehue : (c.Length > 1 && float.TryParse(c[1], out huehuehue) ? (float?)huehuehue : null)))
+                .OrderBy(c => c.Item1, OrderByDirection.Descending)
+                .Select(c => new AvatarItemEntry() { ItemId = c.Item1, AnimationName = c.Item2, Hue = c.Item3 })).ToArray()
+            }).ImageToByte(Request, false, null, true), "image/png");
 
         [Route("compact/{skinId}/{items?}/{animation?}/{frame?}")]
         [HttpGet]
         public IActionResult GetCompactCharacter(int skinId, string items = "1102039", string animation = null, int frame = 0, [FromQuery] bool showEars = false)
         => GetCharacter(skinId, items, animation, frame, RenderMode.Compact);
 
-        [Route("json/{skinId}/{items?}/{animation?}/{frame?}")]
-        [HttpGet]
-        public IActionResult GetJsonCharacter(int skinId, string items = "1102039", string animation = null, int frame = 0)
-            => Json(CharacterFactory.GetJsonCharacter(skinId, animation, frame, showEars, showLefEars, padding, name, resize, flipX, items
-                    .Split(new string[] { "," }, StringSplitOptions.RemoveEmptyEntries)
-                    .Select(c => c.Split(':', ';'))
-                    .Where(c => c.Length > 0 && int.TryParse(c[0], out int blah))
-                    .Select(c => new Tuple<int, string, float?>(int.Parse(c[0]), c.Length > 1 && !float.TryParse(c[1], out float blah) ? c[1] : animation, c.Length > 2 && float.TryParse(c[2], out float huehuehue) ? (float?)huehuehue : (c.Length > 1 && float.TryParse(c[1], out huehuehue) ? (float?)huehuehue : null)))
-                    .OrderBy(c => c.Item1, OrderByDirection.Descending)
-                    .ToArray()));
         [Route("center/{skinId}/{items?}/{animation?}/{frame?}")]
         [HttpGet]
         public IActionResult GetCenteredCharacter(int skinId, string items = "1102039", string animation = null, int frame = 0)
@@ -112,18 +111,27 @@ namespace maplestory.io.Controllers.API
         [Route("detailed/{skinId}/{items?}/{animation?}/{frame?}")]
         [HttpGet]
         public IActionResult GetCharacterDetails(int skinId, string items, string animation, int frame, RenderMode renderMode, bool showEars, bool showLefEars, int padding)
-        {
-            Tuple<Image<Rgba32>, Dictionary<string, Point>, Dictionary<string, int>, int> detailed = CharacterFactory.GetDetailedCharacter(skinId, animation, frame, showEars, showLefEars, padding, name, resize, flipX, renderMode, items?
-                .Split(new string[] { "," }, StringSplitOptions.RemoveEmptyEntries)
+            => Json(AvatarFactory.Details(new Character()
+            {
+                AnimationName = animation,
+                FrameNumber = frame,
+                FlipX = flipX,
+                ElfEars = showEars,
+                LefEars = showLefEars,
+                Name = name,
+                Zoom = resize,
+                Padding = padding,
+                ItemEntries = new AvatarItemEntry[]
+                 {
+                     new AvatarItemEntry(){ ItemId = skinId },
+                     new AvatarItemEntry(){ ItemId = skinId + 10000 },
+                 }.Concat(items.Split(new string[] { "," }, StringSplitOptions.RemoveEmptyEntries)
                 .Select(c => c.Split(':', ';'))
                 .Where(c => c.Length > 0 && int.TryParse(c[0], out int blah))
                 .Select(c => new Tuple<int, string, float?>(int.Parse(c[0]), c.Length > 1 && !float.TryParse(c[1], out float blah) ? c[1] : animation, c.Length > 2 && float.TryParse(c[2], out float huehuehue) ? (float?)huehuehue : (c.Length > 1 && float.TryParse(c[1], out huehuehue) ? (float?)huehuehue : null)))
                 .OrderBy(c => c.Item1, OrderByDirection.Descending)
-                .ToArray()
-            );
-            return Json(new Tuple<byte[], Dictionary<string, Point>, Dictionary<string, int>, int>(detailed.Item1.ImageToByte(Request, false), detailed.Item2, detailed.Item3, detailed.Item4));
-        }
-
+                .Select(c => new AvatarItemEntry() { ItemId = c.Item1, AnimationName = c.Item2, Hue = c.Item3 })).ToArray()
+            }));
         [Route("multidetailed/{skinId}/{items}")]
         [HttpGet]
         public IActionResult GetMultipleCharacterDetails(int skinId, string items, [FromQuery]string animations, [FromQuery]string faces)
@@ -144,7 +152,8 @@ namespace maplestory.io.Controllers.API
                     .Split(new string[] { "," }, StringSplitOptions.RemoveEmptyEntries)
                     .Select(c => c.Split(':', ';'))
                     .Where(c => c.Length > 0 && int.TryParse(c[0], out int blah))
-                    .Select(c => {
+                    .Select(c =>
+                    {
                         int itemId = int.Parse(c[0]);
                         Tuple<int, string, float?> itemEntry = new Tuple<int, string, float?>(itemId, itemId >= 20000 && itemId < 30000 ? face : animation, null);
                         return itemEntry;
@@ -154,7 +163,27 @@ namespace maplestory.io.Controllers.API
                 int frameCount = 0;
                 do
                 {
-                    Tuple<Image<Rgba32>, Dictionary<string, Point>, Dictionary<string, int>, int> detailed = CharacterFactory.GetDetailedCharacter(skinId, animation, frame, showEars, showLefEars, padding, name, resize, flipX, RenderMode.Full, itemEntries);
+                    Tuple<Image<Rgba32>, Dictionary<string, Point>, Dictionary<string, int>, int> detailed = AvatarFactory.Details(new Character()
+                    {
+                        AnimationName = animation,
+                        FrameNumber = frame,
+                        FlipX = flipX,
+                        ElfEars = showEars,
+                        LefEars = showLefEars,
+                        Name = name,
+                        Zoom = resize,
+                        Padding = padding,
+                        ItemEntries = new AvatarItemEntry[]
+                         {
+                             new AvatarItemEntry(){ ItemId = skinId },
+                             new AvatarItemEntry(){ ItemId = skinId + 10000 },
+                         }.Concat(items.Split(new string[] { "," }, StringSplitOptions.RemoveEmptyEntries)
+                        .Select(c => c.Split(':', ';'))
+                        .Where(c => c.Length > 0 && int.TryParse(c[0], out int blah))
+                        .Select(c => new Tuple<int, string, float?>(int.Parse(c[0]), c.Length > 1 && !float.TryParse(c[1], out float blah) ? c[1] : animation, c.Length > 2 && float.TryParse(c[2], out float huehuehue) ? (float?)huehuehue : (c.Length > 1 && float.TryParse(c[1], out huehuehue) ? (float?)huehuehue : null)))
+                        .OrderBy(c => c.Item1, OrderByDirection.Descending)
+                        .Select(c => new AvatarItemEntry() { ItemId = c.Item1, AnimationName = c.Item2, Hue = c.Item3 })).ToArray()
+                    });
                     allDetails.TryAdd($"{animation}-{face}-{frame}", new Tuple<Image<Rgba32>, Dictionary<string, Point>, int>(detailed.Item1, detailed.Item2, detailed.Item4));
 
                     frameCount = detailed.Item3[animation];
@@ -179,100 +208,42 @@ namespace maplestory.io.Controllers.API
                 background = new Rgba32(rgb[0], rgb[1], rgb[2], alpha);
             }
 
-            Tuple<int, string, float?>[] itemData = items
-                .Split(new string[] { "," }, StringSplitOptions.RemoveEmptyEntries)
+            return File(AvatarFactory.Animate(new Character()
+            {
+                AnimationName = animation,
+                FlipX = flipX,
+                ElfEars = showEars,
+                LefEars = showLefEars,
+                Mode = renderMode,
+                Name = name,
+                Zoom = resize,
+                Padding = padding,
+                ItemEntries = new AvatarItemEntry[]
+                 {
+                     new AvatarItemEntry(){ ItemId = skinId },
+                     new AvatarItemEntry(){ ItemId = skinId + 10000 },
+                 }.Concat(items.Split(new string[] { "," }, StringSplitOptions.RemoveEmptyEntries)
                 .Select(c => c.Split(':', ';'))
                 .Where(c => c.Length > 0 && int.TryParse(c[0], out int blah))
                 .Select(c => new Tuple<int, string, float?>(int.Parse(c[0]), c.Length > 1 && !float.TryParse(c[1], out float blah) ? c[1] : animation, c.Length > 2 && float.TryParse(c[2], out float huehuehue) ? (float?)huehuehue : (c.Length > 1 && float.TryParse(c[1], out huehuehue) ? (float?)huehuehue : null)))
                 .OrderBy(c => c.Item1, OrderByDirection.Descending)
-                .ToArray();
-            ICharacterFactory factory = CharacterFactory;
-
-            Tuple<Image<Rgba32>, Dictionary<string, Point>, Dictionary<string, int>, int> firstFrame = factory.GetDetailedCharacter(skinId, animation, 0, showEars, showLefEars, padding, name, resize, flipX, renderMode, itemData);
-
-            int animationFrames = firstFrame.Item3[animation];
-            Tuple<Image<Rgba32>, Dictionary<string, Point>, Dictionary<string, int>, int>[] frames = new Tuple<Image<Rgba32>, Dictionary<string, Point>, Dictionary<string, int>, int>[animationFrames];
-            frames[0] = firstFrame;
-            for (int i = 1; i < animationFrames; ++i) frames[i] = factory.GetDetailedCharacter(skinId, animation, i, showEars, showLefEars, padding, name, resize, flipX, renderMode, itemData);
-
-            // Idle positions 
-            if (animation.Equals("alert", StringComparison.CurrentCultureIgnoreCase) || animation.StartsWith("stand", StringComparison.CurrentCultureIgnoreCase))
-                frames = frames.Concat(MoreEnumerable.SkipLast(frames.Reverse().Skip(1), 1)).ToArray();
-
-            Image<Rgba32>[] frameImages = frames.Select(c => c.Item1).ToArray();
-            Point maxFeetCenter = new Point(
-                frames.Select(c => c.Item2["feetCenter"].X).Max(),
-                frames.Select(c => c.Item2["feetCenter"].Y).Max()
-            );
-            Point maxDifference = new Point(
-                maxFeetCenter.X - frames.Select(c => c.Item2["feetCenter"].X).Min(),
-                maxFeetCenter.Y - frames.Select(c => c.Item2["feetCenter"].Y).Min()
-            );
-            Image<Rgba32> gif = new Image<Rgba32>(frameImages.Select(c => c.Width).Max() + maxDifference.X, frameImages.Select(c => c.Height).Max() + maxDifference.Y);
-
-            List<Image<Rgba32>> pendingDispose = new List<Image<Rgba32>>();
-
-            for (int i = 0; i < frames.Length; ++i)
-            {
-                Image<Rgba32> frameImage = frames[i].Item1;
-                Point feetCenter = frames[i].Item2["feetCenter"];
-                Point offset = new Point(maxFeetCenter.X - feetCenter.X, maxFeetCenter.Y - feetCenter.Y);
-
-                if (offset.X != 0 || offset.Y != 0)
-                {
-                    Image<Rgba32> offsetFrameImage = new Image<Rgba32>(gif.Width, gif.Height);
-                    offsetFrameImage.Mutate(x =>
-                    {
-                        x.DrawImage(frameImage, 1, offset);
-                    });
-                    frameImage = offsetFrameImage;
-                }
-
-                if (frameImage.Width != gif.Width || frameImage.Height != gif.Height) frameImage.Mutate(x =>
-                {
-                    x.Crop(gif.Width, gif.Height);
-                });
-
-                if (background.A != 0)
-                {
-                    Image<Rgba32> frameWithBackground = new Image<Rgba32>(frameImage.Width, frameImage.Height);
-                    frameWithBackground.Mutate(x =>
-                    {
-                        x.Fill(background);
-                        x.DrawImage(frameImage, 1, Point.Empty);
-                    });
-
-                    if (frameImage != frames[i].Item1) frameImage.Dispose();
-                    frameImage = frameWithBackground;
-                }
-
-                ImageFrame<Rgba32> resultFrame = gif.Frames.AddFrame(frameImage.Frames.RootFrame);
-                resultFrame.MetaData.FrameDelay = frames[i].Item4 / 10;
-                resultFrame.MetaData.DisposalMethod = SixLabors.ImageSharp.Formats.Gif.DisposalMethod.RestoreToBackground;
-
-                pendingDispose.Add(frameImage);
-                if (frameImage != frames[i].Item1) pendingDispose.Add(frames[i].Item1);
-            }
-            gif.Frames.RemoveFrame(0);
-
-            pendingDispose.ForEach(c => c.Dispose());
-
-            return File(gif.ImageToByte(Request, false, ImageFormats.Gif, true), "image/gif");
+                .Select(c => new AvatarItemEntry() { ItemId = c.Item1, AnimationName = c.Item2, Hue = c.Item3 })).ToArray()
+            }, background).ImageToByte(Request, false, ImageFormats.Gif, true), "image/gif");
         }
 
         [Route("actions/{items?}")]
         [HttpGet]
         public IActionResult GetPossibleActions(string items = "1102039")
-            => Json(CharacterFactory.GetActions(items
+            => Json(AvatarFactory.GetPossibleActions(items
                 .Split(new string[] { "," }, StringSplitOptions.RemoveEmptyEntries)
                 .Select(c => c.Split(':'))
                 .Where(c => c.Length > 0 && int.TryParse(c[0], out int blah))
-                .Select(c => int.Parse(c[0]))
-                .ToArray()));
+                .Select(c => new AvatarItemEntry() { ItemId = int.Parse(c[0]), Region = Region, Version = Version })
+                .ToArray()).Keys);
 
         [Route("")]
         [HttpGet]
-        public IActionResult GetSkinTypes() => Json(CharacterFactory.GetSkinIds());
+        public IActionResult GetSkinTypes() => Json(WZ.Resolve("Character").Children.Select(c => int.TryParse(c.NameWithoutExtension, out int id) && id < 10000 ? (int?)id : null).Where(c => c.HasValue).Select(c => c.Value));
 
         [Route("random")]
         [HttpGet]
@@ -283,22 +254,31 @@ namespace maplestory.io.Controllers.API
             int hair = hairIds[rng.Next(0, hairIds.Length)];
             int face = faceIds[rng.Next(0, faceIds.Length)];
 
-            _logging.LogInformation("Generating random character with: {0}", string.Join(",", itemIds.Concat(new int[] { face, hair })));
-
-            return File(CharacterFactory.GetCharacter(skinSelected, null, 0, false, false, 2, null, 1, false, RenderMode.Full,
-                    itemIds.Concat(new int[] { face, hair })
-                    .Select(c => new Tuple<int, string, float?>(c, null, null))
-                    .ToArray()
-                ).ImageToByte(Request, true, null, true), "image/png");
+            return GetCharacter(skinSelected, string.Join(",", itemIds.Concat(new int[] { hair, face })));
         }
 
         [Route("download/{skinId}/{items?}")]
         [HttpGet]
         public IActionResult GetSpritesheet(int skinId, string items = "1102039", [FromQuery] RenderMode renderMode = RenderMode.Full, [FromQuery] bool showEars = false, [FromQuery] bool showLefEars = false, [FromQuery] int padding = 2, [FromQuery] SpriteSheetFormat format = SpriteSheetFormat.Plain)
-            => File(CharacterFactory.GetSpriteSheet(Request, skinId, showEars, showLefEars, padding, renderMode, format, items
-                .Split(new string[] { "," }, StringSplitOptions.RemoveEmptyEntries)
-                .Select(c => c.Split(';'))
-                .Select(c => new Tuple<int, float?>(int.Parse(c[0]), c.Length > 1 && float.TryParse(c[1], out float huehuehue) ? (float?)huehuehue : null))
-                .ToArray()), "application/zip", "CharacterSpriteSheet.zip");
+            => File(AvatarFactory.GetSpriteSheet(Request, format, new Character()
+            {
+                FlipX = flipX,
+                ElfEars = showEars,
+                LefEars = showLefEars,
+                Mode = renderMode,
+                Name = name,
+                Zoom = resize,
+                Padding = padding,
+                ItemEntries = new AvatarItemEntry[]
+                 {
+                     new AvatarItemEntry(){ ItemId = skinId },
+                     new AvatarItemEntry(){ ItemId = skinId + 10000 },
+                 }.Concat(items.Split(new string[] { "," }, StringSplitOptions.RemoveEmptyEntries)
+                .Select(c => c.Split(':', ';'))
+                .Where(c => c.Length > 0 && int.TryParse(c[0], out int blah))
+                .Select(c => new Tuple<int, string, float?>(int.Parse(c[0]), c.Length > 1 && !float.TryParse(c[1], out float blah) ? c[1] : null, c.Length > 2 && float.TryParse(c[2], out float huehuehue) ? (float?)huehuehue : (c.Length > 1 && float.TryParse(c[1], out huehuehue) ? (float?)huehuehue : null)))
+                .OrderBy(c => c.Item1, OrderByDirection.Descending)
+                .Select(c => new AvatarItemEntry() { ItemId = c.Item1, AnimationName = c.Item2, Hue = c.Item3 })).ToArray()
+            }), "application/zip", "CharacterSpriteSheet.zip");
     }
 }

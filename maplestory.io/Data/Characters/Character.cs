@@ -19,7 +19,7 @@ namespace maplestory.io.Data.Characters {
 
         public AvatarItemEntry[] ItemEntries;
         public float Zoom;
-        public string Name, AnimationName;
+        public string Name, AnimationName = "stand1";
         public bool FlipX;
         public int Padding, FrameNumber;
         public RenderMode Mode;
