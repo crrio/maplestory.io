@@ -95,12 +95,12 @@ namespace maplestory.io.Data.Characters
         public Tuple<Frame, Point, float?>[] GetFrameParts(Dictionary<string, Point> anchorPositions = null)
         {
             List<KeyValuePair<string, Point>[]> offsets = new List<KeyValuePair<string, Point>[]>();
-            RankedFrame[] partsData = GetAnimationParts(offsets).OrderBy(c => c.ranking).ToArray();
+            RankedFrame<EquipSelection>[] partsData = GetAnimationParts(offsets).OrderBy(c => c.ranking).ToArray();
             Tuple<Frame, float?>[] partsFrames = partsData.Select(c => new Tuple<Frame, float?>(c.frame, c.underlyingEquip.Hue)).ToArray();
 
             if (anchorPositions == null) anchorPositions = new Dictionary<string, Point>() { { "navel", new Point(0, 0) } };
             else if (!anchorPositions.ContainsKey("navel")) anchorPositions.Add("navel", new Point(0, 0));
-            RankedFrame bodyFrame = partsData.FirstOrDefault(c => (c.frame.Position == "body" || c.frame.Position == "backBody") && c.frame.MapOffset.ContainsKey("neck") && c.frame.MapOffset.ContainsKey("navel"));
+            RankedFrame<EquipSelection> bodyFrame = partsData.FirstOrDefault(c => (c.frame.Position == "body" || c.frame.Position == "backBody") && c.frame.MapOffset.ContainsKey("neck") && c.frame.MapOffset.ContainsKey("navel"));
             Point neckOffsetBody = bodyFrame.frame.MapOffset["neck"];
             Point navelOffsetBody = bodyFrame.frame.MapOffset["navel"];
 
@@ -640,11 +640,20 @@ namespace maplestory.io.Data.Characters
             }
 
             equipped = equippedTmp.Where(c => c != null && c.Item1 != null).ToArray();
-            
+
+            // We need the weapon entry so we know what kind of weapon the character has equipped
+            // Certain items require the weapon type to determine what kind of animation will be displayed
+            Tuple<WZProperty, EquipSelection> weaponEntry = equipped.FirstOrDefault(c => c.Item1.Parent.NameWithoutExtension.Equals("Weapon"));
+            // Default to weapon type `30`
+            weaponType = weaponEntry?.Item1 != null && weaponEntry?.Item2 != null ? (int)((weaponEntry.Item2.ItemId - 1000000) / 10000d) : 30;
+            // WeaponTypes of 70 are cash items, go back to 30.
+            if (weaponType == 70) weaponType = 30;
+
             // Calculate the frame counts for all individual actions
             string[] actions = GetActions();
             FrameDelays = new Dictionary<string, int[]>();
-            var a = equipped.Select(c =>
+
+            FrameCounts = equipped.Select(c =>
             {
                 WZProperty itemNode = c.Item1;
                 WZProperty node = itemNode; // Resolve all items and body parts to their correct nodes for the animation
@@ -672,7 +681,7 @@ namespace maplestory.io.Data.Characters
                     } else return null;
 
                     if (animationNode == null && !(c.Item2.ItemId >= 1902000 && c.Item2.ItemId <= 1993000 && (animationNode = node.Resolve("sit")) != null))
-                            return null;
+                        return null;
 
                     // Resolve to animation's frame
                     int frameCount = animationNode.Children.Where(k => int.TryParse(k.NameWithoutExtension, out int blah)).Select(k => int.Parse(k.NameWithoutExtension)).DefaultIfEmpty(-1).Max() + 1;
@@ -689,26 +698,7 @@ namespace maplestory.io.Data.Characters
                     }
                     return new Tuple<string, int, int>(action, c.Item2.ItemId, frameCount);
                 }).Where(b => b != null).ToArray();
-            }).Where(c => c != null).ToArray();
-            var z = equipped.Select(c =>
-            {
-                IEnumerable<WZProperty> nodes = new WZProperty[] { itemEff.Resolve($"{c.Item2.ItemId}/effect") }; // Resolve the selected animation
-                if (nodes.First() == null && (c.Item2.ItemId / 10000) == 301) nodes = installItem.Resolve($"{c.Item2.ItemId.ToString("D8")}").Children.Where(eff => eff.NameWithoutExtension.StartsWith("effect", StringComparison.CurrentCultureIgnoreCase));
-
-                return nodes?.Where(node => node != null).Select(node =>
-                {
-                    return actions.Select(action =>
-                    {
-
-                        WZProperty effectNode = node.Resolve(c.Item2.AnimationName ?? action) ?? node.Resolve("default") ?? (node.Children.Any(b => b.NameWithoutExtension.Equals("0")) ? node : null);
-                        if (effectNode == null) return null;
-                        int frameCount = effectNode.Children.Where(k => int.TryParse(k.NameWithoutExtension, out int blah)).Select(k => int.Parse(k.NameWithoutExtension)).Max() + 1;
-                        return new Tuple<string, int, int>(action, c.Item2.ItemId, frameCount);
-                    });
-                }).ToArray();
-            }).Where(c => c != null).SelectMany(c => c).Where(b => b != null).ToArray();
-            var y = a.SelectMany(c => c).ToArray();
-            FrameCounts = y.GroupBy(c => c.Item1)
+            }).Where(c => c != null).ToArray().SelectMany(c => c).ToArray().GroupBy(c => c.Item1)
                 .Select(c => {
                     int[] itemsFrameCounts = c.GroupBy(b => b.Item2).Where(b => b.Count() > 0).Select(b =>
                     {
@@ -732,8 +722,11 @@ namespace maplestory.io.Data.Characters
                 .Select(c => {
                     string islot = c.Item1.ResolveForOrNull<string>("info/islot") ?? "";
                     string vslot = c.Item1.ResolveForOrNull<string>("info/vslot") ?? "";
-                    if ((int)(c.Item2.ItemId / 10000) == 104 && islot.Equals("MaPn")) islot = "Ma"; // No clue why normal shirts would claim to be overalls, but fuck off.
-                    if ((int)(c.Item2.ItemId / 10000) == 104 && vslot.Equals("MaPn")) vslot = "Ma"; // No clue why normal shirts would claim to be overalls, but fuck off.
+                    if ((int)(c.Item2.ItemId / 10000) == 104)
+                    {
+                        if (islot.Equals("MaPn")) islot = "Ma"; // No clue why normal shirts would claim to be overalls, but fuck off.
+                        if (vslot.Equals("MaPn")) vslot = "Ma"; // No clue why normal shirts would claim to be overalls, but fuck off.
+                    }
                     return new Tuple<int, string, string>(
                         c.Item2.ItemId,
                         vslot,
@@ -788,14 +781,6 @@ namespace maplestory.io.Data.Characters
                 .Where(c => c.ResolveForOrNull<string>() != null)
                 .ToDictionary(c => c.NameWithoutExtension, c => (c.ResolveForOrNull<string>() ?? "").Replace("PnSo", "Pn"));
 
-            // We need the weapon entry so we know what kind of weapon the character has equipped
-            // Certain items require the weapon type to determine what kind of animation will be displayed
-            Tuple<WZProperty, EquipSelection> weaponEntry = equipped.FirstOrDefault(c => c.Item1.Parent.NameWithoutExtension.Equals("Weapon"));
-            // Default to weapon type `30`
-            weaponType = weaponEntry?.Item1 != null && weaponEntry?.Item2 != null ? (int)((weaponEntry.Item2.ItemId - 1000000) / 10000d) : 30;
-            // WeaponTypes of 70 are cash items, go back to 30.
-            if (weaponType == 70) weaponType = 30;
-
             this.preloaded = true;
         }
 
@@ -822,7 +807,7 @@ namespace maplestory.io.Data.Characters
                 .ToArray();
         }
 
-        public IEnumerable<RankedFrame> GetAnimationParts(List<KeyValuePair<string, Point>[]> offsets)
+        public IEnumerable<RankedFrame<EquipSelection>> GetAnimationParts(List<KeyValuePair<string, Point>[]> offsets)
         {
             Preload();
 
@@ -921,7 +906,7 @@ namespace maplestory.io.Data.Characters
             }).Where(nodes => nodes != null).SelectMany(eff => eff.Where(node => node != null)))
             .Where(c => c != null);
 
-            ConcurrentBag<RankedFrame> rankedFrames = new ConcurrentBag<RankedFrame>();
+            ConcurrentBag<RankedFrame<EquipSelection>> rankedFrames = new ConcurrentBag<RankedFrame<EquipSelection>>();
 
             while (!Parallel.ForEach(frameParts ?? new Tuple<WZProperty, EquipSelection>[0], (c) =>
             {
@@ -933,16 +918,16 @@ namespace maplestory.io.Data.Characters
 
                 if (!hasFace && zIndex.EndsWith("BelowFace", StringComparison.CurrentCultureIgnoreCase)) zPosition -= 100;
 
-                RankedFrame ranked = new RankedFrame(Frame.Parse(c.Item1), zPosition, c.Item2);
+                RankedFrame<EquipSelection> ranked = new RankedFrame<EquipSelection>(Frame.Parse(c.Item1), zPosition, c.Item2);
 
                 if (ranked?.frame?.Position == "face" && !hasFace) return;
 
                 rankedFrames.Add(ranked);
             }).IsCompleted) Thread.Sleep(1);
 
-            RankedFrame[] rankedFramesArray = new RankedFrame[rankedFrames.Count];
+            RankedFrame<EquipSelection>[] rankedFramesArray = new RankedFrame<EquipSelection>[rankedFrames.Count];
             int i = 0;
-            while (rankedFrames.TryTake(out RankedFrame rankedFrame)) rankedFramesArray[i++] = rankedFrame;
+            while (rankedFrames.TryTake(out RankedFrame<EquipSelection> rankedFrame)) rankedFramesArray[i++] = rankedFrame;
 
             return rankedFramesArray;
         }
@@ -956,13 +941,14 @@ namespace maplestory.io.Data.Characters
         public float? Hue;
     }
 
-    public class RankedFrame
+    public class RankedFrame<K>
+        where K : class
     {
         public readonly Frame frame;
         public readonly int ranking;
-        public EquipSelection underlyingEquip;
+        public K underlyingEquip;
 
-        public RankedFrame(Frame frame, int ranking, EquipSelection underlyingEquip)
+        public RankedFrame(Frame frame, int ranking, K underlyingEquip)
         {
             this.frame = frame;
             this.ranking = ranking;

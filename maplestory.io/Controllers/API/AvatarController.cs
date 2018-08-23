@@ -55,9 +55,7 @@ namespace maplestory.io.Controllers.API
         [Route("")]
         [HttpGet]
         public IActionResult Render([FromQuery] RenderMode renderMode = RenderMode.Full)
-        {
-            return this.AvatarFactory.Render(Character);
-        }
+            => File(this.AvatarFactory.Render(Character).ImageToByte(Request), "image/png");
 
         [Route("detailed/{skinId}/{items?}/{animation?}/{frame?}")]
         [HttpGet]

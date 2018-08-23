@@ -21,13 +21,13 @@ namespace maplestory.io.Services.Implementations.MapleStory
         static ConcurrentDictionary<string, EventWaitHandle> wzLoading = new ConcurrentDictionary<string, EventWaitHandle>();
         static ConcurrentDictionary<Region, ConcurrentDictionary<string, MSPackageCollection>> cache = new ConcurrentDictionary<Region, ConcurrentDictionary<string, MSPackageCollection>>();
 
-        public WZAppSettingsFactory(IOptions<WZOptions> config)
-        {
-            this._config = config.Value;
-        }
+        public WZAppSettingsFactory(IOptions<WZOptions> config) : this(config.Value) { }
+        public WZAppSettingsFactory(WZOptions config) => this._config = config;
 
         public MSPackageCollection GetWZ(Region region, string version)
         {
+            if (version == null) version = "latest";
+
             EventWaitHandle wait = new EventWaitHandle(false, EventResetMode.ManualReset);
             string versionHash = $"{region.ToString()}-{version}";
 
