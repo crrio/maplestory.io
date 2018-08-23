@@ -28,23 +28,26 @@ namespace maplestory.io.Controllers.API
         [FromQuery] public string name { get; set; } = null;
         [FromQuery] public float resize { get; set; } = 1;
         [FromQuery] public bool flipX { get; set; } = false;
-        [FromRoute]
-        public string items { get; set; } = "{itemId:1102039}";
+        [FromRoute] public string items { get; set; } = "{itemId:1102039}";
+        [FromRoute] public string animation { get; set; } = "stand1";
+        [FromRoute] public int frame { get; set; }
+        [FromQuery] RenderMode renderMode { get; set; } = RenderMode.Full;
+
         public AvatarItemEntry[] itemEntries { get => JsonConvert.DeserializeObject<AvatarItemEntry[]>($"[{items}]"); }
-        [FromRoute]
-        public string animation { get; set; } = "stand1";
-        [FromRoute]
-        public int frame { get; set; } 
         public Character Character 
         {
-            get => new Character() {
+            get => new Character()
+            {
                 AnimationName = animation,
                 FrameNumber = frame,
                 ItemEntries = itemEntries,
                 FlipX = flipX,
                 Padding = padding,
                 Zoom = resize,
-                Mode = RenderMode.Full
+                Mode = renderMode,
+                ElfEars = showEars,
+                LefEars = showLefEars,
+                Name = name
             };
         }
         private Random rng;
@@ -57,22 +60,31 @@ namespace maplestory.io.Controllers.API
 
         [Route("")]
         [HttpGet]
-        public IActionResult Render([FromQuery] RenderMode renderMode = RenderMode.Full)
-            => File(this.AvatarFactory.Render(Character).ImageToByte(Request), "image/png");
-
+        public IActionResult Render() => File(this.AvatarFactory.Render(Character).ImageToByte(Request), "image/png");
         [Route("detailed")]
         [HttpGet]
-        public IActionResult GetCharacterDetails(int skinId, string items, string animation, int frame, RenderMode renderMode, bool showEars, bool showLefEars, int padding)
-            => throw new NotImplementedException();
+        public IActionResult GetCharacterDetails() => Json(this.AvatarFactory.Details(Character));
 
         [Route("animated")]
         [HttpGet]
-        public IActionResult GetCharacterAnimated(int skinId, string items, string animation, RenderMode renderMode, bool showEars, bool showLefEars, int padding, [FromQuery] string bgColor = "")
-            => throw new NotImplementedException();
+        public IActionResult GetCharacterAnimated([FromQuery] string bgColor = "")
+        {
+            Rgba32 background = Rgba32.Transparent;
+
+            if (!string.IsNullOrEmpty(bgColor))
+            {
+                string[] bgColorNumbers = bgColor.Split(',');
+                float[] rgb = bgColorNumbers.Take(3).Select(c => byte.Parse(c) / (byte.MaxValue * 1f)).ToArray();
+                float alpha = float.Parse(bgColorNumbers[3]);
+                background = new Rgba32(rgb[0], rgb[1], rgb[2], alpha);
+            }
+
+            return File(this.AvatarFactory.Animate(Character, background).ImageToByte(Request, false, ImageFormats.Gif, true), "image/gif");
+        }
 
         [Route("download")]
         [HttpGet]
-        public IActionResult GetSpritesheet(int skinId, string items = "1102039", [FromQuery] RenderMode renderMode = RenderMode.Full, [FromQuery] bool showEars = false, [FromQuery] bool showLefEars = false, [FromQuery] int padding = 2, [FromQuery] SpriteSheetFormat format = SpriteSheetFormat.Plain)
-            => throw new NotImplementedException();
+        public IActionResult GetSpritesheet([FromQuery] SpriteSheetFormat format = SpriteSheetFormat.Plain) 
+            => File(AvatarFactory.GetSpriteSheet(Request, format, Character), "application/zip", "CharacterSpriteSheet.zip");
     }
 }
