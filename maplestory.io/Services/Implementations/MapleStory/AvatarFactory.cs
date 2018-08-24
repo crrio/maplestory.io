@@ -444,7 +444,7 @@ namespace maplestory.io.Services.Implementations.MapleStory
             actions = actions.Where(c => {
                 return resolved.All(b => {
                     // If the item is a face, skip it
-                    return (b.Key.ItemId >= 20000 && b.Key.ItemId < 30000) || b.Value.Children.Any(a => {
+                    return (b.Key.ItemId >= 20000 && b.Key.ItemId < 30000) || (b.Key.ItemId >= 1010000 && b.Key.ItemId < 1020000) || b.Value.Children.Any(a => {
                         // If the child node doesn't equal the animation name, but it does equal the weapon type:
                         // This node is split into weapon categories, go a layer deeper and try matching any of the node's children to the animation name.
                         return a.Name == c.Key || (a.Name == weaponType.ToString() ? a.Children.Any(d =>
@@ -474,7 +474,7 @@ namespace maplestory.io.Services.Implementations.MapleStory
                                 // We can modify the equips array, but if we change the actual contents other than the face there could be problems.
                                 Dictionary<AvatarItemEntry, WZProperty> realResolved = resolved.ToDictionary(c => {
                                     var item = new AvatarItemEntry(c.Key);
-                                    if (c.Key.ItemId == face?.id)
+                                    if (c.Key.ItemId == face?.id || (c.Key.ItemId >= 1010000 && c.Key.ItemId < 1020000))
                                     {
                                         item.AnimationName = emotion;
                                         item.EquipFrame = emotionFrame;
@@ -647,6 +647,7 @@ namespace maplestory.io.Services.Implementations.MapleStory
                 if (b.Value == null) return a;
                 else if (a == null) return b.Value.Children.Select(c => c.Name).ToArray();
                 else if (b.Key.ItemId >= 20000 && b.Key.ItemId < 30000) return a;
+                else if (b.Key.ItemId >= 1010000 && b.Key.ItemId < 1020000) return a;
                 else if (b.Key.ItemId / 10000 == 301) return a;
                 else return b.Value.Children.Count() > 1 ? b.Value.Children.Select(c => c.Name).Where(c => a.Contains(c)).ToArray() : a;
             })).Where(c => c != "info" && c != "heal").ToDictionary(c => c, animationName =>
