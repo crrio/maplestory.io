@@ -474,7 +474,11 @@ namespace maplestory.io.Services.Implementations.MapleStory
                                 // We can modify the equips array, but if we change the actual contents other than the face there could be problems.
                                 Dictionary<AvatarItemEntry, WZProperty> realResolved = resolved.ToDictionary(c => {
                                     var item = new AvatarItemEntry(c.Key);
-                                    item.AnimationName = c.Key.ItemId == face?.id ? emotion : c.Key.AnimationName;
+                                    if (c.Key.ItemId == face?.id)
+                                    {
+                                        item.AnimationName = emotion;
+                                        item.EquipFrame = emotionFrame;
+                                    }
                                     return item;
                                 }, c => c.Value);
 
