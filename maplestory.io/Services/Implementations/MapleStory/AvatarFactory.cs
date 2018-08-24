@@ -808,7 +808,7 @@ namespace maplestory.io.Services.Implementations.MapleStory
                 using (Image<Rgba32> oldFramePart = framePart)
                 {
                     framePart = oldFramePart.Clone();
-                    framePart.Mutate(c => c.Contrast(frame.Item3.Brightness.Value));
+                    framePart.Mutate(c => c.Brightness(frame.Item3.Brightness.Value));
                 }
             if (frame.Item3.Alpha.HasValue)
                 using (Image<Rgba32> oldFramePart = framePart)
