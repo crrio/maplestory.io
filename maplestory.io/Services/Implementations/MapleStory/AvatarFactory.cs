@@ -374,24 +374,24 @@ namespace maplestory.io.Services.Implementations.MapleStory
 
                 if (isBody)
                 {
-                    body = wz.Resolve("Character").Resolve(item.ItemId.ToString("D8"));
+                    body = wz.Resolve("Character").Resolve(item.ItemId.ToString("D8"))?.Resolve();
                     resolved.Add(item, body);
                 }
                 else if (isHead)
                 {
-                    head = wz.Resolve("Character").Resolve(item.ItemId.ToString("D8"));
+                    head = wz.Resolve("Character").Resolve(item.ItemId.ToString("D8"))?.Resolve();
                     resolved.Add(item, head);
                 }
                 else
                 {
                     int category = item.ItemId / 100;
 
-                    if (category / 100 == 301) resolved.Add(item, wz.Resolve($"Item/Install/0301/{item.ItemId.ToString("D8")}"));
-                    else if (category / 100 == 50100) resolved.Add(item, wz.Resolve($"Item/Cash/0501/{item.ItemId.ToString("D8")}"));
+                    if (category / 100 == 301) resolved.Add(item, wz.Resolve($"Item/Install/0301/{item.ItemId.ToString("D8")}")?.Resolve());
+                    else if (category / 100 == 50100) resolved.Add(item, wz.Resolve($"Item/Cash/0501/{item.ItemId.ToString("D8")}")?.Resolve());
                     else
                     {
                         if (wz.categoryFolders.TryGetValue(category, out string folder))
-                            resolved.Add(item, wz.Resolve($"Character/{folder}/{item.ItemId.ToString("D8")}"));
+                            resolved.Add(item, wz.Resolve($"Character/{folder}/{item.ItemId.ToString("D8")}")?.Resolve());
                         else
                             explorativeSearch.Add(item);
                     }
@@ -412,14 +412,14 @@ namespace maplestory.io.Services.Implementations.MapleStory
                         {
                             if (searchingFor.Contains(itemNode.NameWithoutExtension))
                             {
-                                resolved.Add(versionGrouping.First(b => b.ItemId.ToString("D8") == itemNode.NameWithoutExtension), itemNode);
+                                resolved.Add(versionGrouping.First(b => b.ItemId.ToString("D8") == itemNode.NameWithoutExtension), itemNode?.Resolve());
                             }
                         }
                     }
                 }
             }
 
-            return resolved.Where(c => c.Value.Children.Count() > 1).ToDictionary(c => c.Key, c => c.Value);
+            return resolved.Where(c => c.Value != null).Where(c => c.Value.Children.Count() > 1).ToDictionary(c => c.Key, c => c.Value);
         }
 
         public byte[] GetSpriteSheet(HttpRequest request, SpriteSheetFormat format, Character character)
