@@ -62,7 +62,7 @@ namespace maplestory.io.Controllers.API
         [HttpGet]
         public IActionResult GetCharacterDetails() => Json(this.AvatarFactory.Details(Character));
 
-        [Route("animated")]
+        [Route("{animation?}/animated")]
         [HttpGet]
         public IActionResult GetCharacterAnimated([FromQuery] string bgColor = "")
         {
