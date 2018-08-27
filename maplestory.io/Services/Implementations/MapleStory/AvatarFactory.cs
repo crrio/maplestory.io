@@ -292,7 +292,7 @@ namespace maplestory.io.Services.Implementations.MapleStory
             zmap = null;
             smap = null;
 
-            string[] islots = equipped.Keys.Select(c => c.ISlot.Substring(0, 2)).Where(c => c != null).ToArray();
+            string[] islots = equipped.Keys.Select(c => c.ISlot?.Substring(0, 2)).Where(c => c != null).ToArray();
 
             List<string> zmapLocal = null;
             foreach (KeyValuePair<AvatarItemEntry, WZProperty> c in equipped)
@@ -314,7 +314,8 @@ namespace maplestory.io.Services.Implementations.MapleStory
             // Build a sorted list of defined exclusive locks from items
             IEnumerable<Tuple<int, string[], string[]>> exclusiveLockItems = equipped
                 .OrderBy(c => zmapLocal.IndexOf(c.Key.ISlot?.Substring(0, 2)) * ((c.Value.ResolveFor<bool>("info/cash") ?? false) ? 2 : 1))
-                .Select(c => {
+                .Select(c =>
+                {
                     string islot = c.Key.ISlot;
                     string vslot = c.Key.VSlot;
                     if ((int)(c.Key.ItemId / 10000) == 104)
@@ -327,7 +328,8 @@ namespace maplestory.io.Services.Implementations.MapleStory
                         vslot,
                         islot
                     );
-                }) // Override item specific vslots here
+                })
+                .Where(c => c.Item2 != null && c.Item3 != null)
                 .Select(c => new Tuple<int, string[], string[]>(
                     c.Item1,
                     Enumerable.Range(0, c.Item2.Length / 2).Select((b, i) => c.Item2.Substring(i * 2, 2)).ToArray(),
