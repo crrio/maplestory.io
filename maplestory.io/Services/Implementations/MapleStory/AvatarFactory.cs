@@ -267,7 +267,7 @@ namespace maplestory.io.Services.Implementations.MapleStory
                         if (!int.TryParse(siblingZ, out int siblingZPosition))
                             zPosition = zmap.IndexOf(siblingZ) + zPosition;
                         else
-                            zPosition = zmap.IndexOf("body") + zPosition + siblingZPosition - 1;
+                            zPosition = zmap.IndexOf("characterEnd") + zPosition + siblingZPosition - 1;
                     }
                     else zPosition = zmap.IndexOf(c.Item2.ISlot) - zPosition;
                 }
