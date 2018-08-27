@@ -162,7 +162,11 @@ namespace maplestory.io.Services.Implementations.MapleStory
                 AvatarItemEntry itemNode = c.Key;
                 WZProperty node = c.Value; // Resolve all items and body parts to their correct nodes for the animation
                 if (node.Children.Where(n => n.NameWithoutExtension != "info").All(n => int.TryParse(n.NameWithoutExtension, out int blah)))
-                    node = node.Resolve($"{weaponType.ToString()}"); // If their selected animation doesn't exist, try ours, and then go to default as a fail-safe
+                {
+                    WZProperty attemptedNode = node.Resolve($"{weaponType.ToString()}"); // If their selected animation doesn't exist, try ours, and then go to default as a fail-safe
+                    if (attemptedNode == null) attemptedNode = node.Children.FirstOrDefault(b => b.NameWithoutExtension != "info");
+                    node = attemptedNode;
+                }
 
                 if (node == null) return null;
 
