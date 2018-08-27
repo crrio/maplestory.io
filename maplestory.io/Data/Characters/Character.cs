@@ -42,6 +42,8 @@ namespace maplestory.io.Data.Characters {
             this.Region = old.Region;
             this.AnimationName = old.AnimationName;
             this.EquipFrame = old.EquipFrame;
+            this.ISlot = old.ISlot;
+            this.VSlot = old.VSlot;
         }
         public int ItemId;
         public float? Hue, Brightness, Contrast, Saturation, Alpha;
