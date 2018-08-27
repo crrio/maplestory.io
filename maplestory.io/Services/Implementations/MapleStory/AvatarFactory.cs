@@ -159,8 +159,8 @@ namespace maplestory.io.Services.Implementations.MapleStory
         {
             IEnumerable<Tuple<WZProperty, AvatarItemEntry>> frameParts = resolved.Select(c =>
             {
-                WZProperty itemNode = c.Value;
-                WZProperty node = itemNode; // Resolve all items and body parts to their correct nodes for the animation
+                AvatarItemEntry itemNode = c.Key;
+                WZProperty node = c.Value; // Resolve all items and body parts to their correct nodes for the animation
                 if (node.Children.Where(n => n.NameWithoutExtension != "info").All(n => int.TryParse(n.NameWithoutExtension, out int blah)))
                     node = node.Resolve($"{weaponType.ToString()}"); // If their selected animation doesn't exist, try ours, and then go to default as a fail-safe
 
@@ -202,7 +202,7 @@ namespace maplestory.io.Services.Implementations.MapleStory
                     string zPosition = framePartNode.Resolve().ResolveForOrNull<string>("z") ?? framePartNode.ResolveForOrNull<string>("../z") ?? framePartNode.NameWithoutExtension;
                     bool sameZAsContainer = !zPosition.Equals(equipCategory, StringComparison.CurrentCultureIgnoreCase);
 
-                    string requiredLockFull = smap.ContainsKey(framePart.NameWithoutExtension) && !sameZAsContainer ? smap[framePart.NameWithoutExtension] : itemNode.ResolveForOrNull<string>("info/vslot") ?? "";
+                    string requiredLockFull = smap.ContainsKey(framePart.NameWithoutExtension) && !sameZAsContainer ? smap[framePart.NameWithoutExtension] : itemNode.VSlot ?? "";
                     string[] requiredLocks = Enumerable.Range(0, requiredLockFull.Length / 2).Select(k => requiredLockFull.Substring(k * 2, 2)).ToArray();
                     // Determine if we have locks
                     bool hasLocks = requiredLocks.Count() == 0 || requiredLocks.All(requiredLock => !exclusiveLocks.ContainsKey(requiredLock) || exclusiveLocks[requiredLock] == c.Key.ItemId);
@@ -212,7 +212,7 @@ namespace maplestory.io.Services.Implementations.MapleStory
                     // This seems to resolve the `hair` z using the more exclusive vslot
                     if (sameZAsContainer && !hasLocks)
                     {
-                        requiredLockFull = smap.ContainsKey(framePart.NameWithoutExtension) ? smap[framePart.NameWithoutExtension] : itemNode.ResolveForOrNull<string>("info/vslot");
+                        requiredLockFull = smap.ContainsKey(framePart.NameWithoutExtension) ? smap[framePart.NameWithoutExtension] : itemNode.VSlot;
                         if ((int)(c.Key.ItemId / 10000) == 104 && requiredLockFull.Equals("MaPn")) requiredLockFull = "Ma";
                         requiredLocks = Enumerable.Range(0, requiredLockFull.Length / 2).Select(k => requiredLockFull.Substring(k * 2, 2)).ToArray();
                         // Determine if we have locks
@@ -228,23 +228,25 @@ namespace maplestory.io.Services.Implementations.MapleStory
             })
             .Where(c => c != null)
             .SelectMany(c => c)
-            .Concat(resolved.Select(c =>
-            { // Concat any effects for items equipped
-                var wz = _wzFactory.GetWZ(c.Key.Region, c.Key.Version);
-                IEnumerable<WZProperty> nodes = new WZProperty[] { wz.Resolve("Effect/ItemEff")?.Resolve($"{c.Key.ItemId}/effect") }; // Resolve the selected animation
-                if (nodes.First() == null && (c.Key.ItemId / 10000) == 301) nodes = wz.Resolve("Item/Install/0301")?.Resolve($"{c.Key.ItemId.ToString("D8")}").Children.Where(eff => eff.NameWithoutExtension.StartsWith("effect", StringComparison.CurrentCultureIgnoreCase));
-
-                return nodes?.Where(node => node != null).Select(node =>
-                {
-                    WZProperty effectNode = node.Resolve(c.Key.AnimationName ?? animationName) ?? node.Resolve("default") ?? (node.Children.Any(b => b.NameWithoutExtension.Equals("0")) ? node : null);
-                    if (effectNode == null) return null;
-                    int frameCount = effectNode.Children.Where(k => int.TryParse(k.NameWithoutExtension, out int blah)).Select(k => int.Parse(k.NameWithoutExtension)).Max() + 1;
-                    int frameForEntry = (c.Key.EquipFrame ?? frameNumber) % frameCount;
-                    return new Tuple<WZProperty, AvatarItemEntry>(effectNode.Resolve(frameForEntry.ToString())?.Resolve(), c.Key);
-                });
-            }).Where(nodes => nodes != null).SelectMany(eff => eff.Where(node => node != null)))
             .Where(c => c != null);
 
+            frameParts = frameParts.Concat(resolved.Select(c =>
+             { // Concat any effects for items equipped
+                 var wz = _wzFactory.GetWZ(c.Key.Region, c.Key.Version);
+                 IEnumerable<WZProperty> nodes = new WZProperty[] { wz.Resolve("Effect/ItemEff")?.Resolve($"{c.Key.ItemId}/effect") }; // Resolve the selected animation
+                 if (nodes.First() == null && (c.Key.ItemId / 10000) == 301) nodes = wz.Resolve("Item/Install/0301")?.Resolve($"{c.Key.ItemId.ToString("D8")}").Children.Where(eff => eff.NameWithoutExtension.StartsWith("effect", StringComparison.CurrentCultureIgnoreCase));
+
+                 return nodes?.Where(node => node != null).Select(node =>
+                 {
+                     WZProperty effectNode = node.Resolve(c.Key.AnimationName ?? animationName) ?? node.Resolve("default") ?? (node.Children.Any(b => b.NameWithoutExtension.Equals("0")) ? node : null);
+                     if (effectNode == null) return null;
+                     int frameCount = effectNode.Children.Where(k => int.TryParse(k.NameWithoutExtension, out int blah)).Select(k => int.Parse(k.NameWithoutExtension)).Max() + 1;
+                     int frameForEntry = (c.Key.EquipFrame ?? frameNumber) % frameCount;
+                     return new Tuple<WZProperty, AvatarItemEntry>(effectNode.Resolve(frameForEntry.ToString())?.Resolve(), c.Key);
+                 });
+             }).Where(nodes => nodes != null).SelectMany(eff => eff.Where(node => node != null))).Where(node => node != null);
+
+            Dictionary<string, int> islotLookup = smap.GroupBy(c => c.Value.Substring(0, 2)).ToDictionary(c => c.Key, c => c.Select(b => zmap.IndexOf(b.Key)).Max());
             ConcurrentBag<RankedFrame<AvatarItemEntry>> rankedFrames = new ConcurrentBag<RankedFrame<AvatarItemEntry>>();
 
             while (!Parallel.ForEach(frameParts ?? new Tuple<WZProperty, AvatarItemEntry>[0], (c) =>
@@ -253,7 +255,8 @@ namespace maplestory.io.Services.Implementations.MapleStory
                 int zPosition = 0;
                 if (!int.TryParse(zIndex, out zPosition))
                     zPosition = zmap.IndexOf(zIndex);
-                else zPosition = (zPosition - 1) * 500;
+                else if (islotLookup.ContainsKey(c.Item2.ISlot.Substring(0, 2))) zPosition = islotLookup[c.Item2.ISlot.Substring(0, 2)] + zPosition;
+                else zPosition = zmap.IndexOf(c.Item2.ISlot) + zPosition;
 
                 if (!HasFace && zIndex.EndsWith("BelowFace", StringComparison.CurrentCultureIgnoreCase)) zPosition -= 100;
 
@@ -267,6 +270,7 @@ namespace maplestory.io.Services.Implementations.MapleStory
             RankedFrame<AvatarItemEntry>[] rankedFramesArray = new RankedFrame<AvatarItemEntry>[rankedFrames.Count];
             int i = 0;
             while (rankedFrames.TryTake(out RankedFrame<AvatarItemEntry> rankedFrame)) rankedFramesArray[i++] = rankedFrame;
+
             return rankedFramesArray.OrderBy(c => c.ranking).ToArray();
         }
         Dictionary<string, int> ResolveItemLocks(ref Dictionary<AvatarItemEntry, WZProperty> equipped, out List<string> zmap, out Dictionary<string, string> smap)
@@ -274,7 +278,7 @@ namespace maplestory.io.Services.Implementations.MapleStory
             zmap = null;
             smap = null;
 
-            string[] islots = equipped.Values.Select(c => c.ResolveForOrNull<string>("info/islot")?.Substring(0, 2)).Where(c => c != null).ToArray();
+            string[] islots = equipped.Keys.Select(c => c.ISlot.Substring(0, 2)).Where(c => c != null).ToArray();
 
             List<string> zmapLocal = null;
             foreach (KeyValuePair<AvatarItemEntry, WZProperty> c in equipped)
@@ -295,10 +299,10 @@ namespace maplestory.io.Services.Implementations.MapleStory
 
             // Build a sorted list of defined exclusive locks from items
             IEnumerable<Tuple<int, string[], string[]>> exclusiveLockItems = equipped
-                .OrderBy(c => zmapLocal.IndexOf(c.Value.ResolveForOrNull<string>("info/islot")?.Substring(0, 2)) * ((c.Value.ResolveFor<bool>("info/cash") ?? false) ? 2 : 1))
+                .OrderBy(c => zmapLocal.IndexOf(c.Key.ISlot?.Substring(0, 2)) * ((c.Value.ResolveFor<bool>("info/cash") ?? false) ? 2 : 1))
                 .Select(c => {
-                    string islot = c.Value.ResolveForOrNull<string>("info/islot") ?? "";
-                    string vslot = c.Value.ResolveForOrNull<string>("info/vslot") ?? "";
+                    string islot = c.Key.ISlot;
+                    string vslot = c.Key.VSlot;
                     if ((int)(c.Key.ItemId / 10000) == 104)
                     {
                         if (islot.Equals("MaPn")) islot = "Ma"; // No clue why normal shirts would claim to be overalls, but fuck off.
@@ -419,7 +423,15 @@ namespace maplestory.io.Services.Implementations.MapleStory
                 }
             }
 
-            return resolved.Where(c => c.Value != null).Where(c => c.Value.Children.Count() > 1).ToDictionary(c => c.Key, c => c.Value);
+            IEnumerable<KeyValuePair<AvatarItemEntry, WZProperty>> resolvedIntermediary = resolved.Where(c => c.Value != null && c.Value.Children.Count() > 1).ToArray();
+
+            foreach(KeyValuePair<AvatarItemEntry, WZProperty> resolvedItem in resolvedIntermediary)
+            {
+                if (string.IsNullOrEmpty(resolvedItem.Key.ISlot)) resolvedItem.Key.ISlot = resolvedItem.Value.ResolveForOrNull<string>("info/islot");
+                if (string.IsNullOrEmpty(resolvedItem.Key.VSlot)) resolvedItem.Key.VSlot = resolvedItem.Value.ResolveForOrNull<string>("info/vslot");
+            }
+
+            return resolvedIntermediary.ToDictionary(c => c.Key, c => c.Value);
         }
 
         public byte[] GetSpriteSheet(HttpRequest request, SpriteSheetFormat format, Character character)

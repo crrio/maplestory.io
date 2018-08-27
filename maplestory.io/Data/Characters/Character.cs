@@ -46,7 +46,7 @@ namespace maplestory.io.Data.Characters {
         }
         public int ItemId;
         public float? Hue, Brightness, Contrast, Saturation, Alpha;
-        public string Version;
+        public string Version, VSlot, ISlot;
         public Region Region;
         public string AnimationName;
         public int? EquipFrame;
