@@ -24,7 +24,8 @@ namespace maplestory.io.Data.Items
 
             Install item = new Install(id);
 
-            WZProperty itemWz = stringWz.ResolveOutlink($"Item/Install/{id.ToString("D8").Substring(0, 4)}.img/{id.ToString("D8")}");
+            string itemIdStr = id.ToString("D8");
+            WZProperty itemWz = stringWz.ResolveOutlink($"Item/Install").Children.FirstOrDefault(b => itemIdStr.StartsWith(b.NameWithoutExtension)).Resolve(itemIdStr);
 
             if (itemWz.Children.Any(c => c.NameWithoutExtension.Equals("info"))) item.MetaInfo = ItemInfo.Parse(itemWz);
             item.Description = ItemDescription.Parse(stringWz, id);

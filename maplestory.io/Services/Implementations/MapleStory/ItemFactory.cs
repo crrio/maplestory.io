@@ -137,7 +137,7 @@ namespace maplestory.io.Services.Implementations.MapleStory
             item = WZ.Resolve($"Item/Etc/{idString.Substring(0, 4)}/{idString}");
             if (item != null) return item;
 
-            item = WZ.Resolve($"Item/Install/{idString.Substring(0, 4)}/{idString}");
+            item = WZ.Resolve($"Item/Install").Children.FirstOrDefault(b => idString.StartsWith(b.NameWithoutExtension)).Resolve(idString);
             if (item != null) return item;
 
             item = WZ.Resolve($"Item/Cash/{idString.Substring(0, 4)}/{idString}");

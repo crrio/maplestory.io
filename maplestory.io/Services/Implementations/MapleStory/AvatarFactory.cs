@@ -238,7 +238,7 @@ namespace maplestory.io.Services.Implementations.MapleStory
              { // Concat any effects for items equipped
                  var wz = _wzFactory.GetWZ(c.Key.Region, c.Key.Version);
                  IEnumerable<WZProperty> nodes = new WZProperty[] { wz.Resolve("Effect/ItemEff")?.Resolve($"{c.Key.ItemId}/effect") }; // Resolve the selected animation
-                 if (nodes.First() == null && (c.Key.ItemId / 10000) == 301) nodes = wz.Resolve("Item/Install/0301")?.Resolve($"{c.Key.ItemId.ToString("D8")}").Children.Where(eff => eff.NameWithoutExtension.StartsWith("effect", StringComparison.CurrentCultureIgnoreCase));
+                 if (nodes.First() == null && (c.Key.ItemId / 10000) == 301) nodes = wz.Resolve("Item/Install")?.Children.FirstOrDefault(b => c.Key.ItemId.ToString("D8").StartsWith(b.NameWithoutExtension))?.Resolve($"{c.Key.ItemId.ToString("D8")}").Children.Where(eff => eff.NameWithoutExtension.StartsWith("effect", StringComparison.CurrentCultureIgnoreCase));
 
                  return nodes?.Where(node => node != null).Select(node =>
                  {
@@ -387,7 +387,7 @@ namespace maplestory.io.Services.Implementations.MapleStory
                 if (isChair)
                 {
                     hasChair = true;
-                    chairSitAction = wz.Resolve($"Item/Install/0301.img/{item.ItemId.ToString("D8")}/info/sitAction")?.ResolveForOrNull<string>() ?? "sit";
+                    chairSitAction = wz.Resolve($"Item/Install").Children.FirstOrDefault(b => item.ItemId.ToString("D8").StartsWith(b.NameWithoutExtension)).Resolve($"{item.ItemId.ToString("D8")}/info/sitAction")?.ResolveForOrNull<string>() ?? "sit";
                 }
                 bool isBody = item.ItemId < 10000;
                 bool isHead = item.ItemId < 20000;
@@ -406,7 +406,7 @@ namespace maplestory.io.Services.Implementations.MapleStory
                 {
                     int category = item.ItemId / 100;
 
-                    if (category / 100 == 301) resolved.Add(item, wz.Resolve($"Item/Install/0301/{item.ItemId.ToString("D8")}")?.Resolve());
+                    if (category / 100 == 301) resolved.Add(item, wz.Resolve($"Item/Install").Children.FirstOrDefault(b => item.ItemId.ToString("D8").StartsWith(b.NameWithoutExtension)).Resolve($"{item.ItemId.ToString("D8")}")?.Resolve());
                     else if (category / 100 == 50100) resolved.Add(item, wz.Resolve($"Item/Cash/0501/{item.ItemId.ToString("D8")}")?.Resolve());
                     else
                     {
