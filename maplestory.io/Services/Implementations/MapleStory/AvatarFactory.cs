@@ -250,7 +250,6 @@ namespace maplestory.io.Services.Implementations.MapleStory
                  });
              }).Where(nodes => nodes != null).SelectMany(eff => eff.Where(node => node != null))).Where(node => node != null);
 
-            Dictionary<string, int> islotLookup = smap.GroupBy(c => c.Value.Substring(0, 2)).ToDictionary(c => c.Key, c => c.Select(b => zmap.IndexOf(b.Key)).Max());
             ConcurrentBag<RankedFrame<AvatarItemEntry>> rankedFrames = new ConcurrentBag<RankedFrame<AvatarItemEntry>>();
 
             while (!Parallel.ForEach(frameParts ?? new Tuple<WZProperty, AvatarItemEntry>[0], (c) =>
@@ -259,8 +258,19 @@ namespace maplestory.io.Services.Implementations.MapleStory
                 int zPosition = 0;
                 if (!int.TryParse(zIndex, out zPosition))
                     zPosition = zmap.IndexOf(zIndex);
-                else if (islotLookup.ContainsKey(c.Item2.ISlot.Substring(0, 2))) zPosition = islotLookup[c.Item2.ISlot.Substring(0, 2)] + zPosition;
-                else zPosition = zmap.IndexOf(c.Item2.ISlot) + zPosition;
+                else
+                {
+                    Tuple<WZProperty, AvatarItemEntry> siblingFramePart = frameParts.FirstOrDefault(b => b.Item2 == c.Item2 && b != c);
+                    if (siblingFramePart != null)
+                    {
+                        string siblingZ = siblingFramePart.Item1.ResolveForOrNull<string>("z") ?? siblingFramePart.Item1.ResolveForOrNull<string>("../z") ?? siblingFramePart.Item1.Resolve().ResolveForOrNull<string>("z") ?? siblingFramePart.Item1.Resolve().ResolveForOrNull<string>("../z");
+                        if (!int.TryParse(siblingZ, out int siblingZPosition))
+                            zPosition = zmap.IndexOf(siblingZ) + zPosition;
+                        else
+                            zPosition = zmap.IndexOf("body") + zPosition + siblingZPosition - 1;
+                    }
+                    else zPosition = zmap.IndexOf(c.Item2.ISlot) - zPosition;
+                }
 
                 if (!HasFace && zIndex.EndsWith("BelowFace", StringComparison.CurrentCultureIgnoreCase)) zPosition -= 100;
 
