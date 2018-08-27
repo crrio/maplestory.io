@@ -25,8 +25,7 @@ namespace maplestory.io.Data.Characters {
         public bool FlipX;
         public int Padding, FrameNumber;
         public RenderMode Mode;
-        public bool ElfEars;
-        public bool LefEars;
+        public bool ElfEars, LefEars, HighLefEars;
     }
 
     public class AvatarItemEntry {

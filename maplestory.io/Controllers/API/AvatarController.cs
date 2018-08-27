@@ -24,6 +24,7 @@ namespace maplestory.io.Controllers.API
     {
         [FromQuery] public bool showEars { get; set; } = false;
         [FromQuery] public bool showLefEars { get; set; } = false;
+        [FromQuery] public bool showHighLefEars { get; set; } = false;
         [FromQuery] public int padding { get; set; } = 2;
         [FromQuery] public string name { get; set; } = null;
         [FromQuery] public float resize { get; set; } = 1;
@@ -47,6 +48,7 @@ namespace maplestory.io.Controllers.API
                 Mode = renderMode,
                 ElfEars = showEars,
                 LefEars = showLefEars,
+                HighLefEars = showHighLefEars,
                 Name = name
             };
         }

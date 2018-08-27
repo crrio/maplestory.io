@@ -23,6 +23,7 @@ namespace maplestory.io.Controllers.API
     {
         [FromQuery] public bool showEars { get; set; } = false;
         [FromQuery] public bool showLefEars { get; set; } = false;
+        [FromQuery] public bool showHighLefEars { get; set; } = false;
         [FromQuery] public int padding { get; set; } = 2;
         [FromQuery] public string name { get; set; } = null;
         [FromQuery] public float resize { get; set; } = 1;
@@ -72,6 +73,7 @@ namespace maplestory.io.Controllers.API
                 FlipX = flipX,
                 ElfEars = showEars,
                 LefEars = showLefEars,
+                HighLefEars = showHighLefEars,
                 Mode = renderMode,
                 Name = name,
                 Zoom = resize,
@@ -118,6 +120,7 @@ namespace maplestory.io.Controllers.API
                 FlipX = flipX,
                 ElfEars = showEars,
                 LefEars = showLefEars,
+                HighLefEars = showHighLefEars,
                 Name = name,
                 Zoom = resize,
                 Padding = padding,
@@ -170,6 +173,7 @@ namespace maplestory.io.Controllers.API
                         FlipX = flipX,
                         ElfEars = showEars,
                         LefEars = showLefEars,
+                        HighLefEars = showHighLefEars,
                         Name = name,
                         Zoom = resize,
                         Padding = padding,
@@ -191,7 +195,7 @@ namespace maplestory.io.Controllers.API
 
         [Route("animated/{skinId}/{items?}/{animation?}/{frame?}")]
         [HttpGet]
-        public IActionResult GetCharacterAnimated(int skinId, string items, string animation, RenderMode renderMode, bool showEars, bool showLefEars, int padding, [FromQuery] string bgColor = "")
+        public IActionResult GetCharacterAnimated(int skinId, string items, string animation, RenderMode renderMode, bool showEars, bool showLefEars, bool showHighLeftEars, int padding, [FromQuery] string bgColor = "")
         {
             Rgba32 background = Rgba32.Transparent;
 
@@ -209,6 +213,7 @@ namespace maplestory.io.Controllers.API
                 FlipX = flipX,
                 ElfEars = showEars,
                 LefEars = showLefEars,
+                HighLefEars = showHighLefEars,
                 Mode = renderMode,
                 Name = name,
                 Zoom = resize,
@@ -254,12 +259,13 @@ namespace maplestory.io.Controllers.API
 
         [Route("download/{skinId}/{items?}")]
         [HttpGet]
-        public IActionResult GetSpritesheet(int skinId, string items = "1102039", [FromQuery] RenderMode renderMode = RenderMode.Full, [FromQuery] bool showEars = false, [FromQuery] bool showLefEars = false, [FromQuery] int padding = 2, [FromQuery] SpriteSheetFormat format = SpriteSheetFormat.Plain)
+        public IActionResult GetSpritesheet(int skinId, string items = "1102039", [FromQuery] RenderMode renderMode = RenderMode.Full, [FromQuery] bool showEars = false, [FromQuery] bool showLefEars = false, [FromQuery] bool showHighLefEars = false, [FromQuery] int padding = 2, [FromQuery] SpriteSheetFormat format = SpriteSheetFormat.Plain)
             => File(AvatarFactory.GetSpriteSheet(Request, format, new Character()
             {
                 FlipX = flipX,
                 ElfEars = showEars,
                 LefEars = showLefEars,
+                HighLefEars = showHighLefEars,
                 Mode = renderMode,
                 Name = name,
                 Zoom = resize,
