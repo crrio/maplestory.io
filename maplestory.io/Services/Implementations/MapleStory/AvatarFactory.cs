@@ -948,6 +948,7 @@ namespace maplestory.io.Services.Implementations.MapleStory
                 Rectangle boxPosition = new Rectangle((int)((feetCenter.X - halfSize.Width) - nMinX) + 2, (int)feetCenter.Y + 4, (int)realNameSize.Width + (w?.Width ?? 0) + (e?.Width ?? 0), (int)realNameSize.Height);
                 PointF textPosition = new PointF(boxPosition.X + 2 + (w?.Width ?? 0), (boxPosition.Y - 1) + (tagHeight > 0 ? tagHeight - 16 : 0) / 2);
                 Image<Rgba32> withName = new Image<Rgba32>((int)Math.Max(nMaxX - nMinX, destination.Width), (int)Math.Max(feetCenter.Y + nameSize.Height, destination.Height + nameSize.Height));
+                feetCenter = Point.Add(calcFeetCenter(flipX, zoom, ref NameWidthAdjustmentX, body, minX, minY, destination), new Size((int)(padding * zoom), (int)(padding * zoom)));
 
                 withName.Mutate(x =>
                 {

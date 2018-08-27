@@ -177,12 +177,7 @@ namespace maplestory.io.Controllers.API
                          {
                              new AvatarItemEntry(){ ItemId = skinId, Region = Region, Version = Version },
                              new AvatarItemEntry(){ ItemId = skinId + 10000, Region = Region, Version = Version },
-                         }.Concat(items.Split(new string[] { "," }, StringSplitOptions.RemoveEmptyEntries)
-                        .Select(c => c.Split(':', ';'))
-                        .Where(c => c.Length > 0 && int.TryParse(c[0], out int blah))
-                        .Select(c => new Tuple<int, string, float?>(int.Parse(c[0]), c.Length > 1 && !float.TryParse(c[1], out float blah) ? c[1] : animation, c.Length > 2 && float.TryParse(c[2], out float huehuehue) ? (float?)huehuehue : (c.Length > 1 && float.TryParse(c[1], out huehuehue) ? (float?)huehuehue : null)))
-                        .OrderBy(c => c.Item1, OrderByDirection.Descending)
-                        .Select(c => new AvatarItemEntry() { ItemId = c.Item1, AnimationName = c.Item2, Hue = c.Item3, Region = Region, Version = Version })).ToArray()
+                         }.Concat(itemEntries.Select(item => new AvatarItemEntry() { ItemId = item.Item1, AnimationName = item.Item2, Hue = item.Item3 })).ToArray()
                     });
                     allDetails.TryAdd($"{animation}-{face}-{frame}", new Tuple<Image<Rgba32>, Dictionary<string, Point>, int>(detailed.Item1, detailed.Item2, detailed.Item4));
 
