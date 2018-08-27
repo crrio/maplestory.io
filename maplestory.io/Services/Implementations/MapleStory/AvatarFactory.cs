@@ -238,7 +238,14 @@ namespace maplestory.io.Services.Implementations.MapleStory
              { // Concat any effects for items equipped
                  var wz = _wzFactory.GetWZ(c.Key.Region, c.Key.Version);
                  IEnumerable<WZProperty> nodes = new WZProperty[] { wz.Resolve("Effect/ItemEff")?.Resolve($"{c.Key.ItemId}/effect") }; // Resolve the selected animation
-                 if (nodes.First() == null && (c.Key.ItemId / 10000) == 301) nodes = wz.Resolve("Item/Install")?.Children.FirstOrDefault(b => c.Key.ItemId.ToString("D8").StartsWith(b.NameWithoutExtension))?.Resolve($"{c.Key.ItemId.ToString("D8")}").Children.Where(eff => eff.NameWithoutExtension.StartsWith("effect", StringComparison.CurrentCultureIgnoreCase));
+
+                 if (nodes.First() == null && (c.Key.ItemId / 10000) == 301) {
+                     WZProperty chairNode = wz.Resolve("Item/Install")?.Children.FirstOrDefault(b => c.Key.ItemId.ToString("D8").StartsWith(b.NameWithoutExtension))?.Resolve($"{c.Key.ItemId.ToString("D8")}");
+                     if (chairNode != null)
+                     {
+                         nodes = chairNode.Children.Where(eff => eff.NameWithoutExtension.StartsWith("effect", StringComparison.CurrentCultureIgnoreCase));
+                     }
+                 }
 
                  return nodes?.Where(node => node != null).Select(node =>
                  {
@@ -267,7 +274,7 @@ namespace maplestory.io.Services.Implementations.MapleStory
                         if (!int.TryParse(siblingZ, out int siblingZPosition))
                             zPosition = zmap.IndexOf(siblingZ) + zPosition;
                         else
-                            zPosition = zmap.IndexOf("characterEnd") + zPosition + siblingZPosition - 1;
+                            zPosition = zmap.IndexOf("characterEnd") * zPosition - 1;
                     }
                     else zPosition = zmap.IndexOf(c.Item2.ISlot) - zPosition;
                 }
@@ -475,7 +482,7 @@ namespace maplestory.io.Services.Implementations.MapleStory
                     return (b.Key.ItemId >= 20000 && b.Key.ItemId < 30000) || (b.Key.ItemId >= 1010000 && b.Key.ItemId < 1020000) || b.Value.Children.Any(a => {
                         // If the child node doesn't equal the animation name, but it does equal the weapon type:
                         // This node is split into weapon categories, go a layer deeper and try matching any of the node's children to the animation name.
-                        return a.Name == c.Key || (a.Name == weaponType.ToString() ? a.Children.Any(d =>
+                        return a.Name == c.Key || (int.TryParse(a.Name, out int itemWeaponType) ? a.Children.Any(d =>
                         {
                             return d.Name == c.Key;
                         }) : false);
