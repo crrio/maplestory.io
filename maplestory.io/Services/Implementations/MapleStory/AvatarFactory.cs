@@ -46,7 +46,7 @@ namespace maplestory.io.Services.Implementations.MapleStory
         public AvatarFactory(IWZFactory wzFactory) => this._wzFactory = wzFactory;
         private IWZFactory _wzFactory;
 
-        void LoadCharacter(Character character, out bool hasChair, out bool hasMount, out string chairSitAction, out int weaponType, out Dictionary<AvatarItemEntry, WZProperty> resolved, out Dictionary<string, int> exclusiveLocks, out List<string> zmap, out Dictionary<string, string> smap, out bool hasFace)
+        void LoadCharacter(Character character, out bool hasChair, out bool hasMount, out string chairSitAction, out int weaponType, out Dictionary<AvatarItemEntry, WZProperty> resolved, out Dictionary<string, int> exclusiveLocks, out List<string> zmap, out Dictionary<string, string> smap)
         {
             if (!character.ItemEntries.Any(c => c.ItemId < 10000)) character.ItemEntries = MoreLinq.MoreEnumerable.Append(character.ItemEntries, new AvatarItemEntry() { ItemId = 2000, Alpha = 0 }).ToArray();
             if (!character.ItemEntries.Any(c => c.ItemId < 20000)) character.ItemEntries = MoreLinq.MoreEnumerable.Append(character.ItemEntries, new AvatarItemEntry() { ItemId = 12000, Alpha = 0 }).ToArray();
@@ -71,7 +71,6 @@ namespace maplestory.io.Services.Implementations.MapleStory
                     weaponType = 30;
             }
             exclusiveLocks = ResolveItemLocks(ref resolved, out zmap, out smap);
-            hasFace = (body?.Resolve(character.AnimationName) ?? body?.Resolve("default"))?.ResolveFor<bool>($"{character.FrameNumber}/face") ?? true;
         }
 
         int lcmn(int[] numbers) => numbers.Aggregate(lcm);
@@ -471,7 +470,7 @@ namespace maplestory.io.Services.Implementations.MapleStory
             string fileExtension = "png";
             if ((format & SpriteSheetFormat.PDNZip) == SpriteSheetFormat.PDNZip) fileExtension = "zip";
 
-            LoadCharacter(character, out bool hasChair, out bool hasMount, out string chairSitAction, out int weaponType, out Dictionary<AvatarItemEntry, WZProperty> resolved, out Dictionary<string, int> exclusiveLocks, out List<string> zmap, out Dictionary<string, string> smap, out bool hasFace);
+            LoadCharacter(character, out bool hasChair, out bool hasMount, out string chairSitAction, out int weaponType, out Dictionary<AvatarItemEntry, WZProperty> resolved, out Dictionary<string, int> exclusiveLocks, out List<string> zmap, out Dictionary<string, string> smap);
 
             KeyValuePair<AvatarItemEntry, WZProperty> body = resolved.FirstOrDefault(c => c.Key.ItemId < 10000);
             Dictionary<string, int> actions = GetBodyFrameCounts(body.Value);
@@ -519,9 +518,9 @@ namespace maplestory.io.Services.Implementations.MapleStory
 
                                 byte[] data = null;
                                 if ((format & SpriteSheetFormat.PDNZip) == SpriteSheetFormat.PDNZip)
-                                    data = RenderFrameZip(request, character.Mode, animation.Key, character.Name, frame, character.ElfEars, character.LefEars, character.HighLefEars, character.FlipX, character.Zoom, character.Padding, null, hasChair, hasMount, chairSitAction, weaponType, realResolved, exclusiveLocks, zmap, smap, hasFace);
+                                    data = RenderFrameZip(request, character.Mode, animation.Key, character.Name, frame, character.ElfEars, character.LefEars, character.HighLefEars, character.FlipX, character.Zoom, character.Padding, null, hasChair, hasMount, chairSitAction, weaponType, realResolved, exclusiveLocks, zmap, smap);
                                 else
-                                    data = RenderFrame(character.Mode, animation.Key, character.Name, frame, character.ElfEars, character.LefEars, character.HighLefEars, character.FlipX, character.Zoom, character.Padding, null, hasChair, hasMount, chairSitAction, weaponType, realResolved, exclusiveLocks, zmap, smap, hasFace).ImageToByte(request, false);
+                                    data = RenderFrame(character.Mode, animation.Key, character.Name, frame, character.ElfEars, character.LefEars, character.HighLefEars, character.FlipX, character.Zoom, character.Padding, null, hasChair, hasMount, chairSitAction, weaponType, realResolved, exclusiveLocks, zmap, smap).ImageToByte(request, false);
 
                                 var res = new Tuple<string, byte[]>(
                                     path,
@@ -581,7 +580,7 @@ namespace maplestory.io.Services.Implementations.MapleStory
             }
         }
 
-        private byte[] RenderFrameZip(HttpRequest request, RenderMode mode, string animationName, string name, int frameNumber, bool elfEars, bool lefEars, bool highLefEars, bool flipX, float zoom, int padding, object p, bool hasChair, bool hasMount, string chairSitAction, int weaponType, Dictionary<AvatarItemEntry, WZProperty> resolved, Dictionary<string, int> exclusiveLocks, List<string> zmap, Dictionary<string, string> smap, bool hasFace)
+        private byte[] RenderFrameZip(HttpRequest request, RenderMode mode, string animationName, string name, int frameNumber, bool elfEars, bool lefEars, bool highLefEars, bool flipX, float zoom, int padding, object p, bool hasChair, bool hasMount, string chairSitAction, int weaponType, Dictionary<AvatarItemEntry, WZProperty> resolved, Dictionary<string, int> exclusiveLocks, List<string> zmap, Dictionary<string, string> smap)
         {
             WZProperty bodyNode = resolved.FirstOrDefault(c => c.Key.ItemId < 10000).Value;
             WZProperty bodyAnimationNode = bodyNode.Resolve($"{animationName}");
@@ -589,6 +588,7 @@ namespace maplestory.io.Services.Implementations.MapleStory
             WZProperty bodyFrameNode = bodyAnimationNode.Resolve((frameNumber % (maxFrame + 1)).ToString());
             string bodyAnimation = bodyAnimationNode.ResolveForOrNull<string>("action");
             int? bodyFrameNumber = bodyAnimationNode.ResolveFor<int>("frame");
+            bool hasFace = bodyAnimationNode.ResolveFor<bool>("face") ?? true;
             bool? bodyFlip = bodyAnimationNode.ResolveFor<bool>("flip");
             // Override the original name of the animation with the correct `real` animation
             if (bodyAnimation != null) animationName = bodyAnimation;
@@ -654,7 +654,7 @@ namespace maplestory.io.Services.Implementations.MapleStory
         public Tuple<Image<Rgba32>, Dictionary<string, Point>, Dictionary<string, int>, int> Details(Character character)
         {
             Dictionary<string, Point> anchorPositions = new Dictionary<string, Point>();
-            LoadCharacter(character, out bool hasChair, out bool hasMount, out string chairSitAction, out int weaponType, out Dictionary<AvatarItemEntry, WZProperty> resolved, out Dictionary<string, int> exclusiveLocks, out List<string> zmap, out Dictionary<string, string> smap, out bool hasFace);
+            LoadCharacter(character, out bool hasChair, out bool hasMount, out string chairSitAction, out int weaponType, out Dictionary<AvatarItemEntry, WZProperty> resolved, out Dictionary<string, int> exclusiveLocks, out List<string> zmap, out Dictionary<string, string> smap);
 
             KeyValuePair<AvatarItemEntry, WZProperty> body = resolved.FirstOrDefault(c => c.Key.ItemId < 10000);
             WZProperty bodyAnimationNode = body.Value.Resolve(character.AnimationName) ?? body.Value.Resolve("default");
@@ -662,7 +662,7 @@ namespace maplestory.io.Services.Implementations.MapleStory
             int animationDelay = bodyAnimationNode.ResolveFor<int>($"{character.FrameNumber % (maxFrame + 1)}/delay") ?? 0;
 
             return new Tuple<Image<Rgba32>, Dictionary<string, Point>, Dictionary<string, int>, int>(
-                RenderFrame(character.Mode, character.AnimationName, character.Name, character.FrameNumber, character.ElfEars, character.LefEars, character.HighLefEars, character.FlipX, character.Zoom, character.Padding, anchorPositions, hasChair, hasMount, chairSitAction, weaponType, resolved, exclusiveLocks, zmap, smap, hasFace),
+                RenderFrame(character.Mode, character.AnimationName, character.Name, character.FrameNumber, character.ElfEars, character.LefEars, character.HighLefEars, character.FlipX, character.Zoom, character.Padding, anchorPositions, hasChair, hasMount, chairSitAction, weaponType, resolved, exclusiveLocks, zmap, smap),
                 anchorPositions,
                 GetBodyFrameCounts(body.Value),
                 animationDelay
@@ -694,7 +694,7 @@ namespace maplestory.io.Services.Implementations.MapleStory
 
         public Image<Rgba32> Animate(Character character, Rgba32? background = null)
         {
-            LoadCharacter(character, out bool hasChair, out bool hasMount, out string chairSitAction, out int weaponType, out Dictionary<AvatarItemEntry, WZProperty> resolved, out Dictionary<string, int> exclusiveLocks, out List<string> zmap, out Dictionary<string, string> smap, out bool hasFace);
+            LoadCharacter(character, out bool hasChair, out bool hasMount, out string chairSitAction, out int weaponType, out Dictionary<AvatarItemEntry, WZProperty> resolved, out Dictionary<string, int> exclusiveLocks, out List<string> zmap, out Dictionary<string, string> smap);
 
             KeyValuePair<AvatarItemEntry, WZProperty> body = resolved.FirstOrDefault(c => c.Key.ItemId < 10000);
             WZProperty bodyAnimationNode = body.Value.Resolve(character.AnimationName) ?? body.Value.Resolve("default");
@@ -703,7 +703,7 @@ namespace maplestory.io.Services.Implementations.MapleStory
             Tuple<Image<Rgba32>, Dictionary<string, Point>, int>[] frames = Enumerable.Range(0, maxFrame + 1).Select(frameNumber => {
                 Dictionary<string, Point> anchorPositions = new Dictionary<string, Point>();
                 return new Tuple<Image<Rgba32>, Dictionary<string, Point>, int>(
-                    RenderFrame(character.Mode, character.AnimationName, character.Name, frameNumber, character.ElfEars, character.LefEars, character.HighLefEars, character.FlipX, character.Zoom, character.Padding, anchorPositions, hasChair, hasMount, chairSitAction, weaponType, resolved, exclusiveLocks, zmap, smap, hasFace),
+                    RenderFrame(character.Mode, character.AnimationName, character.Name, frameNumber, character.ElfEars, character.LefEars, character.HighLefEars, character.FlipX, character.Zoom, character.Padding, anchorPositions, hasChair, hasMount, chairSitAction, weaponType, resolved, exclusiveLocks, zmap, smap),
                     anchorPositions,
                     bodyAnimationNode.ResolveFor<int>($"{frameNumber}/delay") ?? 0
                 );
@@ -772,12 +772,12 @@ namespace maplestory.io.Services.Implementations.MapleStory
         public Image<Rgba32> Render(Character character)
         {
             Dictionary<string, Point> anchorPositions = new Dictionary<string, Point>();
-            LoadCharacter(character, out bool hasChair, out bool hasMount, out string chairSitAction, out int weaponType, out Dictionary<AvatarItemEntry, WZProperty> resolved, out Dictionary<string, int> exclusiveLocks, out List<string> zmap, out Dictionary<string, string> smap, out bool hasFace);
+            LoadCharacter(character, out bool hasChair, out bool hasMount, out string chairSitAction, out int weaponType, out Dictionary<AvatarItemEntry, WZProperty> resolved, out Dictionary<string, int> exclusiveLocks, out List<string> zmap, out Dictionary<string, string> smap);
 
-            return RenderFrame(character.Mode, character.AnimationName, character.Name, character.FrameNumber, character.ElfEars, character.LefEars, character.HighLefEars, character.FlipX, character.Zoom, character.Padding, anchorPositions, hasChair, hasMount, chairSitAction, weaponType, resolved, exclusiveLocks, zmap, smap, hasFace);
+            return RenderFrame(character.Mode, character.AnimationName, character.Name, character.FrameNumber, character.ElfEars, character.LefEars, character.HighLefEars, character.FlipX, character.Zoom, character.Padding, anchorPositions, hasChair, hasMount, chairSitAction, weaponType, resolved, exclusiveLocks, zmap, smap);
         }
 
-        private Image<Rgba32> RenderFrame(RenderMode mode, string animationName, string name, int frameNumber, bool elfEars, bool lefEars, bool highLefEars, bool flipX, float zoom, int padding, Dictionary<string, Point> anchorPositions, bool hasChair, bool hasMount, string chairSitAction, int weaponType, Dictionary<AvatarItemEntry, WZProperty> resolved, Dictionary<string, int> exclusiveLocks, List<string> zmap, Dictionary<string, string> smap, bool hasFace)
+        private Image<Rgba32> RenderFrame(RenderMode mode, string animationName, string name, int frameNumber, bool elfEars, bool lefEars, bool highLefEars, bool flipX, float zoom, int padding, Dictionary<string, Point> anchorPositions, bool hasChair, bool hasMount, string chairSitAction, int weaponType, Dictionary<AvatarItemEntry, WZProperty> resolved, Dictionary<string, int> exclusiveLocks, List<string> zmap, Dictionary<string, string> smap)
         {
             if (animationName == null)
                 animationName = GetPossibleActions(resolved.Keys.ToArray()).Keys.FirstOrDefault(c => c.StartsWith("stand"));
@@ -787,7 +787,8 @@ namespace maplestory.io.Services.Implementations.MapleStory
             WZProperty bodyFrameNode = bodyAnimationNode.Resolve((frameNumber % (maxFrame + 1)).ToString());
             string bodyAnimation = bodyAnimationNode.ResolveForOrNull<string>("action");
             int? bodyFrameNumber = bodyAnimationNode.ResolveFor<int>("frame");
-            bool? bodyFlip = bodyAnimationNode.ResolveFor<bool>("flip");
+            bool hasFace = bodyFrameNode.ResolveFor<bool>("face") ?? true;
+            bool? bodyFlip = bodyFrameNode.ResolveFor<bool>("flip");
             // Override the original name of the animation with the correct `real` animation
             if (bodyAnimation != null) animationName = bodyAnimation;
             if (bodyFrameNumber.HasValue) frameNumber = bodyFrameNumber.Value;
