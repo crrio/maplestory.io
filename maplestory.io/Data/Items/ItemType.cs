@@ -8,13 +8,6 @@ namespace maplestory.io.Data
     public class ItemType
     {
         static Dictionary<string, Tuple<string, int, int>[]> equips = new Dictionary<string, Tuple<string, int, int>[]>{
-            {"Character",
-                new Tuple<string, int, int>[]
-                {
-                    new Tuple<string, int, int>("Body", 2000, 9999),
-                    new Tuple<string, int, int>("Head", 10000, 19999)
-                }
-            },
             {"Accessory",
                 new Tuple<string,int,int>[]{
                     new Tuple<string, int, int>("Badge", 1180000, 1190000),
@@ -142,6 +135,8 @@ namespace maplestory.io.Data
             },
             {"Character",
                 new Tuple<string,int,int>[]{
+                    new Tuple<string, int, int>("Body", 2000, 9999),
+                    new Tuple<string, int, int>("Head", 10000, 19999),
                     new Tuple<string, int, int>("Face", 20000, 29999),
                     new Tuple<string, int, int>("Hair", 30000, 49999)
                 }
