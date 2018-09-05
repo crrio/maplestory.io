@@ -93,6 +93,7 @@ namespace maplestory.io.Data.Characters {
     {
         Plain = 0,
         PDNZip = 1,
-        Minimal = 2
+        Minimal = 2,
+        Aseprite = 4
     }
 }

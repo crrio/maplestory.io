@@ -478,6 +478,7 @@ namespace maplestory.io.Services.Implementations.MapleStory
             actions = actions.Where(c => {
                 return resolved.All(b => {
                     // If the item is a face, skip it
+                    if (b.Key.ItemId / 10000 == 301 && c.Key == (chairSitAction ?? "sit")) return true;
                     return (b.Key.ItemId >= 20000 && b.Key.ItemId < 30000) || (b.Key.ItemId >= 1010000 && b.Key.ItemId < 1020000) || b.Value.Children.Any(a => {
                         // If the child node doesn't equal the animation name, but it does equal the weapon type:
                         // This node is split into weapon categories, go a layer deeper and try matching any of the node's children to the animation name.
@@ -519,6 +520,8 @@ namespace maplestory.io.Services.Implementations.MapleStory
                                 byte[] data = null;
                                 if ((format & SpriteSheetFormat.PDNZip) == SpriteSheetFormat.PDNZip)
                                     data = RenderFrameZip(request, character.Mode, animation.Key, character.Name, frame, character.ElfEars, character.LefEars, character.HighLefEars, character.FlipX, character.Zoom, character.Padding, null, hasChair, hasMount, chairSitAction, weaponType, realResolved, exclusiveLocks, zmap, smap);
+                                else if ((format & SpriteSheetFormat.Aseprite) == SpriteSheetFormat.Aseprite)
+                                    data = RenderAsepriteFrame(character.Mode, animation.Key, character.Name, frame, character.ElfEars, character.LefEars, character.HighLefEars, character.FlipX, character.Zoom, character.Padding, null, hasChair, hasMount, chairSitAction, weaponType, realResolved, exclusiveLocks, zmap, smap);
                                 else
                                     data = RenderFrame(character.Mode, animation.Key, character.Name, frame, character.ElfEars, character.LefEars, character.HighLefEars, character.FlipX, character.Zoom, character.Padding, null, hasChair, hasMount, chairSitAction, weaponType, realResolved, exclusiveLocks, zmap, smap).ImageToByte(request, false);
 
@@ -579,6 +582,9 @@ namespace maplestory.io.Services.Implementations.MapleStory
                 return mem.ToArray();
             }
         }
+
+        private byte[] RenderAsepriteFrame(RenderMode mode, string key, string name, int frame, bool elfEars, bool lefEars, bool highLefEars, bool flipX, float zoom, int padding, object p, bool hasChair, bool hasMount, string chairSitAction, int weaponType, Dictionary<AvatarItemEntry, WZProperty> realResolved, Dictionary<string, int> exclusiveLocks, List<string> zmap, Dictionary<string, string> smap)
+            => throw new NotImplementedException();
 
         private byte[] RenderFrameZip(HttpRequest request, RenderMode mode, string animationName, string name, int frameNumber, bool elfEars, bool lefEars, bool highLefEars, bool flipX, float zoom, int padding, object p, bool hasChair, bool hasMount, string chairSitAction, int weaponType, Dictionary<AvatarItemEntry, WZProperty> resolved, Dictionary<string, int> exclusiveLocks, List<string> zmap, Dictionary<string, string> smap)
         {
