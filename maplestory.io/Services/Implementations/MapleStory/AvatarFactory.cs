@@ -690,7 +690,11 @@ namespace maplestory.io.Services.Implementations.MapleStory
                 else if (b.Key.ItemId >= 20000 && b.Key.ItemId < 30000) return a;
                 else if (b.Key.ItemId >= 1010000 && b.Key.ItemId < 1020000) return a;
                 else if (b.Key.ItemId / 10000 == 301) return a;
-                else return b.Value.Children.Count() > 1 ? b.Value.Children.Select(c => c.Name).Where(c => a.Contains(c)).ToArray() : a;
+                else if (b.Value.Children.Where(c => !c.NameWithoutExtension.Equals("info", StringComparison.CurrentCultureIgnoreCase)).All(c => int.TryParse(c.NameWithoutExtension, out int blah)))
+                {
+                    IEnumerable<WZProperty> weaponTypeChildren = b.Value.Children.Where(c => !c.NameWithoutExtension.Equals("info", StringComparison.CurrentCultureIgnoreCase)).First().Children;
+                    return weaponTypeChildren.Count() > 1 ? weaponTypeChildren.Select(c => c.Name).Where(c => a.Contains(c)).ToArray() : a;
+                } else return b.Value.Children.Count() > 1 ? b.Value.Children.Select(c => c.Name).Where(c => a.Contains(c)).ToArray() : a;
             })).Where(c => c != "info" && c != "heal").ToDictionary(c => c, animationName =>
             {
                 WZProperty bodyAnimationNode = body.Resolve(animationName);
