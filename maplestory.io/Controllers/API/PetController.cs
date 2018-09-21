@@ -23,7 +23,7 @@ namespace maplestory.io.Controllers.API
             return Json(eq.frameBooks.Where(c => c.Value.FirstOrDefault()?.frames?.Count() > 0).ToDictionary(c => c.Key, c => c.Value.FirstOrDefault()?.frames?.Count() ?? 0));
         }
 
-        [Route("actions/{petId}/name")]
+        [Route("{petId}/name")]
         [HttpGet]
         public IActionResult GetName(int petId)
         {
