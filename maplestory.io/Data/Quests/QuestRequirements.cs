@@ -19,6 +19,7 @@ namespace maplestory.io.Data.Quests
         public IEnumerable<Requirement> Quests; // quest
         public int? NPCId; // npc
         public DayOfWeek[] OnDayOfWeek; // dayOfWeek
+        public bool? AnyPet;
         public IEnumerable<Requirement> Pet; // pet
         public int? PetTamenessMin; // pettamenessmin
         public bool? DayByDay; // dayByDay
@@ -53,6 +54,7 @@ namespace maplestory.io.Data.Quests
             result.NPCId = data.ResolveFor<int>("npc");
             string dayOfWeek = data.ResolveForOrNull<string>("dayOfWeek");
             result.OnDayOfWeek = ResolveDayOfWeek(dayOfWeek != null ? new string[] { dayOfWeek } : data.Resolve("dayOfWeek")?.Children?.Select(c => c.NameWithoutExtension).ToArray()); // dayOfWeek
+            result.AnyPet = data.ResolveFor<bool>("allPet");
             result.Pet = data.Resolve("pet")?.Children.Select(c => Requirement.Parse(c));
             result.PetTamenessMin = data.ResolveFor<int>("pettamenessmin");
             result.DayByDay = data.ResolveFor<bool>("dayByDay");
