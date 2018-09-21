@@ -32,6 +32,18 @@ namespace maplestory.io.Controllers
             return File(firstFrame.Image.ImageToByte(Request), "image/png");
         }
 
+        [Route("{npcId}/name")]
+        [HttpGet]
+        public IActionResult GetName(int npcId)
+        {
+            NPC npcData = NPCFactory.GetNPC(npcId);
+            return Json(new
+            {
+                Name = npcData.Name,
+                Id = npcData.Id
+            });
+        }
+
         [Route("{npcId}/render/{framebook}/{frame?}")]
         [HttpGet]
         public IActionResult Render(int npcId, string framebook, int frame = 0)
