@@ -6,6 +6,7 @@ using Newtonsoft.Json;
 using PKG1;
 using maplestory.io.Data.Maps;
 using maplestory.io.Data.Images;
+using maplestory.io.Models;
 
 namespace maplestory.io.Data.NPC
 {
@@ -27,6 +28,7 @@ namespace maplestory.io.Data.NPC
         public int? ComponentSkin;
         public int[] ComponentIds;
         public MapName[] FoundAt;
+        public int[] RelatedQuests;
 
         public static NPC Parse(WZProperty stringWz, bool followLink = true)
         {
@@ -36,6 +38,9 @@ namespace maplestory.io.Data.NPC
 
             NPC result = new NPC();
             result.Id = id;
+
+            if (stringWz?.FileContainer?.Collection is MSPackageCollection)
+                ((MSPackageCollection)stringWz.FileContainer.Collection).NPCQuests.TryGetValue(id, out result.RelatedQuests);
 
             result.npcImg = stringWz.ResolveOutlink($"Npc/{id.ToString("D7")}");
             result.Link = result.npcImg.ResolveFor<int>("info/link") ?? result.npcImg.ResolveFor<int>("link");
