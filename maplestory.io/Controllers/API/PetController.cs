@@ -23,6 +23,14 @@ namespace maplestory.io.Controllers.API
             return Json(eq.frameBooks.Where(c => c.Value.FirstOrDefault()?.frames?.Count() > 0).ToDictionary(c => c.Key, c => c.Value.FirstOrDefault()?.frames?.Count() ?? 0));
         }
 
+        [Route("actions/{petId}/name")]
+        [HttpGet]
+        public IActionResult GetName(int petId)
+        {
+            Pet eq = PetFactory.GetPet(petId);
+            return Json(eq.Description);
+        }
+
         [Route("{petId}/{animation}/{frame?}/{petEquip?}")]
         [HttpGet]
         public IActionResult RenderPet(int petId, string animation = "stand0", int frame = 0, int petEquip = -1)
