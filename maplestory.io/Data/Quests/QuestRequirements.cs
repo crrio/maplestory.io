@@ -18,7 +18,7 @@ namespace maplestory.io.Data.Quests
         public IEnumerable<Requirement> Items; // item
         public IEnumerable<Requirement> Quests; // quest
         public int? NPCId; // npc
-        public DayOfWeek? OnDayOfWeek; // dayOfWeek
+        public DayOfWeek[] OnDayOfWeek; // dayOfWeek
         public IEnumerable<Requirement> Pet; // pet
         public int? PetTamenessMin; // pettamenessmin
         public bool? DayByDay; // dayByDay
@@ -51,7 +51,8 @@ namespace maplestory.io.Data.Quests
             result.Items = data.Resolve("item")?.Children.Select(c => Requirement.Parse(c));
             result.Quests = data.Resolve("quest")?.Children.Select(c => Requirement.Parse(c));
             result.NPCId = data.ResolveFor<int>("npc");
-            result.OnDayOfWeek = (DayOfWeek?)ResolveDayOfWeek(data.ResolveForOrNull<string>("dayOfWeek") ?? data.Resolve("dayOfWeek")?.Children?.FirstOrDefault()?.NameWithoutExtension); // dayOfWeek
+            string dayOfWeek = data.ResolveForOrNull<string>("dayOfWeek");
+            result.OnDayOfWeek = ResolveDayOfWeek(dayOfWeek != null ? new string[] { dayOfWeek } : data.Resolve("dayOfWeek")?.Children?.Select(c => c.NameWithoutExtension).ToArray()); // dayOfWeek
             result.Pet = data.Resolve("pet")?.Children.Select(c => Requirement.Parse(c));
             result.PetTamenessMin = data.ResolveFor<int>("pettamenessmin");
             result.DayByDay = data.ResolveFor<bool>("dayByDay");
@@ -61,11 +62,14 @@ namespace maplestory.io.Data.Quests
             return result;
         }
 
-        static DayOfWeek? ResolveDayOfWeek(string v)
+        static DayOfWeek[] ResolveDayOfWeek(params string[] daysOfWeek)
         {
-            if (v == null) return null;
+            if (daysOfWeek == null) return null;
             Dictionary<string, string> days = Enum.GetNames(typeof(DayOfWeek)).ToDictionary(c => c.Substring(0, 3).ToLower(), c => c);
-            return (DayOfWeek)Enum.Parse(typeof(DayOfWeek), days.ContainsKey(v.ToLower()) ? days[v.ToLower()] : "Sunday");
+            return daysOfWeek.Select(v =>
+            {
+                return (DayOfWeek)Enum.Parse(typeof(DayOfWeek), days.ContainsKey(v.ToLower()) ? days[v.ToLower()] : "Sunday");
+            }).ToArray();
         }
 
         static DateTime? ResolveDateTimeString(string dt)
