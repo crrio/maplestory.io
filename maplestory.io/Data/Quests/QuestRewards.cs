@@ -23,6 +23,7 @@ namespace maplestory.io.Data.Quests
 
         public static QuestRewards[] Parse(WZProperty data)
         {
+            if (data == null) return null;
             int id = int.Parse(data.NameWithoutExtension);
             QuestRewards onStart = QuestRewards.Parse(id, data.Resolve("0"), QuestState.Start);
             QuestRewards onComplete = QuestRewards.Parse(id, data.Resolve("1"), QuestState.Complete);

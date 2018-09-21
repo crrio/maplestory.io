@@ -29,6 +29,7 @@ namespace maplestory.io.Data.Quests
 
         public static QuestRequirements[] Parse(WZProperty data)
         {
+            if (data == null) return null;
             int id = int.Parse(data.NameWithoutExtension);
             QuestRequirements onStart = QuestRequirements.Parse(id, data.Resolve("0"), QuestState.Start);
             QuestRequirements onComplete = QuestRequirements.Parse(id, data.Resolve("1"), QuestState.Complete);

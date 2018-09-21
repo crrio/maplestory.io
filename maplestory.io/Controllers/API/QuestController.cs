@@ -15,13 +15,19 @@ namespace maplestory.io.Controllers.API
 
         [Route("{questId}")]
         [HttpGet]
-        public IActionResult GetQuest(int questId) => Json(QuestFactory.GetQuest(questId));
+        public IActionResult GetQuest(int questId)
+        {
+            var quest = QuestFactory.GetQuest(questId);
+            if (quest == null) return NotFound();
+            return Json(quest);
+        }
 
         [Route("{questId}/name")]
         [HttpGet]
         public IActionResult GetName(int questId)
         {
             var questData = QuestFactory.GetQuest(questId);
+            if (questData == null) return NotFound();
             return Json(new
             {
                 id = questData.Id,

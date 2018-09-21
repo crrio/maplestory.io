@@ -47,6 +47,7 @@ namespace maplestory.io.Data.Quests
 
         public static Quest Parse(WZProperty data)
         {
+            if (data == null) return null;
             Quest result = new Quest();
 
             result.Id = int.Parse(data.NameWithoutExtension);
@@ -85,9 +86,10 @@ namespace maplestory.io.Data.Quests
         }
 
         public static Quest GetQuest(WZProperty questWz, int questId) {
-            QuestRewards[] rewards = QuestRewards.Parse(questWz.Resolve($"Act/{questId}"));
-            QuestRequirements[] requirements = QuestRequirements.Parse(questWz.Resolve($"Check/{questId}"));
+            QuestRewards[] rewards = QuestRewards.Parse(questWz.Resolve($"Act/{questId}")) ?? new QuestRewards[0];
+            QuestRequirements[] requirements = QuestRequirements.Parse(questWz.Resolve($"Check/{questId}")) ?? new QuestRequirements[0];
             Quest quest = Quest.Parse(questWz.Resolve($"QuestInfo/{questId}"));
+            if (quest == null) return null;
 
             quest.RequirementToComplete = requirements?.Where(b => b != null && b.State == QuestState.Complete).FirstOrDefault();
             quest.RequirementToStart = requirements?.Where(b => b != null && b.State == QuestState.Start).FirstOrDefault();
