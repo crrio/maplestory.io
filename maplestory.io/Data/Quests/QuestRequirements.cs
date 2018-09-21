@@ -39,7 +39,6 @@ namespace maplestory.io.Data.Quests
         {
             QuestRequirements result = new QuestRequirements();
 
-
             result.Id = id;
             result.State = state;
             result.Jobs = data.Resolve("job")?.Children.Select(c => Convert.ToInt32(((IWZPropertyVal)c).GetValue())); // job
@@ -65,7 +64,7 @@ namespace maplestory.io.Data.Quests
         static DayOfWeek? ResolveDayOfWeek(string v)
         {
             if (v == null) return null;
-            Dictionary<string, string> days = Enum.GetNames(typeof(DayOfWeek)).ToDictionary(c => c.Substring(0, 3), c => c);
+            Dictionary<string, string> days = Enum.GetNames(typeof(DayOfWeek)).ToDictionary(c => c.Substring(0, 3).ToLower(), c => c);
             return (DayOfWeek)Enum.Parse(typeof(DayOfWeek), days.ContainsKey(v.ToLower()) ? days[v.ToLower()] : "Sunday");
         }
 
