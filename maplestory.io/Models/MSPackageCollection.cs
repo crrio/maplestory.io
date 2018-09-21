@@ -76,7 +76,17 @@ namespace maplestory.io.Models
 
             string questPath = Path.Combine(base.Folder, "questAvailableOnComplete.json");
             if (File.Exists(questPath))
-                AvailableOnCompleteTable = JsonConvert.DeserializeObject<Dictionary<int, QuestRequirements[]>>(File.ReadAllText(questPath));
+            {
+                try
+                {
+                    AvailableOnCompleteTable = JsonConvert.DeserializeObject<Dictionary<int, QuestRequirements[]>>(File.ReadAllText(questPath));
+                }
+                catch (Exception ex)
+                {
+                    Logger.LogWarning("Error when loading quest completion data, rebuilding");
+                    loading.Add(CacheQuestsAvailableOnComplete(questPath));
+                }
+            }
             else loading.Add(CacheQuestsAvailableOnComplete(questPath));
 
             string npcQuestsPath = Path.Combine(base.Folder, "npcQuests.json");
