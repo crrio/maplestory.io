@@ -36,6 +36,8 @@ namespace maplestory.io.Models
         public IDictionary<int, Tuple<string, int, bool>> MobMeta;
         public IDictionary<int, int[]> ItemDrops;
         public IDictionary<int, QuestRequirements[]> AvailableOnCompleteTable;
+        public IDictionary<int, int[]> NPCQuests;
+
         public MSPackageCollection() { }
         public MSPackageCollection(string baseFilePath, ushort? versionId = null, Region region = Region.GMS) : base(baseFilePath, versionId, region) => Load();
         public MSPackageCollection(MapleVersion versionInfo, ushort? versionId = null, Region region = Region.GMS) 
@@ -76,6 +78,11 @@ namespace maplestory.io.Models
             if (File.Exists(questPath))
                 AvailableOnCompleteTable = JsonConvert.DeserializeObject<Dictionary<int, QuestRequirements[]>>(File.ReadAllText(questPath));
             else loading.Add(CacheQuestsAvailableOnComplete(questPath));
+
+            string npcQuestsPath = Path.Combine(base.Folder, "npcQuests.json");
+            if (File.Exists(npcQuestsPath))
+                NPCQuests = JsonConvert.DeserializeObject<Dictionary<int, int[]>>(File.ReadAllText(npcQuestsPath));
+            else loading.Add(CacheNPCQuests(npcQuestsPath));
 
             if (loading.Count > 0)
             {
@@ -241,6 +248,26 @@ ORDER BY ANY_VALUE(`folder`)", (MySqlConnection)con);
 
                 File.WriteAllText(path, JsonConvert.SerializeObject(availableOnCompleteTable));
                 AvailableOnCompleteTable = availableOnCompleteTable;
+            });
+        }
+
+        Task CacheNPCQuests(string path)
+        {
+            return Task.Run(() =>
+            {
+                Logger.LogInformation("Caching NPC Quests lookup for {0}", base.Folder);
+
+                Dictionary<int, int[]> npcQuests = Resolve("Quest/Check").Children
+                    .AsParallel()
+                    .Select(QuestRequirements.Parse)
+                    .Select(c => c.Where(b => b != null).ToArray())
+                    .Where(c => c.Length > 0)
+                    .GroupBy(c => c.First().NPCId, c => c.First().Id)
+                    .Where(c => c.Key.HasValue)
+                    .ToDictionary(c => c.Key.Value, c => c.ToArray());
+
+                File.WriteAllText(path, JsonConvert.SerializeObject(npcQuests));
+                NPCQuests = npcQuests;
             });
         }
 
