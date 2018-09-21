@@ -44,6 +44,18 @@ namespace maplestory.io.Controllers.API
             return File(firstFrame.Image.ImageToByte(Request), "image/png");
         }
 
+        [Route("{mobId}/name")]
+        [HttpGet]
+        public IActionResult GetName(int mobId)
+        {
+            Mob mobData = MobFactory.GetMob(mobId);
+            return Json(new
+            {
+                Name = mobData.Name,
+                Id = mobData.Id
+            });
+        }
+
         [Route("{mobId}/render/{framebook}/{frame?}")]
         [HttpGet]
         public IActionResult Render(int mobId, string framebook, int frame = 0)
