@@ -121,7 +121,7 @@ namespace maplestory.io.Models
             {
                 Logger.LogInformation("Caching NPC Quests lookup for {0}", base.Folder);
 
-                Dictionary<int, Tuple<int, string>[]> questAreaLookup = Resolve("Quest/QuestInfo").Children
+                Dictionary<int, Tuple<int, string>[]> questAreaLookup = Resolve("Quest/QuestInfo")?.Children
                     .AsParallel()
                     .Where(c => int.TryParse(c.NameWithoutExtension, out int blah))
                     .Select(c => new Tuple<int, int?, string>(int.Parse(c.NameWithoutExtension), c.ResolveFor<int>("area"), c.ResolveForOrNull<string>("name")))
@@ -139,7 +139,7 @@ namespace maplestory.io.Models
             {
                 Logger.LogInformation("Caching NPC Quests lookup for {0}", base.Folder);
 
-                Dictionary<int, string> questAreaNames = Resolve("Etc/QuestCategory").Children
+                Dictionary<int, string> questAreaNames = Resolve("Etc/QuestCategory")?.Children
                     .AsParallel()
                     .Select(c => new Tuple<int?, string>(c.ResolveFor<int>("category"), c.ResolveForOrNull<string>("title")))
                     .Where(c => c.Item1.HasValue)
@@ -287,12 +287,14 @@ ORDER BY ANY_VALUE(`folder`)", (MySqlConnection)con);
             {
                 Logger.LogInformation("Caching quests available on complete for {0}", base.Folder);
 
-                Dictionary<int, QuestRequirements[]> requirements = Resolve("Quest/Check").Children
+                Dictionary<int, QuestRequirements[]> requirements = Resolve("Quest/Check")?.Children
                     .AsParallel()
                     .Select(QuestRequirements.Parse)
                     .Select(c => c.Where(b => b != null).ToArray())
                     .Where(c => c.Length > 0)
                     .ToDictionary(c => c.First().Id, c => c);
+
+                if (requirements == null) return;
 
                 IEnumerable<Tuple<int, QuestRequirements>> allStartRequirements = requirements.Values.Where(c => c != null)
                 .Select(c => c.Where(b => b != null).FirstOrDefault(b => b.State == QuestState.Start))
@@ -314,7 +316,7 @@ ORDER BY ANY_VALUE(`folder`)", (MySqlConnection)con);
             {
                 Logger.LogInformation("Caching NPC Quests lookup for {0}", base.Folder);
 
-                Dictionary<int, int[]> npcQuests = Resolve("Quest/Check").Children
+                Dictionary<int, int[]> npcQuests = Resolve("Quest/Check")?.Children
                     .AsParallel()
                     .Select(QuestRequirements.Parse)
                     .Select(c => c.Where(b => b != null).ToArray())
