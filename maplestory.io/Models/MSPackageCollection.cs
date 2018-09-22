@@ -37,7 +37,8 @@ namespace maplestory.io.Models
         public IDictionary<int, int[]> ItemDrops;
         public IDictionary<int, QuestRequirements[]> AvailableOnCompleteTable;
         public IDictionary<int, int[]> NPCQuests;
-        public Dictionary<int, string> QuestAreaNames;
+        public IDictionary<int, string> QuestAreaNames;
+        public IDictionary<int, Tuple<int, string>[]> QuestAreaLookup;
 
         public MSPackageCollection() { }
         public MSPackageCollection(string baseFilePath, ushort? versionId = null, Region region = Region.GMS) : base(baseFilePath, versionId, region) => Load();
@@ -100,6 +101,11 @@ namespace maplestory.io.Models
                 QuestAreaNames = JsonConvert.DeserializeObject<Dictionary<int, string>>(File.ReadAllText(questAreaNamesPath));
             else loading.Add(CacheQuestAreaNames(questAreaNamesPath));
 
+            string questsInAreaLookup = Path.Combine(base.Folder, "questAreas.json");
+            if (File.Exists(questsInAreaLookup))
+                QuestAreaLookup = JsonConvert.DeserializeObject<Dictionary<int, Tuple<int, string>[]>>(File.ReadAllText(questsInAreaLookup));
+            else loading.Add(CacheQuestsInArea(questsInAreaLookup));
+
             if (loading.Count > 0)
             {
                 Task all = Task.WhenAll(loading.ToArray());
@@ -107,6 +113,24 @@ namespace maplestory.io.Models
 
                 if (all.Exception != null) Logger.LogCritical($"Exception when loading WZ: {base.Folder}\r\n{all.Exception.ToString()}");
             }
+        }
+
+        Task CacheQuestsInArea(string path)
+        {
+            return Task.Run(() =>
+            {
+                Logger.LogInformation("Caching NPC Quests lookup for {0}", base.Folder);
+
+                Dictionary<int, Tuple<int, string>[]> questAreaLookup = Resolve("Quest/QuestInfo").Children
+                    .AsParallel()
+                    .Where(c => int.TryParse(c.NameWithoutExtension, out int blah))
+                    .Select(c => new Tuple<int, int?, string>(int.Parse(c.NameWithoutExtension), c.ResolveFor<int>("area"), c.ResolveForOrNull<string>("name")))
+                    .GroupBy(c => c.Item2)
+                    .ToDictionary(c => c.Key ?? -1, c => c.Select(b => new Tuple<int, string>(b.Item1, b.Item3)).ToArray());
+
+                File.WriteAllText(path, JsonConvert.SerializeObject(questAreaLookup));
+                QuestAreaLookup = questAreaLookup;
+            });
         }
 
         Task CacheQuestAreaNames(string path)

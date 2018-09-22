@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using System.Linq;
 
 namespace maplestory.io.Controllers.API
 {
@@ -21,6 +22,16 @@ namespace maplestory.io.Controllers.API
             if (quest == null) return NotFound();
             return Json(quest);
         }
+
+        [Route("category")]
+        [HttpGet]
+        public IActionResult GetQuestCategories()
+            => Json(WZ.QuestAreaNames.OrderBy(c => c.Key));
+
+        [Route("category/{category}")]
+        [HttpGet]
+        public IActionResult GetQuestInCategory(int category)
+            => WZ.QuestAreaLookup.TryGetValue(category, out var inCategory) ? Json(inCategory.Select(c => new { id = c.Item1, name = c.Item2 }).OrderBy(c => c.id)) : (IActionResult)NotFound();
 
         [Route("{questId}/name")]
         [HttpGet]
