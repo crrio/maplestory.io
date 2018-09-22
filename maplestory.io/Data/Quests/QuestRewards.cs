@@ -20,6 +20,7 @@ namespace maplestory.io.Data.Quests
         public IEnumerable<SkillReward> Skills; // skill
         public uint? Meso; // money
         public QuestState State;
+        public uint? MoveToMap;
 
         public static QuestRewards[] Parse(WZProperty data)
         {
@@ -49,6 +50,7 @@ namespace maplestory.io.Data.Quests
             result.Items = data.Resolve("item")?.Children.Select(c => ItemReward.Parse(c));
             result.Skills = data.Resolve("skill")?.Children.Select(c => SkillReward.Parse(c));
             result.Meso = (uint?)data.ResolveFor<int>("money");
+            result.MoveToMap = (uint?)data.ResolveFor<int>("transferField");
 
             return result;
         }
