@@ -60,7 +60,7 @@ namespace maplestory.io.Data.NPC
             result.Function = stringWz.ResolveForOrNull<string>("func");
             result.Name = stringWz.ResolveForOrNull<string>("name");
             result.Dialogue = stringWz.Children
-                .Where(c => c.NameWithoutExtension != "func" && c.NameWithoutExtension != "name" && c.NameWithoutExtension != "dialogue")
+                .Where(c => c.NameWithoutExtension != "func" && c.NameWithoutExtension != "name" && c.NameWithoutExtension != "dialogue" && c is IWZPropertyVal)
                 .ToDictionary(c => c.NameWithoutExtension, c => ((IWZPropertyVal)c).GetValue().ToString());
 
             result.IsShop = result.npcImg?.ResolveFor<bool>("info/shop") ?? false;
