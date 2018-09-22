@@ -1,3 +1,4 @@
+using maplestory.io.Models;
 using Microsoft.AspNetCore.Mvc;
 using System.Linq;
 
@@ -31,7 +32,12 @@ namespace maplestory.io.Controllers.API
         [Route("category/{category}")]
         [HttpGet]
         public IActionResult GetQuestInCategory(int category)
-            => WZ.QuestAreaLookup.TryGetValue(category, out var inCategory) ? Json(inCategory.Select(c => new { id = c.Item1, name = c.Item2 }).OrderBy(c => c.id)) : (IActionResult)NotFound();
+            => WZ.QuestAreaLookup.TryGetValue(category, out var inCategory) && ((MSPackageCollection)WZ).QuestAreaNames.TryGetValue(category, out var categoryDetails) ? Json(new
+            {
+                id = category,
+                name = categoryDetails,
+                quests = inCategory.Select(c => new { id = c.Item1, name = c.Item2 }).OrderBy(c => c.id)
+            }) : (IActionResult)NotFound();
 
         [Route("{questId}/name")]
         [HttpGet]
