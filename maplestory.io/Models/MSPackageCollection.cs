@@ -37,6 +37,7 @@ namespace maplestory.io.Models
         public IDictionary<int, int[]> ItemDrops;
         public IDictionary<int, QuestRequirements[]> AvailableOnCompleteTable;
         public IDictionary<int, int[]> NPCQuests;
+        public Dictionary<int, string> QuestAreaNames;
 
         public MSPackageCollection() { }
         public MSPackageCollection(string baseFilePath, ushort? versionId = null, Region region = Region.GMS) : base(baseFilePath, versionId, region) => Load();
@@ -94,6 +95,11 @@ namespace maplestory.io.Models
                 NPCQuests = JsonConvert.DeserializeObject<Dictionary<int, int[]>>(File.ReadAllText(npcQuestsPath));
             else loading.Add(CacheNPCQuests(npcQuestsPath));
 
+            string questAreaNamesPath = Path.Combine(base.Folder, "questAreaNames.json");
+            if (File.Exists(questAreaNamesPath))
+                QuestAreaNames = JsonConvert.DeserializeObject<Dictionary<int, string>>(File.ReadAllText(questAreaNamesPath));
+            else loading.Add(CacheQuestAreaNames(questAreaNamesPath));
+
             if (loading.Count > 0)
             {
                 Task all = Task.WhenAll(loading.ToArray());
@@ -101,6 +107,23 @@ namespace maplestory.io.Models
 
                 if (all.Exception != null) Logger.LogCritical($"Exception when loading WZ: {base.Folder}\r\n{all.Exception.ToString()}");
             }
+        }
+
+        Task CacheQuestAreaNames(string path)
+        {
+            return Task.Run(() =>
+            {
+                Logger.LogInformation("Caching NPC Quests lookup for {0}", base.Folder);
+
+                Dictionary<int, string> questAreaNames = Resolve("Etc/QuestCategory").Children
+                    .AsParallel()
+                    .Select(c => new Tuple<int?, string>(c.ResolveFor<int>("category"), c.ResolveForOrNull<string>("title")))
+                    .Where(c => c.Item1.HasValue)
+                    .ToDictionary(c => c.Item1.Value, c => c.Item2);
+
+                File.WriteAllText(path, JsonConvert.SerializeObject(questAreaNames));
+                QuestAreaNames = questAreaNames;
+            });
         }
 
         Task CacheCharacterFolders(string characterFoldersPath)

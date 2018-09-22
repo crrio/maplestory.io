@@ -16,6 +16,7 @@ namespace maplestory.io.Data.Quests
         public bool? AutoAccept; // autoAccept
         public string Name; // name
         public int? Area; // area
+        public string AreaName;
         public string DemandSummary; // demandSummary
         public string RewardSummary; // rewardSummary
         public string PlaceSummary;
@@ -58,6 +59,8 @@ namespace maplestory.io.Data.Quests
             result.AutoAccept = data.ResolveFor<bool>("autoAccept");
             result.Name = data.ResolveForOrNull<string>("name");
             result.Area = data.ResolveFor<int>("area");
+            if (result.Area.HasValue && data.FileContainer.Collection is MSPackageCollection)
+                ((MSPackageCollection)(data.FileContainer.Collection)).QuestAreaNames.TryGetValue(result.Area.Value, out result.AreaName);
             result.DemandSummary = data.ResolveForOrNull<string>("demandSummary");
             result.RewardSummary = data.ResolveForOrNull<string>("rewardSummary");
             result.PlaceSummary = data.ResolveForOrNull<string>("placeSummary");
