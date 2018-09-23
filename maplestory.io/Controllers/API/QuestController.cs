@@ -27,15 +27,15 @@ namespace maplestory.io.Controllers.API
         [Route("category")]
         [HttpGet]
         public IActionResult GetQuestCategories()
-            => Json(WZ.QuestAreaNames.OrderBy(c => c.Key));
+            => Json(WZ.QuestAreaLookup.Select(c => new { id = c.Key, name = WZ.QuestAreaNames.TryGetValue(c.Key, out string name) ? name : "Unknown" }));
 
         [Route("category/{category}")]
         [HttpGet]
         public IActionResult GetQuestInCategory(int category)
-            => WZ.QuestAreaLookup.TryGetValue(category, out var inCategory) && ((MSPackageCollection)WZ).QuestAreaNames.TryGetValue(category, out var categoryDetails) ? Json(new
+            => WZ.QuestAreaLookup.TryGetValue(category, out var inCategory) ? Json(new
             {
                 id = category,
-                name = categoryDetails,
+                name = ((MSPackageCollection)WZ).QuestAreaNames.TryGetValue(category, out var categoryDetails) ? categoryDetails : "Unknown",
                 quests = inCategory.Select(c => new { id = c.Item1, name = c.Item2 }).OrderBy(c => c.id)
             }) : (IActionResult)NotFound();
 
