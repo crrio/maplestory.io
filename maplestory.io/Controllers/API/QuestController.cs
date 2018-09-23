@@ -20,6 +20,12 @@ namespace maplestory.io.Controllers.API
         public IActionResult GetQuest(int questId)
         {
             var quest = QuestFactory.GetQuest(questId);
+
+            if (quest.RequirementToStart.NPCId.HasValue)
+                quest.RequirementToStart.NPCInfo = NPCFactory.GetNPC(quest.RequirementToStart.NPCId.Value);
+            if (quest.RequirementToComplete.NPCId.HasValue)
+                quest.RequirementToComplete.NPCInfo = NPCFactory.GetNPC(quest.RequirementToComplete.NPCId.Value);
+
             if (quest == null) return NotFound();
             return Json(quest);
         }

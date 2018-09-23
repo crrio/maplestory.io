@@ -18,6 +18,7 @@ namespace maplestory.io.Data.Quests
         public IEnumerable<Requirement> Items; // item
         public IEnumerable<Requirement> Quests; // quest
         public int? NPCId; // npc
+        public NPC.NPC NPCInfo;
         public DayOfWeek[] OnDayOfWeek; // dayOfWeek
         public bool? AnyPet;
         public IEnumerable<Requirement> Pet; // pet
