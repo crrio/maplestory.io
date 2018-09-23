@@ -1,3 +1,4 @@
+using maplestory.io.Data.Characters;
 using maplestory.io.Data.Images;
 using maplestory.io.Data.NPC;
 using Microsoft.AspNetCore.Mvc;
@@ -21,6 +22,18 @@ namespace maplestory.io.Controllers
         public IActionResult GetFrame(int npcId)
         {
             NPC npcData = NPCFactory.GetNPC(npcId);
+
+            if (npcData.IsComponentNPC ?? false)
+            {
+                return File(AvatarFactory.Render(new Character()
+                {
+                    AnimationName = "stand1",
+                    ItemEntries = npcData.ComponentIds
+                        .Concat(new int[] { npcData.ComponentSkin ?? 2000, (npcData.ComponentSkin ?? 2000) + 10000 })
+                        .Select(c => new AvatarItemEntry() { ItemId = c, Region = Region, Version = Version })
+                        .ToArray()
+                }).ImageToByte(Request), "image/png");
+            }
             if (!npcData.Framebooks.ContainsKey("stand")) return NotFound();
 
             FrameBook standing = npcData.GetFrameBook("stand").First();
@@ -49,6 +62,19 @@ namespace maplestory.io.Controllers
         public IActionResult Render(int npcId, string framebook, int frame = 0)
         {
             NPC npcData = NPCFactory.GetNPC(npcId);
+
+            if (npcData.IsComponentNPC ?? false)
+            {
+                return File(AvatarFactory.Render(new Character()
+                {
+                    AnimationName = framebook,
+                    FrameNumber = frame,
+                    ItemEntries = npcData.ComponentIds
+                        .Concat(new int[] { npcData.ComponentSkin ?? 2000, (npcData.ComponentSkin ?? 2000) + 10000 })
+                        .Select(c => new AvatarItemEntry() { ItemId = c, Region = Region, Version = Version })
+                        .ToArray()
+                }).ImageToByte(Request), "image/png");
+            }
 
             FrameBook standing = npcData.GetFrameBook(framebook).First();
             if (standing == null) return NotFound();
