@@ -1,3 +1,4 @@
+using maplestory.io.Data.Quests;
 using maplestory.io.Models;
 using Microsoft.AspNetCore.Mvc;
 using System.Linq;
@@ -51,7 +52,7 @@ namespace maplestory.io.Controllers.API
         {
             var questData = QuestFactory.GetQuest(questId);
             if (questData == null) return NotFound();
-            return Json(new
+            return Json(new QuestName()
             {
                 id = questData.Id,
                 name = questData.Name

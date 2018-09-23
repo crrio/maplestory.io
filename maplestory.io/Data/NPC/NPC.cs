@@ -7,6 +7,7 @@ using PKG1;
 using maplestory.io.Data.Maps;
 using maplestory.io.Data.Images;
 using maplestory.io.Models;
+using maplestory.io.Data.Quests;
 
 namespace maplestory.io.Data.NPC
 {
@@ -29,6 +30,7 @@ namespace maplestory.io.Data.NPC
         public int[] ComponentIds;
         public MapName[] FoundAt;
         public int[] RelatedQuests;
+        public QuestName[] RelatedQuestsInfo;
 
         public static NPC Parse(WZProperty stringWz, bool followLink = true)
         {

@@ -5,6 +5,12 @@ using System.Linq;
 
 namespace maplestory.io.Data.Quests
 {
+    public class QuestName
+    {
+        public int id;
+        public string name;
+    }
+
     public class Quest
     {
         public int Id;

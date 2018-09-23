@@ -1,6 +1,7 @@
 using maplestory.io.Data.Characters;
 using maplestory.io.Data.Images;
 using maplestory.io.Data.NPC;
+using maplestory.io.Data.Quests;
 using Microsoft.AspNetCore.Mvc;
 using System.Linq;
 
@@ -15,7 +16,12 @@ namespace maplestory.io.Controllers
 
         [Route("{npcId}")]
         [HttpGet]
-        public IActionResult GetNPC(int npcId) => Json(NPCFactory.GetNPC(npcId));
+        public IActionResult GetNPC(int npcId)
+        {
+            NPC npcInfo = NPCFactory.GetNPC(npcId);
+            npcInfo.RelatedQuestsInfo = npcInfo.RelatedQuests.Select(c => QuestFactory.GetQuest(c)).Where(c => c != null).Select(c => new QuestName() { id = c.Id, name = c.Name }).ToArray();
+            return Json(npcInfo);
+        }
 
         [Route("{npcId}/icon")]
         [HttpGet]
