@@ -27,6 +27,7 @@ namespace maplestory.io.Data.Quests
         public bool? NormalAutoStart; // normalAutoStart
         public int? MinimumMonsterBookCards; // mbmin
         public QuestState State;
+        public int? RepeatInterval;
 
         public static QuestRequirements[] Parse(WZProperty data)
         {
@@ -62,6 +63,7 @@ namespace maplestory.io.Data.Quests
             result.DayByDay = data.ResolveFor<bool>("dayByDay");
             result.NormalAutoStart = data.ResolveFor<bool>("normalAutoStart");
             result.MinimumMonsterBookCards = data.ResolveFor<int>("mbmin");
+            result.RepeatInterval = data.ResolveFor<int>("interval");
 
             return result;
         }
