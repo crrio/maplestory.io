@@ -18,7 +18,7 @@ namespace maplestory.io.Data.Quests
         public int? PetSkill; // petskill
         public IEnumerable<ItemReward> Items; // item
         public IEnumerable<SkillReward> Skills; // skill
-        public uint? Meso; // money
+        public int? Meso; // money
         public QuestState State;
         public uint? MoveToMap;
 
