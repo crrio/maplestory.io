@@ -43,7 +43,7 @@ namespace maplestory.io.Controllers.API
             {
                 id = category,
                 name = ((MSPackageCollection)WZ).QuestAreaNames.TryGetValue(category, out var categoryDetails) ? categoryDetails : "Unknown",
-                quests = inCategory.Select(c => new { id = c.Item1, name = c.Item2 }).OrderBy(c => c.id)
+                quests = inCategory.Where(c => c.Item2 != null).Select(c => new { id = c.Item1, name = c.Item2 }).OrderBy(c => c.id)
             }) : (IActionResult)NotFound();
 
         [Route("{questId}/name")]
