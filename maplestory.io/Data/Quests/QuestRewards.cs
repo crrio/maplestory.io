@@ -41,15 +41,15 @@ namespace maplestory.io.Data.Quests
             result.Id = id;
             result.State = state;
             result.Message = data.ResolveForOrNull<string>("message");
-            result.Exp = (int?)data.ResolveFor<int>("exp");
-            result.BuffItemId = (int?)data.ResolveFor<int>("buffItemId");
-            result.charmExp = (int?)data.ResolveFor<int>("charmEXP");
-            result.SenseEXP = (int?)data.ResolveFor<int>("senseEXP");
-            result.Fame = (int?)data.ResolveFor<int>("pop");
-            result.PetSkill = (int?)data.ResolveFor<int>("petskill");
+            result.Exp = data.ResolveFor<int>("exp");
+            result.BuffItemId = data.ResolveFor<int>("buffItemId");
+            result.charmExp = data.ResolveFor<int>("charmEXP");
+            result.SenseEXP = data.ResolveFor<int>("senseEXP");
+            result.Fame = data.ResolveFor<int>("pop");
+            result.PetSkill = data.ResolveFor<int>("petskill");
             result.Items = data.Resolve("item")?.Children.Select(c => ItemReward.Parse(c));
             result.Skills = data.Resolve("skill")?.Children.Select(c => SkillReward.Parse(c));
-            result.Meso = (uint?)data.ResolveFor<int>("money");
+            result.Meso = data.ResolveFor<int>("money");
             result.MoveToMap = (uint?)data.ResolveFor<int>("transferField");
 
             return result;
