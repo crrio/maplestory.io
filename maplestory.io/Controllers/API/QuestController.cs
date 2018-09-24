@@ -34,7 +34,7 @@ namespace maplestory.io.Controllers.API
         [Route("category")]
         [HttpGet]
         public IActionResult GetQuestCategories()
-            => Json(WZ.QuestAreaLookup.Select(c => new { id = c.Key, name = WZ.QuestAreaNames.TryGetValue(c.Key, out string name) ? name : "Unknown" }));
+            => Json(WZ.QuestAreaLookup.Select(c => new { id = c.Key, name = WZ.QuestAreaNames.TryGetValue(c.Key, out string name) ? name : "Unknown" }).OrderBy(c => c.id));
 
         [Route("category/{category}")]
         [HttpGet]
