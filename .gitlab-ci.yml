@@ -4,21 +4,21 @@ variables:
 stages:
     - build
     - image
-    - deploy
+    - test
+    - image_pass
 
 build:
     stage: build
     image: microsoft/dotnet:2.1-sdk
     script:
-        - dotnet --info
-        - cd $CI_PROJECT_DIR
         - ls -lh
         - dotnet restore
-        - dotnet publish -c Release
+        - dotnet publish -c Release -o build maplestory.io
+        - ls -lh maplestory.io
     artifacts:
         name: "MapleStory.IO"
         paths:
-            - /builds/maplestory/maplestory.io/maplestory.io/bin/Release/netcoreapp2.1/
+            - maplestory.io/build
 
 docker_image:
     only:
@@ -32,15 +32,38 @@ docker_image:
     script:
         - docker login -u gitlab-ci-token -p ${CI_JOB_TOKEN} registry.crr.io
         - echo ${CI_COMMIT_SHA:0:8} > SHA1.hash
-        - docker build -t registry.crr.io/${CI_PROJECT_PATH}:latest .
-        - docker push registry.crr.io/${CI_PROJECT_PATH}:latest
-        - docker tag registry.crr.io/${CI_PROJECT_PATH}:latest registry.crr.io/${CI_PROJECT_PATH}:${CI_COMMIT_SHA:0:8}
+        - docker build -t registry.crr.io/${CI_PROJECT_PATH}:${CI_COMMIT_SHA:0:8} .
         - docker push registry.crr.io/${CI_PROJECT_PATH}:${CI_COMMIT_SHA:0:8}
+
+test:
+    stage: test
+    only:
+        - master
+    image: registry.crr.io/${CI_PROJECT_PATH}:latest
+    script:
+        - echo 'TODO More comprehensive tests once S3 migration is complete'
+        - /bin/wait-for-it.sh -t 120 127.0.0.1:5000
+        - curl --silent --show-error --fail -o /dev/null localhost:5000 && echo 'Successfully loaded home page'
+
+docker_image_latest:
+    stage: image_pass
+    only:
+        - master
+    tags:
+        - docker
+    image: docker:stable
+    services:
+        - docker:dind
+    script:
+        - docker login -u gitlab-ci-token -p ${CI_JOB_TOKEN} registry.crr.io
+        - docker pull registry.crr.io/${CI_PROJECT_PATH}:${CI_COMMIT_SHA:0:8}
+        - docker tag registry.crr.io/${CI_PROJECT_PATH}:${CI_COMMIT_SHA:0:8} registry.crr.io/${CI_PROJECT_PATH}:latest
+        - docker push registry.crr.io/${CI_PROJECT_PATH}:latest
 
 kubernetes_deploy:
     only:
         - master
-    stage: deploy
+    stage: image_pass
     image: registry.crr.io/crrio/kubernetes-deploy:latest
     environment:
         name: maplestory.io

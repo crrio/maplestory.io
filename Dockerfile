@@ -1,17 +1,6 @@
-FROM microsoft/dotnet:2.1-sdk AS build-env
-WORKDIR /app
-
-COPY PKG1/PKG1.csproj ./PKG1/
-RUN dotnet restore PKG1
-
-# Copy csproj and restore as distinct layers
-COPY maplestory.io/maplestory.io.csproj ./maplestory.io/
-RUN dotnet restore maplestory.io
-
-# Copy everything else and build
-COPY . ./
-RUN dotnet publish -c Release -o out maplestory.io
-COPY SHA1.hash /app/maplestory.io/out/SHA1.hash
+# Add wait-for-it
+ADD https://raw.githubusercontent.com/vishnubob/wait-for-it/master/wait-for-it.sh /bin/wait-for-it.sh
+RUN chmod +x /bin/wait-for-it.sh
 
 # Build runtime image
 FROM microsoft/dotnet:2.1-aspnetcore-runtime
@@ -20,5 +9,5 @@ COPY maplestory.io/run.sh .
 RUN chmod +x /app/run.sh
 COPY maplestory.io/gms.aes .
 COPY maplestory.io/kms.aes .
-COPY --from=build-env /app/maplestory.io/out .
+COPY maplestory.io/build .
 ENTRYPOINT ["sh", "run.sh"]
