@@ -1,3 +1,2 @@
 #!/bin/sh
-
-export DOTNET_PID=$(cd /app && dotnet maplestory.io.dll &)
+dotnet maplestory.io.dll

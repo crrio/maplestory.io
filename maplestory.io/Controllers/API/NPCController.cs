@@ -19,7 +19,7 @@ namespace maplestory.io.Controllers
         public IActionResult GetNPC(int npcId)
         {
             NPC npcInfo = NPCFactory.GetNPC(npcId);
-            npcInfo.RelatedQuestsInfo = npcInfo.RelatedQuests.Select(c => QuestFactory.GetQuest(c)).Where(c => c != null).Select(c => new QuestName() { id = c.Id, name = c.Name }).ToArray();
+            npcInfo.RelatedQuestsInfo = npcInfo.RelatedQuests?.Select(c => QuestFactory.GetQuest(c)).Where(c => c != null).Select(c => new QuestName() { id = c.Id, name = c.Name }).ToArray();
             return Json(npcInfo);
         }
 

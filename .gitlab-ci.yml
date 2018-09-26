@@ -42,10 +42,10 @@ test:
     image: registry.crr.io/${CI_PROJECT_PATH}:${CI_COMMIT_SHA}
     script:
         - echo 'TODO More comprehensive tests once S3 migration is complete'
-        - sh /app/run.sh
-        - echo $DOTNET_PID
+        - sh /app/run.sh &
         - /bin/wait-for-it.sh -t 120 127.0.0.1:5000
         - curl --silent --show-error --fail -o /dev/null localhost:5000 && echo 'Successfully loaded home page'
+        - echo 'Being safe and ensuring forked process is disposed of' && kill $!
 
 docker_image_latest:
     stage: image_pass
