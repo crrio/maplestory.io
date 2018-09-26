@@ -10,3 +10,4 @@ COPY maplestory.io/gms.aes .
 COPY maplestory.io/kms.aes .
 COPY maplestory.io/build .
 ENTRYPOINT ["sh", "run.sh"]
+CMD []
