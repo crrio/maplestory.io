@@ -1,9 +1,8 @@
-# Add wait-for-it
+FROM microsoft/dotnet:2.1-aspnetcore-runtime
+
 ADD https://raw.githubusercontent.com/vishnubob/wait-for-it/master/wait-for-it.sh /bin/wait-for-it.sh
 RUN chmod +x /bin/wait-for-it.sh
 
-# Build runtime image
-FROM microsoft/dotnet:2.1-aspnetcore-runtime
 WORKDIR /app
 COPY maplestory.io/run.sh .
 RUN chmod +x /app/run.sh
