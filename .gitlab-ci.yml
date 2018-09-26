@@ -31,15 +31,15 @@ docker_image:
         - docker:dind
     script:
         - docker login -u gitlab-ci-token -p ${CI_JOB_TOKEN} registry.crr.io
-        - echo ${CI_COMMIT_SHA:0:8} > SHA1.hash
-        - docker build -t registry.crr.io/${CI_PROJECT_PATH}:${CI_COMMIT_SHA:0:8} .
-        - docker push registry.crr.io/${CI_PROJECT_PATH}:${CI_COMMIT_SHA:0:8}
+        - echo ${CI_COMMIT_SHA} > SHA1.hash
+        - docker build -t registry.crr.io/${CI_PROJECT_PATH}:${CI_COMMIT_SHA} .
+        - docker push registry.crr.io/${CI_PROJECT_PATH}:${CI_COMMIT_SHA}
 
 test:
     stage: test
     only:
         - master
-    image: registry.crr.io/${CI_PROJECT_PATH}:${CI_COMMIT_SHA:0:8}
+    image: registry.crr.io/${CI_PROJECT_PATH}:${CI_COMMIT_SHA}
     script:
         - echo 'TODO More comprehensive tests once S3 migration is complete'
         - /bin/wait-for-it.sh -t 120 127.0.0.1:5000
@@ -56,8 +56,8 @@ docker_image_latest:
         - docker:dind
     script:
         - docker login -u gitlab-ci-token -p ${CI_JOB_TOKEN} registry.crr.io
-        - docker pull registry.crr.io/${CI_PROJECT_PATH}:${CI_COMMIT_SHA:0:8}
-        - docker tag registry.crr.io/${CI_PROJECT_PATH}:${CI_COMMIT_SHA:0:8} registry.crr.io/${CI_PROJECT_PATH}:latest
+        - docker pull registry.crr.io/${CI_PROJECT_PATH}:${CI_COMMIT_SHA}
+        - docker tag registry.crr.io/${CI_PROJECT_PATH}:${CI_COMMIT_SHA} registry.crr.io/${CI_PROJECT_PATH}:latest
         - docker push registry.crr.io/${CI_PROJECT_PATH}:latest
 
 kubernetes_deploy:
@@ -69,4 +69,4 @@ kubernetes_deploy:
         name: maplestory.io
         url: https://maplestory.io/
     script:
-        - ~/kubectl set image deployment/io io=registry.crr.io/${CI_PROJECT_PATH}:${CI_COMMIT_SHA:0:8} --namespace=maplestory
+        - ~/kubectl set image deployment/io io=registry.crr.io/${CI_PROJECT_PATH}:${CI_COMMIT_SHA} --namespace=maplestory
