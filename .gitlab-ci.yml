@@ -39,7 +39,7 @@ test:
     stage: test
     only:
         - master
-    image: registry.crr.io/${CI_PROJECT_PATH}:latest
+    image: registry.crr.io/${CI_PROJECT_PATH}:${CI_COMMIT_SHA:0:8}
     script:
         - echo 'TODO More comprehensive tests once S3 migration is complete'
         - /bin/wait-for-it.sh -t 120 127.0.0.1:5000
