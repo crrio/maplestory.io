@@ -150,6 +150,8 @@ namespace maplestory.io.Models
                     .AsParallel()
                     .Select(c => new Tuple<int?, string>(c.ResolveFor<int>("category"), c.ResolveForOrNull<string>("title")))
                     .Where(c => c.Item1.HasValue)
+                    .GroupBy(c => c.Item1.Value)
+                    .Select(c => c.First())
                     .ToDictionary(c => c.Item1.Value, c => c.Item2);
 
                 File.WriteAllText(path, JsonConvert.SerializeObject(questAreaNames));
