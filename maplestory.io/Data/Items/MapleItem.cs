@@ -1,4 +1,5 @@
-﻿ using System;
+﻿using maplestory.io.Data.Quests;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;

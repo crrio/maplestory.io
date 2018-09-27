@@ -1,11 +1,20 @@
 ﻿using maplestory.io.Data.Items;
 using maplestory.io.Data.Mobs;
+using maplestory.io.Data.Quests;
+using maplestory.io.Models;
 using PKG1;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
 namespace maplestory.io.Data
 {
+    public class ItemRelatedQuest
+    {
+        public Requirement ItemRequirement;
+        public int Id;
+    }
+
     public class ItemInfo
     {
         /// <summary>
@@ -23,6 +32,7 @@ namespace maplestory.io.Data
         public MobInfo[] DroppedBy;
         public ItemSet Set;
         public Dictionary<string, string> ConsumeSpec;
+        public ItemRelatedQuest[] RelatedQuests;
 
         public  static ItemInfo Parse(WZProperty characterItem)
         {
@@ -38,6 +48,9 @@ namespace maplestory.io.Data
             results.Icon = IconInfo.Parse(info);
             results.Set = ItemSet.ParseItemInfo(info);
             results.ConsumeSpec = characterItem?.Resolve("spec")?.Children.ToDictionary(c => c.NameWithoutExtension, c => c.ResolveForOrNull<string>());
+
+            if (characterItem?.FileContainer?.Collection is MSPackageCollection && int.TryParse(info.Parent.NameWithoutExtension, out int itemId))
+                ((MSPackageCollection)characterItem.FileContainer.Collection).ItemQuests.TryGetValue(itemId, out results.RelatedQuests);
 
             return results;
         }

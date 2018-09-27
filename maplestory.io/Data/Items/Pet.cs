@@ -1,11 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Reflection;
-using System.Threading.Tasks;
+﻿using maplestory.io.Data.Images;
 using PKG1;
-using maplestory.io.Data.Images;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace maplestory.io.Data.Items
 {
@@ -21,11 +17,8 @@ namespace maplestory.io.Data.Items
 
             Pet p = new Pet(id);
             WZProperty petEntry = stringWz.ResolveOutlink($"Item/Pet/{id}");
-
             p.frameBooks = petEntry.Children.Where(c => c.NameWithoutExtension != "info").ToDictionary(c => c.NameWithoutExtension, c => FrameBook.Parse(c));
-
             p.Description = ItemDescription.Parse(stringWz, id);
-
             p.MetaInfo = ItemInfo.Parse(petEntry);
 
             return p ?? null;

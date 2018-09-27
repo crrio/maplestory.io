@@ -1,4 +1,5 @@
-﻿using maplestory.io.Data.Quests;
+﻿using maplestory.io.Data;
+using maplestory.io.Data.Quests;
 using maplestory.io.Entities;
 using maplestory.io.Entities.Models;
 using Microsoft.Extensions.Logging;
@@ -39,6 +40,7 @@ namespace maplestory.io.Models
         public IDictionary<int, int[]> NPCQuests;
         public IDictionary<int, string> QuestAreaNames;
         public IDictionary<int, Tuple<int, string>[]> QuestAreaLookup;
+        public IDictionary<int, ItemRelatedQuest[]> ItemQuests;
 
         public MSPackageCollection() { }
         public MSPackageCollection(string baseFilePath, ushort? versionId = null, Region region = Region.GMS) : base(baseFilePath, versionId, region) => Load();
@@ -95,6 +97,11 @@ namespace maplestory.io.Models
             if (File.Exists(npcQuestsPath))
                 NPCQuests = JsonConvert.DeserializeObject<Dictionary<int, int[]>>(File.ReadAllText(npcQuestsPath));
             else loading.Add(CacheNPCQuests(npcQuestsPath));
+
+            string itemQuestsPath = Path.Combine(base.Folder, "itemQuests.json");
+            if (File.Exists(itemQuestsPath))
+                ItemQuests = JsonConvert.DeserializeObject<Dictionary<int, ItemRelatedQuest[]>>(File.ReadAllText(itemQuestsPath));
+            else loading.Add(CacheItemQuests(itemQuestsPath));
 
             string questAreaNamesPath = Path.Combine(base.Folder, "questAreaNames.json");
             if (File.Exists(questAreaNamesPath))
@@ -307,6 +314,27 @@ ORDER BY ANY_VALUE(`folder`)", (MySqlConnection)con);
 
                 File.WriteAllText(path, JsonConvert.SerializeObject(availableOnCompleteTable));
                 AvailableOnCompleteTable = availableOnCompleteTable;
+            });
+        }
+
+        private Task CacheItemQuests(string path)
+        {
+            return Task.Run(() =>
+            {
+                Logger.LogInformation("Caching Item Quests lookup for {0}", base.Folder);
+
+                Dictionary<int, ItemRelatedQuest[]> itemQuests = Resolve("Quest/Check")?.Children
+                    .AsParallel()
+                    .Select(QuestRequirements.Parse)
+                    .Select(c => c.Where(b => b != null).ToArray())
+                    .Where(c => c.Length > 0 && c.First().Items != null)
+                    .SelectMany(c => c.First().Items.Select(b => new ItemRelatedQuest() { Id = c.First().Id, ItemRequirement = b }))
+                    .Where(c => c.ItemRequirement.Id.HasValue)
+                    .GroupBy(c => c.ItemRequirement.Id)
+                    .ToDictionary(c => c.Key.Value, c => c.ToArray());
+
+                File.WriteAllText(path, JsonConvert.SerializeObject(itemQuests));
+                ItemQuests = itemQuests;
             });
         }
 
