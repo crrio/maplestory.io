@@ -63,6 +63,12 @@ namespace maplestory.io.Data.Maps
 
                 DirectMaps result = new DirectMaps();
                 result.Spot = prop.ResolveFor<Point>("spot");
+                if (result.Spot == null)
+                {
+                    string[] childrenNames = prop.Children.Select(c => c.NameWithoutExtension).ToArray();
+                    if (childrenNames.Contains("x") && childrenNames.Contains("y"))
+                        result.Spot = new Point(prop.ResolveFor<int>("x").Value, prop.ResolveFor<int>("y").Value);
+                }
                 result.Type = prop.ResolveFor<int>("type");
                 result.Title = prop.ResolveForOrNull<string>("desc");
                 result.Description = prop.ResolveForOrNull<string>("title");
