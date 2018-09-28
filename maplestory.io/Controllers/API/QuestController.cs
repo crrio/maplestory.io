@@ -1,6 +1,7 @@
 using maplestory.io.Data.Quests;
 using maplestory.io.Models;
 using Microsoft.AspNetCore.Mvc;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace maplestory.io.Controllers.API
@@ -15,7 +16,7 @@ namespace maplestory.io.Controllers.API
             [FromQuery] int startPosition = 0,
             [FromQuery] int? count = null
         ) => Json(QuestFactory.GetQuests(searchFor, startPosition, count));
-
+        
         [Route("{questId}")]
         [HttpGet]
         public IActionResult GetQuest(int questId)

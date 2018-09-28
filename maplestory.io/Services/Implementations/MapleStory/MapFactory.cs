@@ -23,6 +23,11 @@ namespace maplestory.io.Services.Implementations.MapleStory
             if (link != map) map.ExtendFrom(link);
             return map;
         }
+        public WorldMap GetWorldMap(string id)
+        {
+            WZProperty worldMapNode = WZ.Resolve($"Map/WorldMap/{id}");
+            return WorldMap.Parse(worldMapNode);
+        }
         public MapMark GetMapMark(string markName) => MapMark.Parse(WZ.Resolve($"Map/MapHelper.img/mark/{markName}"));
         public IEnumerable<MapName> GetMapNames(string searchFor = null, int startPosition = 0, int? count = null) {
             if (!string.IsNullOrEmpty(searchFor)) searchFor.ToLower();
