@@ -318,7 +318,7 @@ namespace maplestory.io.Data.Maps
             {
                 foreach(MapLife life in map.Life)
                 {
-                    int layer = (life.Foothold.LayerId + 1) * 2;
+                    int layer = life.Foothold == null ? 1000000000 : (life.Foothold.LayerId + 1) * 2;
                     bool found = false;
                     foreach(KeyValuePair<WZProperty, ConcurrentBag<IPositionedFrameContainer>> layerEntry in allGraphicsParsed)
                         if (found = GetLayerIndex(layerEntry.Key) == layer)
@@ -336,7 +336,7 @@ namespace maplestory.io.Data.Maps
                 foreach (KeyValuePair<int, List<MapLife>> pendingRender in pendingLifeRender)
                 {
                     otherLayers.Add(Task.Run(() => renderedLayers.TryAdd(pendingRender.Key, RenderPositioned(pendingRender.Value))));
-                    otherLayers.Add(Task.Run(() => renderedLayers.TryAdd(pendingRender.Key + 1, RenderLifeNames(map.Life))));
+                    //otherLayers.Add(Task.Run(() => renderedLayers.TryAdd(pendingRender.Key + 1, RenderLifeNames(map.Life))));
                 }
             }
             if (showPortals) otherLayers.Add(Task.Run(() => renderedLayers.TryAdd(2000000003, RenderPositioned(map.portals.Where(c => c.Type == PortalType.Portal)))));
@@ -401,7 +401,7 @@ namespace maplestory.io.Data.Maps
             x.Fill(new Rgba32(0, 0, 0, 128), boxPosition);
             IPathCollection iPath = BuildCorners(boxPosition.X, boxPosition.Y, boxPosition.Width, boxPosition.Height, 4);
             x.Fill(new Rgba32(0, 0, 0, 0), iPath);
-            x.DrawText(npc.Name, MaplestoryFont, npc.Type == LifeType.NPC ? new Rgba32(223, 220, 109, byte.MaxValue) : new Rgba32(255, 255, 255, byte.MaxValue), new PointF(boxPosition.X + 2, boxPosition.Y - 1));
+            x.DrawText(npc.Name, MaplestoryFont, npc.Type == LifeType.NPC ? new Rgba32(223, 220, 109, byte.MaxValue) : new Rgba32(255, 255, 255, byte.MaxValue), new PointF(boxPosition.X + 2, boxPosition.Y + 4));
         }
 
         void DisposeLayers(object layersState)
