@@ -40,7 +40,7 @@ namespace maplestory.io.Data.NPC
             result.Id = id;
 
             if (stringWz?.FileContainer?.Collection is MSPackageCollection)
-                ((MSPackageCollection)stringWz.FileContainer.Collection).NPCQuests.TryGetValue(id, out result.RelatedQuests);
+                ((MSPackageCollection)stringWz.FileContainer.Collection).NPCQuests?.TryGetValue(id, out result.RelatedQuests);
 
             result.npcImg = stringWz.ResolveOutlink($"Npc/{id.ToString("D7")}");
             result.Link = result.npcImg.ResolveFor<int>("info/link") ?? result.npcImg.ResolveFor<int>("link");

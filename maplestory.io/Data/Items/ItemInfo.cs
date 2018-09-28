@@ -50,7 +50,7 @@ namespace maplestory.io.Data
             results.ConsumeSpec = characterItem?.Resolve("spec")?.Children.ToDictionary(c => c.NameWithoutExtension, c => c.ResolveForOrNull<string>());
 
             if (characterItem?.FileContainer?.Collection is MSPackageCollection && int.TryParse(info.Parent.NameWithoutExtension, out int itemId))
-                ((MSPackageCollection)characterItem.FileContainer.Collection).ItemQuests.TryGetValue(itemId, out results.RelatedQuests);
+                ((MSPackageCollection)characterItem.FileContainer.Collection).ItemQuests?.TryGetValue(itemId, out results.RelatedQuests);
 
             return results;
         }
