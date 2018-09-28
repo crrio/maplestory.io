@@ -23,8 +23,8 @@ namespace maplestory.io.Data.Maps
             result.BaseImage = worldMapNode.Resolve("BaseImg").Children.Select(c => Frame.Parse(c)).ToArray();
             result.WorldMapName = worldMapNode.ResolveForOrNull<string>("info/WorldMap");
             result.ParentWorld = worldMapNode.ResolveForOrNull<string>("info/parentMap");
-            result.Links = worldMapNode.Resolve("MapLink").Children.Select(c => WorldMapLink.Parse(c)).Where(c => c != null).ToArray();
-            result.Maps = worldMapNode.Resolve("MapList").Children.Select(c => DirectMaps.Parse(c)).Where(c => c != null).ToArray();
+            result.Links = worldMapNode.Resolve("MapLink")?.Children.Select(c => WorldMapLink.Parse(c)).Where(c => c != null).ToArray();
+            result.Maps = worldMapNode.Resolve("MapList")?.Children.Select(c => DirectMaps.Parse(c)).Where(c => c != null).ToArray();
 
             return result;
         }
