@@ -21,9 +21,13 @@ namespace maplestory.io.Controllers.API
             return Json(MapFactory.GetMap(mapId));
         }
 
-        [Route("worldmap/{map?}")]
+        [Route("worldmap")]
         [HttpGet]
-        public IActionResult GetWorldMap(string map = "WorldMap")
+        public IActionResult GetWorldMaps() => Json(MapFactory.GetWorldMaps());
+
+        [Route("worldmap/{map}")]
+        [HttpGet]
+        public IActionResult GetWorldMap(string map)
         {
             var result = MapFactory.GetWorldMap(map);
             if (result == null) return NotFound();

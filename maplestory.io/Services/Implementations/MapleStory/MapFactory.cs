@@ -23,6 +23,7 @@ namespace maplestory.io.Services.Implementations.MapleStory
             if (link != map) map.ExtendFrom(link);
             return map;
         }
+        public string[] GetWorldMaps() => WZ.Resolve("Map/WorldMap").Children.Select(c => c.NameWithoutExtension).ToArray();
         public WorldMap GetWorldMap(string id)
         {
             WZProperty worldMapNode = WZ.Resolve($"Map/WorldMap/{id}");
