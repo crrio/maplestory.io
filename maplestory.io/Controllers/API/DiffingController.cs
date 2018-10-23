@@ -15,15 +15,29 @@ namespace maplestory.io.Controllers.API
     [Route("/api/{region}/{version}/diff")]
     public class DiffingController : APIController
     {
-        const string DiffQuery = @"SELECT 
-	`Path`,
-    (SELECT count(*) FROM `VersionPathHashes` WHERE `ImgName` = a.`ImgName` && `MapleVersionId` in ({0}) && strcmp(`Path`, a.`Path`) = 0) as ExistedBefore,
-    (SELECT `MapleVersionId` from `MapleVersions` c WHERE c.`Id` = (SELECT `MapleVersionId` from `VersionPathHashes` b WHERE b.`Id` = a.`ResolvesTo`)) HasntChangedSince
-FROM 
-	`VersionPathHashes` a
-WHERE `ImgName` is not null 
-AND (a.`ResolvesTo` is null OR (SELECT `MapleVersionId` from `VersionPathHashes` b WHERE b.`Id` = a.`ResolvesTo`) in ({0}))
-AND `MapleVersionId` = @originalVersion;";
+        const string DiffQuery =
+            @"SELECT `Path`,
+            (
+              SELECT COUNT(*)
+              FROM `VersionPathHashes`
+              WHERE
+                `ImgName` = a.`ImgName`
+                AND `MapleVersionId` IN ({0})
+                AND STRCMP(`Path`, a.`Path`) = 0
+            ) AS ExistedBefore,
+            (
+              SELECT `MapleVersionId`
+              FROM `MapleVersions` AS c
+              WHERE c.`Id` = (
+                SELECT `MapleVersionId`
+                FROM `VersionPathHashes` b
+                WHERE b.`Id` = a.`ResolvesTo`)
+            ) HasntChangedSince
+            FROM `VersionPathHashes` a
+            WHERE
+              `ImgName` IS NOT NULL 
+              AND (a.`ResolvesTo` IS NULL OR (SELECT `MapleVersionId` FROM `VersionPathHashes` b WHERE b.`Id` = a.`ResolvesTo`) IN ({0}))
+              AND `MapleVersionId` = @originalVersion;";
 
         public DiffingController(ApplicationDbContext dbCtx) => _ctx = dbCtx;
         private readonly ApplicationDbContext _ctx;
