@@ -235,4 +235,5 @@ _Pvt_Extensions
 maplestory.io/appsettings.json
 maplestory.io/appsettings.Development.json
 
-idea/
+.vscode/
+.idea/
