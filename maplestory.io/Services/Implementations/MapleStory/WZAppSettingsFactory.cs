@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore.Internal;
 
 namespace maplestory.io.Services.Implementations.MapleStory
 {
@@ -26,7 +27,10 @@ namespace maplestory.io.Services.Implementations.MapleStory
 
         public MSPackageCollection GetWZ(Region region, string version)
         {
-            if (version == null) version = "latest";
+            if (version == null)
+            {
+                version = "latest";
+            }
 
             EventWaitHandle wait = new EventWaitHandle(false, EventResetMode.ManualReset);
             string versionHash = $"{region.ToString()}-{version}";
@@ -45,8 +49,16 @@ namespace maplestory.io.Services.Implementations.MapleStory
                 else throw new KeyNotFoundException("That version or region could not be found");
             }
 
-            WZVersion wzVersion = _config.versions.Where(c => c.region == region && c.version == version).First();
-            MSPackageCollection collection = new MSPackageCollection(wzVersion.path, ushort.TryParse(wzVersion.version, out ushort ver) ? (ushort?)ver : null, wzVersion.region);
+            // If there's no version, default to latest.
+            // TODO(acornwall): Verify that this is correct behavior.
+            var maybeVersion = _config.versions.Where(c => c.region == region && c.version == version);
+            WZVersion wzVersion =
+                maybeVersion.FirstOr(_config.versions.First(c => c.region == region && c.version == "latest"));
+            MSPackageCollection collection =
+                new MSPackageCollection(
+                    wzVersion.path,
+                    ushort.TryParse(wzVersion.version, out ushort ver) ? (ushort?) ver : null,
+                    wzVersion.region);
 
             Logger.LogInformation($"Finished loading {region} - {version}");
             if (cache[region].TryAdd(version, collection) && cache[region].ContainsKey("latest"))
