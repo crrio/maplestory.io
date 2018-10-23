@@ -165,8 +165,8 @@ namespace maplestory.io.Models
             {
                 Logger.LogInformation("Caching character folders for {0}", base.Folder);
 
-                if (Environment.GetEnvironmentVariable("MYSQL_DBHOST") == null)
-                {
+//                if (Environment.GetEnvironmentVariable("MYSQL_DBHOST") == null)
+//                {
                     WZProperty characterWz = base.Resolve("Character");
 
                     categoryFolders = characterWz.Children.Where(c => c.Type != PropertyType.Image).SelectMany(c => c.Children).Select(c =>
@@ -177,34 +177,34 @@ namespace maplestory.io.Models
                             return null;
                     }).Where(c => c != null).DistinctBy(c => c.Item1).ToDictionary(c => c.Item1, c => c.Item2);
                     File.WriteAllText(characterFoldersPath, JsonConvert.SerializeObject(categoryFolders));
-                }
-                else
-                {
-                    categoryFolders = new Dictionary<int, string>();
-                    using (MySqlConnection con = new MySqlConnection(ApplicationDbContext.GetConnectionString()))
-                    {
-                        if (con.State == System.Data.ConnectionState.Closed) con.Open();
-                        MySqlCommand com = new MySqlCommand(@"SELECT CONVERT(`categoryId`, UNSIGNED), ANY_VALUE(folder) FROM (SELECT 
-    *,
-    @Num:= CONVERT(`ImgName`, UNSIGNED) as Num,
-    floor(@Num / 100) categoryId,
-    substr(`Path`, 10),
-    @NoDataStart:= if(`Path` like 'Data%', substr(`Path`, 6), `Path`),
-    substr(@NoDataStart, 11, locate('/', @NoDataStart, 11) - 11) folder
-FROM 
-	`maplestory.io`.`VersionPathHashes`
-WHERE `MapleVersionId` = " + MapleVersion.Id + @"
-AND `PackageName` = 'Character'
-) a
-WHERE `categoryId` IS NOT NULL
-GROUP BY `categoryId`
-ORDER BY ANY_VALUE(`folder`)", (MySqlConnection)con);
-                        using (MySqlDataReader reader = com.ExecuteReader())
-                            while (reader.Read())
-                                categoryFolders.Add(Convert.ToInt32(reader[0]), (string)reader[1]);
-                        File.WriteAllText(characterFoldersPath, JsonConvert.SerializeObject(categoryFolders));
-                    }
-                }
+//                }
+//                else
+//                {
+//                    categoryFolders = new Dictionary<int, string>();
+//                    using (MySqlConnection con = new MySqlConnection(ApplicationDbContext.GetConnectionString()))
+//                    {
+//                        if (con.State == System.Data.ConnectionState.Closed) con.Open();
+//                        MySqlCommand com = new MySqlCommand(@"SELECT CONVERT(`categoryId`, UNSIGNED), ANY_VALUE(folder) FROM (SELECT 
+//    *,
+//    @Num:= CONVERT(`ImgName`, UNSIGNED) as Num,
+//    floor(@Num / 100) categoryId,
+//    substr(`Path`, 10),
+//    @NoDataStart:= if(`Path` like 'Data%', substr(`Path`, 6), `Path`),
+//    substr(@NoDataStart, 11, locate('/', @NoDataStart, 11) - 11) folder
+//FROM 
+//	`maplestory.io`.`VersionPathHashes`
+//WHERE `MapleVersionId` = " + MapleVersion.Id + @"
+//AND `PackageName` = 'Character'
+//) a
+//WHERE `categoryId` IS NOT NULL
+//GROUP BY `categoryId`
+//ORDER BY ANY_VALUE(`folder`)", (MySqlConnection)con);
+//                        using (MySqlDataReader reader = com.ExecuteReader())
+//                            while (reader.Read())
+//                                categoryFolders.Add(Convert.ToInt32(reader[0]), (string)reader[1]);
+//                        File.WriteAllText(characterFoldersPath, JsonConvert.SerializeObject(categoryFolders));
+//                    }
+//                }
             });
         }
 
