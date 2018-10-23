@@ -234,3 +234,5 @@ _Pvt_Extensions
 .fake/
 maplestory.io/appsettings.json
 maplestory.io/appsettings.Development.json
+
+idea/
