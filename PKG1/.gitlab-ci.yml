@@ -1,0 +1,15 @@
+stages:
+    - build
+
+build:
+    stage: build
+    image: microsoft/dotnet:2.1-sdk
+    script:
+        - dotnet --info
+        - cd /builds/maplestory/PKG1
+        - dotnet restore
+        - dotnet publish -c Release
+    artifacts:
+        name: "PKG1"
+        paths:
+            - /builds/maplestory/PKG1/bin/Release/netcoreapp2.1
