@@ -25,7 +25,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Content Include="appsettings.Development.json.example" />
     <Content Include="appsettings.json.example" />
   </ItemGroup>
   <ItemGroup>
